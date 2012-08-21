@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file alias="qgismobileapp.qml">qml/qgismobileapp.qml</file>
+        <file alias="Window.qml">qml/Window.qml</file>
+        <file alias="Dialog.qml">qml/Dialog.qml</file>
+        <file alias="DialogTitle.qml">qml/DialogTitle.qml</file>
+        <file alias="OkCancelButtons.qml">qml/OkCancelButtons.qml</file>
+		    <file alias="ActionBar.qml">qml/ActionBar.qml</file>
+        <file alias="ActionButton.qml">qml/ActionButton.qml</file>
+        <file alias="Button.qml">qml/Button.qml</file>
+        <file alias="Checkbox.qml">qml/Checkbox.qml</file>
+        <file alias="GradientBackground.qml">qml/GradientBackground.qml</file>
+        <file alias="MenuElement.qml">qml/MenuElement.qml</file>
+        <file alias="Menu.qml">qml/Menu.qml</file>
+        <file alias="OpaqueBackground.qml">qml/OpaqueBackground.qml</file>
+        <file alias="Spinner.qml">qml/Spinner.qml</file>
+        <file alias="TextField.qml">qml/TextField.qml</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file alias="icon">../../images/icons/qgis_icon.svg</file>
+    </qresource>
+</RCC>
