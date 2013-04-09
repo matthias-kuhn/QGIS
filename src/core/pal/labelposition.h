@@ -66,6 +66,8 @@ namespace pal
 
       int nbOverlap;
 
+      int overlapThreshold;
+
       double x[4], y[4];
       double alpha;
       double w;
@@ -152,6 +154,7 @@ namespace pal
 
       double getNumOverlaps() const { return nbOverlap; }
       void resetNumOverlaps() { nbOverlap = 0; } // called from problem.cpp, pal.cpp
+      void setOverlapThreshold( int ot ) { overlapThreshold = ot; }
 
       int getProblemFeatureId() const { return probFeat; }
       /** set problem feature ID and assigned label candidate ID.

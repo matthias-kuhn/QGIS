@@ -576,6 +576,8 @@ namespace pal
 
 
     j = 0;
+    int overlapThreshold = sqrt( fFeats->size() * 6 );
+
     while ( fFeats->size() > 0 ) // foreach feature
     {
       feat = fFeats->pop_front();
@@ -583,6 +585,7 @@ namespace pal
       {
         lp = feat->lPos[i];
         lp->resetNumOverlaps();
+        lp->setOverlapThreshold( overlapThreshold );
 
         // make sure that candidate's cost is less than 1
         lp->validateCost();
@@ -596,9 +599,9 @@ namespace pal
         prob->candidates->Search( amin, amax, LabelPosition::countOverlapCallback, ( void* ) lp );
 
         nbOverlaps += lp->getNumOverlaps();
-#ifdef _DEBUG_FULL_
+
         std::cout << "Nb overlap for " << idlp << "/" << prob->nblp - 1 << " : " << lp->getNumOverlaps() << std::endl;
-#endif
+
       }
       j++;
       delete[] feat->lPos;

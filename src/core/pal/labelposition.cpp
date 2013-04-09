@@ -420,6 +420,9 @@ namespace pal
     {
       //std::cerr << "conflict!" << std::endl;
       lp2->nbOverlap++;
+
+      if ( lp2->nbOverlap > lp2->overlapThreshold )
+        return false;
     }
 
     return true;

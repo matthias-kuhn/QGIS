@@ -34,7 +34,6 @@
 #ifndef _PAL_H
 #define _PAL_H
 
-
 #include <list>
 #include <iostream>
 #include <ctime>

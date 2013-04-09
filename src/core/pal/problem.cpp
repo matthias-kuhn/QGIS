@@ -362,9 +362,8 @@ namespace pal
       int probFeatId = lp->getProblemFeatureId();
       sol->s[probFeatId] = label;
 
-#ifdef _DEBUG_FULL_
-      std::cout << "sol->s[" << lp->probFeat << "] :" << label << std::endl;
-#endif
+
+      std::cout << "sol->s[" << lp->getProblemFeatureId() << "] :" << label << ", " << lp->getNumOverlaps() << std::endl;
 
       for ( i = featStartId[probFeatId]; i < featStartId[probFeatId] + featNbLp[probFeatId]; i++ )
       {
@@ -1292,23 +1291,23 @@ namespace pal
 #ifdef _DEBUG_FULL_
     std::cout << "chainCallback" << std::endl;
     std::cout << "      lp from rtree: " << lp << std::endl;
-    std::cout << "    lpid from rtree: " << lp->id << std::endl;
-    std::cout << "    lpco from rtree: " << lp->cost << std::endl;
+    std::cout << "    lpid from rtree: " << lp->getId() << std::endl;
+    std::cout << "    lpco from rtree: " << lp->getCost() << std::endl;
     std::cout << "    lp from context: " << ctx->lp << std::endl;
-    std::cout << "  lpid from context: " << ctx->lp->id << std::endl;
-    std::cout << "  lpco from context: " << ctx->lp->cost << std::endl;
+    std::cout << "  lpid from context: " << ctx->lp->getId() << std::endl;
+    std::cout << "  lpco from context: " << ctx->lp->getCost() << std::endl;
     std::cout << "          delta_tmp: " << ctx->delta_tmp << std::endl;
     std::cout << "         *delta_tmp: " << *ctx->delta_tmp << std::endl;
     std::cout << "       inactiveCost: " << ctx->inactiveCost << std::endl;
 #endif
 
 #ifdef _DEBUG_FULL_
-    std::cout << "ejChCallBack: " << lp->id << "<->" << ctx->lp->id << std::endl;
+    std::cout << "ejChCallBack: " << lp->getId() << "<->" << ctx->lp->getId() << std::endl;
 #endif
     if ( lp->isInConflict( ctx->lp ) )
     {
 #ifdef _DEBUG_FULL_
-      std::cout << "ejChCallBack: " << lp->id << "<->" << ctx->lp->id << std::endl;
+      std::cout << "ejChCallBack: " << lp->getId() << "<->" << ctx->lp->getId() << std::endl;
       std::cout << "    Conflictual..." << std::endl;
 #endif
       int feat, rfeat;
@@ -1325,7 +1324,7 @@ namespace pal
 
 #ifdef _DEBUG_FULL_
       std::cout << "    feat: " << feat << std::endl;
-      std::cout << "    sol: " << ctx->tmpsol[feat] << "/" << lp->id << std::endl;
+      std::cout << "    sol: " << ctx->tmpsol[feat] << "/" << lp->getId() << std::endl;
       std::cout << "    border:" << ctx->borderSize << std::endl;
 #endif
       if ( feat >= 0 && ctx->tmpsol[feat] == lp->getId() )
@@ -2295,7 +2294,7 @@ namespace pal
           fid = retainedChain->feat[i];
           lid = retainedChain->label[i];
 #ifdef _DEBUG_FULL_
-          std::cout << fid << ": " << sol[fid] << " -> " << lid << " Costs: " << inactiveCost[fid] << ":" << ( sol[fid] != -1 ? labelpositions[sol[fid]]->cost : -1 ) << ":" << ( lid != -1 ? labelpositions[lid]->cost : -1 ) <<  std::endl;
+          std::cout << fid << ": " << sol[fid] << " -> " << lid << " Costs: " << inactiveCost[fid] << ":" << ( sol[fid] != -1 ? labelpositions[sol[fid]]->getCost() : -1 ) << ":" << ( lid != -1 ? labelpositions[lid]->getCost() : -1 ) <<  std::endl;
 #endif
 
           if ( sol[fid] >= 0 )
@@ -2316,7 +2315,7 @@ namespace pal
           if ( lid > -1 )
           {
             std::cout << "label[lid]: " << labelpositions[lid] << std::endl;
-            std::cout << "label[lid]->cost: " << labelpositions[lid]->cost << std::endl;
+            std::cout << "label[lid]->cost: " << labelpositions[lid]->getCost() << std::endl;
           }
 #endif
           candidatesUnsorted[fid-borderSize]->cost = ( lid == -1 ? inactiveCost[sub[fid]] : labelpositions[lid]->getCost() );
@@ -2727,9 +2726,9 @@ namespace pal
           if ( sol->s[fid] == -1 || lid == -1 )
             std::cout << "feat inactive :" << inactiveCost[fid] << std::endl;
           if ( sol->s[fid] >= 0 )
-            std::cout << "old cost : " << labelpositions[sol->s[fid]]->cost << std::endl;
+            std::cout << "old cost : " << labelpositions[sol->s[fid]]->getCost() << std::endl;
           if ( lid >= 0 )
-            std::cout << "new cost : " << labelpositions[lid]->cost << std::endl;
+            std::cout << "new cost : " << labelpositions[lid]->getCost() << std::endl;
 #endif
 
           if ( sol->s[fid] >= 0 )
