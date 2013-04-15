@@ -12,6 +12,7 @@ debian/*.substvars
 Makefile
 *-stamp
 api_doc
+python_doc
 build*
 ms-windows/Installer-Files/postinstall.bat
 ms-windows/Installer-Files/preremove.bat
