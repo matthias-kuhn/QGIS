@@ -496,8 +496,33 @@ void GlobePlugin::syncExtent()
 
 void GlobePlugin::setupControls()
 {
+  std::string imgDir;
 
-  std::string imgDir = QDir::cleanPath( QgsApplication::pkgDataPath() + "/globe/gui" ).toStdString();
+  if ( QgsApplication::runningFromBuildPath() )
+  {
+    imgDir = QDir::cleanPath( QgsApplication::pkgDataPath() + "/src/plugins/globe/images/gui" ).toStdString();
+  }
+  else
+  {
+    imgDir = QDir::cleanPath( QgsApplication::pkgDataPath() + "/globe/gui" ).toStdString();
+  }
+
+//MOVE CONTROLS
+  //Horizontal container
+  HBox* moveHControls = new HBox();
+  moveHControls->setFrame( new RoundedFrame() );
+  moveHControls->getFrame()->setBackColor( 1, 1, 1, 0.5 );
+  moveHControls->setMargin( 0 );
+#if HAVE_OSGEARTH_CHILD_SPACING
+  moveHControls->setChildSpacing( 47 );
+#else
+  moveHControls->setSpacing( 47 );
+#endif
+  moveHControls->setVertAlign( Control::ALIGN_CENTER );
+  moveHControls->setHorizAlign( Control::ALIGN_CENTER );
+  moveHControls->setPosition( 5, 30 );
+  moveHControls->setPadding( 6 );
+
   osgEarth::Util::EarthManipulator* manip = dynamic_cast<osgEarth::Util::EarthManipulator*>( mOsgViewer->getCameraManipulator() );
 
   // Set scroll sensitivity
