@@ -500,6 +500,18 @@ void GlobePlugin::setupControls()
   std::string imgDir = QDir::cleanPath( QgsApplication::pkgDataPath() + "/globe/gui" ).toStdString();
   osgEarth::Util::EarthManipulator* manip = dynamic_cast<osgEarth::Util::EarthManipulator*>( mOsgViewer->getCameraManipulator() );
 
+  // Set scroll sensitivity
+  osgEarth::Util::EarthManipulator::Settings* settings = manip->getSettings();
+  QgsDebugMsg( QString( "Scroll sensitivity %1" ).arg( mSettingsDialog->scrollSensitivity() ) );
+  settings->setScrollSensitivity( mSettingsDialog->scrollSensitivity() );
+  if ( !mSettingsDialog->invertScrollWheel() )
+  {
+    settings->bindScroll( osgEarth::Util::EarthManipulator::ACTION_ZOOM_IN, osgGA::GUIEventAdapter::SCROLL_UP );
+    settings->bindScroll( osgEarth::Util::EarthManipulator::ACTION_ZOOM_OUT, osgGA::GUIEventAdapter::SCROLL_DOWN );
+  }
+  manip->applySettings( settings );
+
+
   osg::Image* yawPitchWheelImg = osgDB::readImageFile( imgDir + "/YawPitchWheel.png" );
   ImageControl* yawPitchWheel = new ImageControl( yawPitchWheelImg );
   int imgLeft = 16;
@@ -507,7 +519,7 @@ void GlobePlugin::setupControls()
   yawPitchWheel->setPosition( imgLeft, imgTop );
   mControlCanvas->addControl( yawPitchWheel );
 
-  //ROTATE CONTROLS
+//ROTATE CONTROLS
   Control* rotateCCW = new NavigationControl();
   rotateCCW->setHeight( 22 );
   rotateCCW->setWidth( 20 );
@@ -530,7 +542,7 @@ void GlobePlugin::setupControls()
   rotateReset->addEventHandler( new RotateControlHandler( manip, 0, 0 ) );
   mControlCanvas->addControl( rotateReset );
 
-  //TILT CONTROLS
+//TILT CONTROLS
   Control* tiltUp = new NavigationControl();
   tiltUp->setHeight( 19 );
   tiltUp->setWidth( 24 );

@@ -45,6 +45,7 @@ QgsGlobePluginDialog::QgsGlobePluginDialog( QWidget* parent, Qt::WFlags fl )
   setupUi( this );
   loadStereoConfig();  //values from settings, default values from OSG
   setStereoConfig(); //overwrite with values from QSettings
+  loadNavigationSettings();
   updateStereoDialog(); //update the dialog gui
 
   elevationPath->setText( QDir::homePath() );
@@ -124,7 +125,7 @@ void QgsGlobePluginDialog::on_buttonBox_accepted()
 {
   setStereoConfig();
   saveStereoConfig();
-
+  saveNavigationSettings();
   saveElevationDatasources();
   accept();
 }
@@ -133,6 +134,7 @@ void QgsGlobePluginDialog::on_buttonBox_rejected()
 {
   loadStereoConfig();
   setStereoConfig();
+  loadNavigationSettings();
   readElevationDatasources();
   reject();
 }
@@ -396,6 +398,38 @@ void QgsGlobePluginDialog::on_modelBrowse_clicked()
 }
 //END MODEL
 
+void QgsGlobePluginDialog::on_mScrollSensitivitySlider_valueChanged( int value )
+{
+  if ( mViewer )
+  {
+    osgEarth::Util::EarthManipulator* manip = dynamic_cast<osgEarth::Util::EarthManipulator*>( mViewer->getCameraManipulator() );
+    osgEarth::Util::EarthManipulator::Settings* settings = manip->getSettings();
+    settings->setScrollSensitivity( value / 10 );
+    manip->applySettings( settings );
+  }
+}
+
+void QgsGlobePluginDialog::on_mInvertScrollWheel_stateChanged( int state )
+{
+  if ( mViewer )
+  {
+    osgEarth::Util::EarthManipulator* manip = dynamic_cast<osgEarth::Util::EarthManipulator*>( mViewer->getCameraManipulator() );
+    osgEarth::Util::EarthManipulator::Settings* settings = manip->getSettings();
+
+    if ( state )
+    {
+      settings->bindScroll( osgEarth::Util::EarthManipulator::ACTION_ZOOM_OUT, osgGA::GUIEventAdapter::SCROLL_UP );
+      settings->bindScroll( osgEarth::Util::EarthManipulator::ACTION_ZOOM_IN, osgGA::GUIEventAdapter::SCROLL_DOWN );
+    }
+    else
+    {
+      settings->bindScroll( osgEarth::Util::EarthManipulator::ACTION_ZOOM_IN, osgGA::GUIEventAdapter::SCROLL_UP );
+      settings->bindScroll( osgEarth::Util::EarthManipulator::ACTION_ZOOM_OUT, osgGA::GUIEventAdapter::SCROLL_DOWN );
+    }
+    manip->applySettings( settings );
+  }
+}
+
 //STEREO
 void QgsGlobePluginDialog::on_resetStereoDefaults_clicked()
 {
@@ -522,6 +556,16 @@ void QgsGlobePluginDialog::setStereoMode()
   }
 }
 
+float QgsGlobePluginDialog::scrollSensitivity()
+{
+  return mScrollSensitivitySlider->value() / 10;
+}
+
+bool QgsGlobePluginDialog::invertScrollWheel()
+{
+  return mInvertScrollWheel->checkState();
+}
+
 void QgsGlobePluginDialog::setStereoConfig()
 {
   if ( mViewer )
@@ -553,6 +597,18 @@ void QgsGlobePluginDialog::saveStereoConfig()
   settings.setValue( "/Plugin-Globe/splitStereoVerticalSeparation", splitStereoVerticalSeparation->value() );
   settings.setValue( "/Plugin-Globe/splitStereoHorizontalEyeMapping", splitStereoHorizontalEyeMapping->currentIndex() );
   settings.setValue( "/Plugin-Globe/splitStereoVerticalEyeMapping", splitStereoVerticalEyeMapping->currentIndex() );
+}
+
+void QgsGlobePluginDialog::loadNavigationSettings()
+{
+  mScrollSensitivitySlider->setValue( settings.value( "/Plugin-Globe/scrollSensitivity", 20 ).toInt() );
+  mInvertScrollWheel->setChecked( settings.value( "/Plugin-Globe/invertScrollWheel", 0 ).toInt() );
+}
+
+void QgsGlobePluginDialog::saveNavigationSettings()
+{
+  settings.setValue( "/Plugin-Globe/scrollSensitivity", mScrollSensitivitySlider->value() );
+  settings.setValue( "/Plugin-Globe/invertScrollWheel", mInvertScrollWheel->checkState() );
 }
 
 void QgsGlobePluginDialog::updateStereoDialog()
