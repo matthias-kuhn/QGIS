@@ -73,9 +73,13 @@ class GlobePlugin : public QObject, public QgisPlugin
     //! show the help document
     void help();
 
-    //! Emitted when a new set of image layers has been received
-    void imageLayersChanged();
-    //! Emitted when a new set of elevation layers has been received
+    //! Called when a new set of image layers has been received
+    void canvasLayersChanged();
+
+    void layersAdded( QList<QgsMapLayer*> );
+    void layersRemoved( QStringList );
+
+    //! Called when a new set of elevation layers has been received
     void elevationLayersChanged();
     //! Called when the extents of the map change
     void extentsChanged();
