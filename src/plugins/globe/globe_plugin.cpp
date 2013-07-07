@@ -65,7 +65,6 @@
 #include <osgEarthDrivers/gdal/GDALOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
-#include <osgEarth/MapInfo>
 
 using namespace osgEarth::Drivers;
 using namespace osgEarth::Util;
@@ -793,8 +792,13 @@ void GlobePlugin::layersAdded( QList<QgsMapLayer*> mapLayers )
         altitudeSymbol->clamping() = osgEarth::Symbology::AltitudeSymbol::CLAMP_RELATIVE_TO_TERRAIN;
         altitudeSymbol->technique() = osgEarth::Symbology::AltitudeSymbol::TECHNIQUE_MAP;
         altitudeSymbol->binding() = osgEarth::Symbology::AltitudeSymbol::BINDING_VERTEX;
-
         style.addSymbol( altitudeSymbol );
+
+        ExtrusionSymbol* extrusionSymbol = style.getOrCreateSymbol<ExtrusionSymbol>();
+        extrusionSymbol->heightExpression() = NumericExpression( "[derived_height]" );
+        extrusionSymbol->flatten() = true;
+        extrusionSymbol->wallGradientPercentage() = 0.5;
+        style.addSymbol( extrusionSymbol );
 
         FeatureGeomModelOptions geomOpt;
         geomOpt.featureOptions() = featureOpt;
