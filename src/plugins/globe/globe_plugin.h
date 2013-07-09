@@ -49,7 +49,7 @@ using namespace osgEarth::Util::Controls;
 class QAction;
 class QToolBar;
 class QgisInterface;
-
+class QgsGlobeLayerPropertiesFactory;
 
 class GlobePlugin : public QObject, public QgisPlugin
 {
@@ -77,7 +77,7 @@ class GlobePlugin : public QObject, public QgisPlugin
     void canvasLayersChanged();
 
     void layersAdded( QList<QgsMapLayer*> );
-    void layersRemoved( QStringList );
+    void layersRemoved( QStringList layerIds );
 
     //! Called when a new set of elevation layers has been received
     void elevationLayersChanged();
@@ -112,6 +112,9 @@ class GlobePlugin : public QObject, public QgisPlugin
 
     //! Recursive copy folder
     static void copyFolder( QString sourceFolder, QString destFolder );
+
+  private slots:
+    void layerSettingsChanged( QgsMapLayer* layer );
 
   private:
     //!  Set HTTP proxy settings
@@ -161,6 +164,8 @@ class GlobePlugin : public QObject, public QgisPlugin
     bool mIsGlobeRunning;
     //! coordinates of the right-clicked point on the globe
     double mSelectedLat, mSelectedLon, mSelectedElevation;
+    //! Creates additional pages in the layer properties for adjusting 3D properties
+    QgsGlobeLayerPropertiesFactory* mLayerPropertiesFactory;
 
   signals:
     //! emits current mouse position

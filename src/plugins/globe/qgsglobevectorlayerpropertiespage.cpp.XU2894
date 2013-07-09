@@ -1,0 +1,64 @@
+/***************************************************************************
+    qgsglobevectorlayerpropertiespage.cpp
+     --------------------------------------
+    Date                 : 9.7.2013
+    Copyright            : (C) 2013 Matthias Kuhn
+    Email                : matthias dot kuhn at gmx dot ch
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+#include "qgsglobevectorlayerpropertiespage.h"
+
+#include <qgsvectorlayer.h>
+#include <qgslogger.h>
+
+#include "qgsglobevectorlayerconfig.h"
+
+QgsGlobeVectorLayerPropertiesPage::QgsGlobeVectorLayerPropertiesPage( QgsVectorLayer* layer, QWidget *parent )
+  : QgsVectorLayerPropertiesPage( parent )
+  , mLayer( layer )
+{
+  setupUi( this );
+
+  // Fill altitude combo boxes
+  mCbxAltitudeClamping->addItem( tr( "None" ), QgsGlobeVectorLayerConfig::AltitudeClampingNone );
+  mCbxAltitudeClamping->addItem( tr( "Terrain" ), QgsGlobeVectorLayerConfig::AltitudeClampingTerrain );
+  mCbxAltitudeClamping->addItem( tr( "Relative" ), QgsGlobeVectorLayerConfig::AltitudeClampingRelative );
+  mCbxAltitudeClamping->addItem( tr( "Absolute" ), QgsGlobeVectorLayerConfig::AltitudeClampingAbsolute );
+
+  mCbxAltitudeTechnique->addItem( tr( "Map" ), QgsGlobeVectorLayerConfig::AltitudeTechniqueMap );
+  mCbxAltitudeTechnique->addItem( tr( "Drape" ), QgsGlobeVectorLayerConfig::AltitudeTechniqueDrape );
+  mCbxAltitudeTechnique->addItem( tr( "GPU" ), QgsGlobeVectorLayerConfig::AltitudeTechniqueGpu );
+  mCbxAltitudeTechnique->addItem( tr( "Scene" ), QgsGlobeVectorLayerConfig::AltitudeTechniqueScene );
+
+  mCbxAltitudeBinding->addItem( tr( "Vertex" ), QgsGlobeVectorLayerConfig::AltitudeBindingVertex );
+  mCbxAltitudeBinding->addItem( tr( "Centroid" ), QgsGlobeVectorLayerConfig::AltitudeBindingCentroid );
+
+  QgsGlobeVectorLayerConfig layerConfig = mLayer->property( "globe-config" ).value<QgsGlobeVectorLayerConfig>();
+
+  mCbxAltitudeClamping->setCurrentIndex( mCbxAltitudeClamping->findData( layerConfig.altitudeClamping() ) );
+  mCbxAltitudeTechnique->setCurrentIndex( mCbxAltitudeTechnique->findData( layerConfig.altitudeTechnique() ) );
+  mCbxAltitudeBinding->setCurrentIndex( mCbxAltitudeBinding->findData( layerConfig.altitudeBinding() ) );
+}
+
+void QgsGlobeVectorLayerPropertiesPage::apply()
+{
+  QgsGlobeVectorLayerConfig layerConfig(
+        mCbxAltitudeClamping->itemData( mCbxAltitudeClamping->currentIndex() ).value<QgsGlobeVectorLayerConfig::AltitudeClamping>(),
+        mCbxAltitudeTechnique->itemData( mCbxAltitudeTechnique->currentIndex() ).value<QgsGlobeVectorLayerConfig::AltitudeTechnique>(),
+        mCbxAltitudeBinding->itemData( mCbxAltitudeBinding->currentIndex() ).value<QgsGlobeVectorLayerConfig::AltitudeBinding>()
+  );
+
+  mLayer->setProperty( "globe-config", QVariant::fromValue<QgsGlobeVectorLayerConfig>( layerConfig ) );
+  QgsGlobeVectorLayerConfig cfg = mLayer->property( "globe-config" ).value<QgsGlobeVectorLayerConfig>();
+
+  std::cout << "Globe config: " << cfg.dump().toStdString() << std::endl;
+
+  emit layerSettingsChanged( mLayer );
+}

@@ -19,7 +19,6 @@
 #include "globe_plugin.h"
 #include "globe_plugin_dialog.h"
 #include "qgsosgearthtilesource.h"
-#include "qgsosgearthfeaturesource.h"
 #ifdef HAVE_OSGEARTHQT
 #include <osgEarthQt/ViewerWidget>
 #else
@@ -33,13 +32,10 @@
 #include <qgslogger.h>
 #include <qgsapplication.h>
 #include <qgsmapcanvas.h>
-#include <qgsmaplayerregistry.h>
 #include <qgsfeature.h>
 #include <qgsgeometry.h>
 #include <qgspoint.h>
 #include <qgsdistancearea.h>
-#include <symbology-ng/qgsrendererv2.h>
-#include <symbology-ng/qgssymbolv2.h>
 
 #include <QAction>
 #include <QToolBar>
@@ -64,10 +60,6 @@
 #include <osgEarthUtil/AutoClipPlaneHandler>
 #include <osgEarthDrivers/gdal/GDALOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
-#include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
-
-#include "qgsglobelayerpropertiesfactory.h"
-#include "qgsglobevectorlayerconfig.h"
 
 using namespace osgEarth::Drivers;
 using namespace osgEarth::Util;
@@ -180,7 +172,7 @@ struct RefreshControlHandler : public ControlEventHandler
   RefreshControlHandler( GlobePlugin* globe ) : mGlobe( globe ) { }
   virtual void onClick( Control* /*control*/, int /*mouseButtonMask*/ )
   {
-    mGlobe->canvasLayersChanged();
+    mGlobe->imageLayersChanged();
   }
 private:
   GlobePlugin* mGlobe;
@@ -202,17 +194,17 @@ void GlobePlugin::initGui()
   // Create the action for tool
   mQActionPointer = new QAction( QIcon( ":/globe/globe.png" ), tr( "Launch Globe" ), this );
   mQActionSettingsPointer = new QAction( QIcon( ":/globe/globe.png" ), tr( "Globe Settings" ), this );
-  mQActionUnload = new QAction( tr( "Unload Globe" ), this );
+  QAction* actionUnload = new QAction( tr( "Unload Globe" ), this );
 
   // Set the what's this text
   mQActionPointer->setWhatsThis( tr( "Overlay data on a 3D globe" ) );
   mQActionSettingsPointer->setWhatsThis( tr( "Settings for 3D globe" ) );
-  mQActionUnload->setWhatsThis( tr( "Unload globe" ) );
+  actionUnload->setWhatsThis( tr( "Unload globe" ) );
 
   // Connect actions
   connect( mQActionPointer, SIGNAL( triggered() ), this, SLOT( run() ) );
   connect( mQActionSettingsPointer, SIGNAL( triggered() ), this, SLOT( settings() ) );
-  connect( mQActionUnload, SIGNAL( triggered() ), this, SLOT( reset() ) );
+  connect( actionUnload, SIGNAL( triggered() ), this, SLOT( reset() ) );
 
   // Add the icon to the toolbar
   mQGisIface->addToolBarIcon( mQActionPointer );
@@ -220,20 +212,12 @@ void GlobePlugin::initGui()
   //Add menu
   mQGisIface->addPluginToMenu( tr( "&Globe" ), mQActionPointer );
   mQGisIface->addPluginToMenu( tr( "&Globe" ), mQActionSettingsPointer );
-  mQGisIface->addPluginToMenu( tr( "&Globe" ), mQActionUnload );
+  mQGisIface->addPluginToMenu( tr( "&Globe" ), actionUnload );
 
-  // Add layer properties pages
-  mLayerPropertiesFactory = new QgsGlobeLayerPropertiesFactory();
-  mQGisIface->registerMapLayerPropertiesFactory( mLayerPropertiesFactory );
-
-  connect( mLayerPropertiesFactory, SIGNAL( layerSettingsChanged( QgsMapLayer* ) ), this, SLOT( layerSettingsChanged( QgsMapLayer* ) ) );
-
-  QgsMapLayerRegistry* layerRegistry = QgsMapLayerRegistry::instance();
-
-  connect( layerRegistry , SIGNAL( layersAdded( QList<QgsMapLayer*> ) ),
-           this, SLOT( layersAdded( QList<QgsMapLayer*> ) ) );
-  connect( layerRegistry , SIGNAL( layersRemoved( QStringList ) ),
-           this, SLOT( layersRemoved( QStringList ) ) );
+  connect( mQGisIface->mapCanvas() , SIGNAL( extentsChanged() ),
+           this, SLOT( extentsChanged() ) );
+  connect( mQGisIface->mapCanvas(), SIGNAL( layersChanged() ),
+           this, SLOT( imageLayersChanged() ) );
   connect( mSettingsDialog, SIGNAL( elevationDatasourcesChanged() ),
            this, SLOT( elevationLayersChanged() ) );
   connect( mQGisIface->mainWindow(), SIGNAL( projectRead() ), this,
@@ -248,7 +232,7 @@ void GlobePlugin::run()
 {
   if ( mViewerWidget == 0 )
   {
-#if 0
+#ifdef QGISDEBUG
     if ( !getenv( "OSGNOTIFYLEVEL" ) ) osgEarth::setNotifyLevel( osg::DEBUG_INFO );
 #endif
 
@@ -318,12 +302,12 @@ void GlobePlugin::run()
     mViewerWidget->setGeometry( 100, 100, 1024, 800 );
     mViewerWidget->show();
 
-    setupControls();
-
     // Set a home viewpoint
     manip->setHomeViewpoint(
       osgEarth::Util::Viewpoint( osg::Vec3d( -90, 0, 0 ), 0.0, -90.0, 4e7 ),
       1.0 );
+
+    setupControls();
 
     // add our handlers
     mOsgViewer->addEventHandler( new FlyToExtentHandler( this ) );
@@ -392,7 +376,7 @@ void GlobePlugin::setupMap()
   mRootNode->addChild( mMapNode );
 
   // Add layers to the map
-  layersAdded( mQGisIface->mapCanvas()->layers() );
+  imageLayersChanged();
   elevationLayersChanged();
 
   // model placement utils
@@ -514,6 +498,9 @@ void GlobePlugin::setupControls()
 {
   std::string imgDir;
 
+<<<<<<< HEAD
+  std::string imgDir = QDir::cleanPath( QgsApplication::pkgDataPath() + "/globe/gui" ).toStdString();
+=======
   if ( QgsApplication::runningFromBuildPath() )
   {
     imgDir = QDir::cleanPath( QgsApplication::pkgDataPath() + "/src/plugins/globe/images/gui" ).toStdString();
@@ -523,6 +510,7 @@ void GlobePlugin::setupControls()
     imgDir = QDir::cleanPath( QgsApplication::pkgDataPath() + "/globe/gui" ).toStdString();
   }
 
+  QgsDebugMsg( QString( "Image path: %1" ).arg( imgDir.c_str() ) );
 //MOVE CONTROLS
   //Horizontal container
   HBox* moveHControls = new HBox();
@@ -539,6 +527,7 @@ void GlobePlugin::setupControls()
   moveHControls->setPosition( 5, 30 );
   moveHControls->setPadding( 6 );
 
+>>>>>>> Fix globe navigation icons when running from build dir
   osgEarth::Util::EarthManipulator* manip = dynamic_cast<osgEarth::Util::EarthManipulator*>( mOsgViewer->getCameraManipulator() );
 
   // Set scroll sensitivity
@@ -564,14 +553,14 @@ void GlobePlugin::setupControls()
   Control* rotateCCW = new NavigationControl();
   rotateCCW->setHeight( 22 );
   rotateCCW->setWidth( 20 );
-  rotateCCW->setPosition( imgLeft + 0, imgTop + 18 );
+  rotateCCW->setPosition( imgLeft+0, imgTop+18 );
   rotateCCW->addEventHandler( new RotateControlHandler( manip, MOVE_OFFSET, 0 ) );
   mControlCanvas->addControl( rotateCCW );
 
   Control* rotateCW = new NavigationControl();
   rotateCW->setHeight( 22 );
   rotateCW->setWidth( 20 );
-  rotateCW->setPosition( imgLeft + 36, imgTop + 18 );
+  rotateCW->setPosition( imgLeft+36, imgTop+18 );
   rotateCW->addEventHandler( new RotateControlHandler( manip, -MOVE_OFFSET , 0 ) );
   mControlCanvas->addControl( rotateCW );
 
@@ -579,7 +568,7 @@ void GlobePlugin::setupControls()
   Control* rotateReset = new NavigationControl();
   rotateReset->setHeight( 22 );
   rotateReset->setWidth( 16 );
-  rotateReset->setPosition( imgLeft + 20, imgTop + 18 );
+  rotateReset->setPosition( imgLeft+20, imgTop+18 );
   rotateReset->addEventHandler( new RotateControlHandler( manip, 0, 0 ) );
   mControlCanvas->addControl( rotateReset );
 
@@ -587,14 +576,14 @@ void GlobePlugin::setupControls()
   Control* tiltUp = new NavigationControl();
   tiltUp->setHeight( 19 );
   tiltUp->setWidth( 24 );
-  tiltUp->setPosition( imgLeft + 20, imgTop + 0 );
+  tiltUp->setPosition( imgLeft+20, imgTop+0 );
   tiltUp->addEventHandler( new RotateControlHandler( manip, 0, MOVE_OFFSET ) );
   mControlCanvas->addControl( tiltUp );
 
   Control* tiltDown = new NavigationControl();
   tiltDown->setHeight( 19 );
   tiltDown->setWidth( 24 );
-  tiltDown->setPosition( imgLeft + 16, imgTop + 36 );
+  tiltDown->setPosition( imgLeft+16, imgTop+36 );
   tiltDown->addEventHandler( new RotateControlHandler( manip, 0, -MOVE_OFFSET ) );
   mControlCanvas->addControl( tiltDown );
 
@@ -610,36 +599,36 @@ void GlobePlugin::setupControls()
   Control* moveLeft = new NavigationControl();
   moveLeft->setHeight( 22 );
   moveLeft->setWidth( 20 );
-  moveLeft->setPosition( imgLeft + 0, imgTop + 18 );
+  moveLeft->setPosition( imgLeft+0, imgTop+18 );
   moveLeft->addEventHandler( new PanControlHandler( manip, -MOVE_OFFSET, 0 ) );
   mControlCanvas->addControl( moveLeft );
 
   Control* moveRight = new NavigationControl();
   moveRight->setHeight( 22 );
   moveRight->setWidth( 20 );
-  moveRight->setPosition( imgLeft + 36, imgTop + 18 );
+  moveRight->setPosition( imgLeft+36, imgTop+18 );
   moveRight->addEventHandler( new PanControlHandler( manip, MOVE_OFFSET, 0 ) );
   mControlCanvas->addControl( moveRight );
 
   Control* moveUp = new NavigationControl();
   moveUp->setHeight( 19 );
   moveUp->setWidth( 24 );
-  moveUp->setPosition( imgLeft + 20, imgTop + 0 );
+  moveUp->setPosition( imgLeft+20, imgTop+0 );
   moveUp->addEventHandler( new PanControlHandler( manip, 0, MOVE_OFFSET ) );
   mControlCanvas->addControl( moveUp );
 
   Control* moveDown = new NavigationControl();
   moveDown->setHeight( 19 );
   moveDown->setWidth( 24 );
-  moveDown->setPosition( imgLeft + 16, imgTop + 36 );
-  moveDown->addEventHandler( new PanControlHandler( manip, 0, -MOVE_OFFSET ) );
+  moveDown->setPosition( imgLeft+16, imgTop+36 );
+  moveDown->addEventHandler(new PanControlHandler( manip, 0, -MOVE_OFFSET ) );
   mControlCanvas->addControl( moveDown );
 
   //Zoom Reset
   Control* zoomHome = new NavigationControl();
   zoomHome->setHeight( 22 );
   zoomHome->setWidth( 16 );
-  zoomHome->setPosition( imgLeft + 20, imgTop + 18 );
+  zoomHome->setPosition( imgLeft+20, imgTop+18 );
   zoomHome->addEventHandler( new HomeControlHandler( manip ) );
   mControlCanvas->addControl( zoomHome );
 
@@ -647,40 +636,40 @@ void GlobePlugin::setupControls()
 
   osg::Image* backgroundImg = osgDB::readImageFile( imgDir + "/button-background.png" );
   ImageControl* backgroundGrp1 = new ImageControl( backgroundImg );
-  imgTop = imgTop + 62;
-  backgroundGrp1->setPosition( imgLeft + 12, imgTop );
+  imgTop = imgTop+62;
+  backgroundGrp1->setPosition( imgLeft+12, imgTop );
   mControlCanvas->addControl( backgroundGrp1 );
 
   osg::Image* plusImg = osgDB::readImageFile( imgDir + "/zoom-in.png" );
   ImageControl* zoomIn = new NavigationControl( plusImg );
-  zoomIn->setPosition( imgLeft + 12 + 3, imgTop + 3 );
+  zoomIn->setPosition( imgLeft+12+3, imgTop+3 );
   zoomIn->addEventHandler( new ZoomControlHandler( manip, 0, -MOVE_OFFSET ) );
   mControlCanvas->addControl( zoomIn );
 
   osg::Image* minusImg = osgDB::readImageFile( imgDir + "/zoom-out.png" );
   ImageControl* zoomOut = new NavigationControl( minusImg );
-  zoomOut->setPosition( imgLeft + 12 + 3, imgTop + 3 + 23 + 2 );
+  zoomOut->setPosition( imgLeft+12+3, imgTop+3+23+2 );
   zoomOut->addEventHandler( new ZoomControlHandler( manip, 0, MOVE_OFFSET ) );
   mControlCanvas->addControl( zoomOut );
 
   // -------
 
   ImageControl* backgroundGrp2 = new ImageControl( backgroundImg );
-  imgTop = imgTop + 60;
-  backgroundGrp2->setPosition( imgLeft + 12, imgTop );
+  imgTop = imgTop+60;
+  backgroundGrp2->setPosition( imgLeft+12, imgTop );
   mControlCanvas->addControl( backgroundGrp2 );
 
   //Zoom Reset
   osg::Image* homeImg = osgDB::readImageFile( imgDir + "/zoom-home.png" );
   ImageControl* home = new NavigationControl( homeImg );
-  home->setPosition( imgLeft + 12 + 3, imgTop + 2 );
+  home->setPosition( imgLeft+12+3, imgTop+2 );
   home->addEventHandler( new HomeControlHandler( manip ) );
   mControlCanvas->addControl( home );
 
   //refresh layers
   osg::Image* refreshImg = osgDB::readImageFile( imgDir + "/refresh-view.png" );
   ImageControl* refresh = new NavigationControl( refreshImg );
-  refresh->setPosition( imgLeft + 12 + 3, imgTop + 2 + 23 + 2 );
+  refresh->setPosition( imgLeft+12+3, imgTop+2+23+2 );
   refresh->addEventHandler( new RefreshControlHandler( this ) );
   mControlCanvas->addControl( refresh );
 
@@ -722,9 +711,8 @@ void GlobePlugin::extentsChanged()
   QgsDebugMsg( "extentsChanged: " + mQGisIface->mapCanvas()->extent().toString() );
 }
 
-void GlobePlugin::canvasLayersChanged()
+void GlobePlugin::imageLayersChanged()
 {
-#if 0
   if ( mIsGlobeRunning )
   {
     QgsDebugMsg( "imageLayersChanged: Globe Running, executing" );
@@ -743,7 +731,8 @@ void GlobePlugin::canvasLayersChanged()
     }
 
     //add QGIS layer
-    mTileSource = new QgsOsgEarthTileSource( QStringList(), mQGisIface->mapCanvas() );
+    QgsDebugMsg( "addMapLayer" );
+    mTileSource = new QgsOsgEarthTileSource( mQGisIface );
     mTileSource->initialize( "", 0 );
     ImageLayerOptions options( "QGIS" );
     mQgisMapLayer = new ImageLayer( options, mTileSource );
@@ -754,150 +743,6 @@ void GlobePlugin::canvasLayersChanged()
   {
     QgsDebugMsg( "layersChanged: Globe NOT running, skipping" );
     return;
-  }
-#endif
-}
-
-void GlobePlugin::layersAdded( QList<QgsMapLayer*> mapLayers )
-{
-  if ( mIsGlobeRunning )
-  {
-    QSet<QgsMapLayer*> tileLayers;
-
-    Q_FOREACH( QgsMapLayer* mapLayer, mapLayers )
-    {
-      if ( mapLayer->type() == QgsMapLayer::VectorLayer )
-      {
-        // Add a new feature source for vector layers
-
-        QgsVectorLayer* vLayer = dynamic_cast<QgsVectorLayer*>( mapLayer );
-        Q_ASSERT( vLayer );
-
-        QgsGlobeVectorLayerConfig layerConfig = vLayer->property( "globe-config" ).value<QgsGlobeVectorLayerConfig>();
-
-        QGISFeatureOptions  featureOpt;
-        featureOpt.setLayer( vLayer );
-        Style style;
-
-        Q_FOREACH( QgsSymbolV2* sym, vLayer->rendererV2()->symbols() )
-        {
-          if ( sym->type() == QgsSymbolV2::Line )
-          {
-
-            LineSymbol* ls = style.getOrCreateSymbol<LineSymbol>();
-            QColor color = sym->color();
-            ls->stroke()->color() = osg::Vec4f( color.redF(), color.greenF(), color.blueF(), color.alphaF() );
-            ls->stroke()->width() = 1.0f;
-          }
-          else if ( sym->type() == QgsSymbolV2::Fill )
-          {
-            // TODO access border color, etc.
-            PolygonSymbol* poly = style.getOrCreateSymbol<PolygonSymbol>();
-            QColor color = sym->color();
-            poly->fill()->color() = osg::Vec4f( color.redF(), color.greenF(), color.blueF(), color.alphaF() );
-            style.addSymbol( poly );
-          }
-        }
-
-        AltitudeSymbol* altitudeSymbol = style.getOrCreateSymbol<AltitudeSymbol>();
-
-        switch ( layerConfig.altitudeClamping() )
-        {
-          case QgsGlobeVectorLayerConfig::AltitudeClampingRelative:
-            altitudeSymbol->clamping() = osgEarth::Symbology::AltitudeSymbol::CLAMP_RELATIVE_TO_TERRAIN;
-            break;
-
-          case QgsGlobeVectorLayerConfig::AltitudeClampingTerrain:
-            altitudeSymbol->clamping() = osgEarth::Symbology::AltitudeSymbol::CLAMP_TO_TERRAIN;
-            break;
-
-          case QgsGlobeVectorLayerConfig::AltitudeClampingAbsolute:
-            altitudeSymbol->clamping() = osgEarth::Symbology::AltitudeSymbol::CLAMP_ABSOLUTE;
-            break;
-
-          default:
-            altitudeSymbol->clamping() = osgEarth::Symbology::AltitudeSymbol::CLAMP_NONE;
-            break;
-        }
-
-        switch ( layerConfig.altitudeTechnique() )
-        {
-          case QgsGlobeVectorLayerConfig::AltitudeTechniqueMap:
-            altitudeSymbol->technique() = osgEarth::Symbology::AltitudeSymbol::TECHNIQUE_MAP;
-            break;
-
-          case QgsGlobeVectorLayerConfig::AltitudeTechniqueDrape:
-            altitudeSymbol->technique() = osgEarth::Symbology::AltitudeSymbol::TECHNIQUE_DRAPE;
-            break;
-
-          case QgsGlobeVectorLayerConfig::AltitudeTechniqueGpu:
-            altitudeSymbol->technique() = osgEarth::Symbology::AltitudeSymbol::TECHNIQUE_GPU;
-            break;
-
-          default:
-            altitudeSymbol->technique() = osgEarth::Symbology::AltitudeSymbol::TECHNIQUE_SCENE;
-        }
-
-        switch ( layerConfig.altitudeBinding() )
-        {
-          case QgsGlobeVectorLayerConfig::AltitudeBindingVertex:
-            altitudeSymbol->binding() = osgEarth::Symbology::AltitudeSymbol::BINDING_VERTEX;
-            break;
-
-          default:
-            altitudeSymbol->binding() = osgEarth::Symbology::AltitudeSymbol::BINDING_CENTROID;
-            break;
-        }
-
-        style.addSymbol( altitudeSymbol );
-
-        ExtrusionSymbol* extrusionSymbol = style.getOrCreateSymbol<ExtrusionSymbol>();
-        extrusionSymbol->heightExpression() = NumericExpression( "[derived_height]" );
-        extrusionSymbol->flatten() = true;
-        extrusionSymbol->wallGradientPercentage() = 0.5;
-        style.addSymbol( extrusionSymbol );
-
-        FeatureGeomModelOptions geomOpt;
-        geomOpt.featureOptions() = featureOpt;
-        geomOpt.styles() = new StyleSheet();
-        geomOpt.styles()->addStyle( style );
-        // geomOpt.depthTestEnabled() = true;
-        // worldOpt.enableLighting() = true;
-
-        ModelLayerOptions modelOptions( vLayer->id().toStdString(), geomOpt );
-        modelOptions.lightingEnabled() = true;
-        ModelLayer* nLayer = new ModelLayer( modelOptions );
-
-        osg::ref_ptr<Map> mapNode = mMapNode->getMap();
-
-        mapNode->addModelLayer( nLayer );
-      }
-      else
-      {
-        // Add to the draped image for non-vector layers
-        tileLayers << mapLayer;
-      }
-    }
-
-    if ( tileLayers.size() > 0 )
-    {
-      mTileSource->addLayers( tileLayers );
-    }
-  }
-}
-
-void GlobePlugin::layersRemoved( QStringList layerIds )
-{
-  QgsDebugMsg( QString( "layers removed [%1]" ).arg( layerIds.join( ", " ) ) );
-  if ( mIsGlobeRunning )
-  {
-    osg::ref_ptr<Map> mapNode = mMapNode->getMap();
-
-    Q_FOREACH( const QString &layer, layerIds )
-    {
-      ModelLayer* modelLayer = mapNode->getModelLayerByName( layer.toStdString() );
-      mapNode->removeModelLayer( modelLayer );
-    }
   }
 }
 
@@ -975,14 +820,9 @@ void GlobePlugin::unload()
 {
   reset();
   // remove the GUI
-  mQGisIface->removePluginMenu( tr( "&Globe" ), mQActionPointer );
-  mQGisIface->removePluginMenu( tr( "&Globe" ), mQActionSettingsPointer );
-  mQGisIface->removePluginMenu( tr( "&Globe" ), mQActionUnload );
-
+  mQGisIface->removePluginMenu( "&Globe", mQActionPointer );
   mQGisIface->removeToolBarIcon( mQActionPointer );
-
   delete mQActionPointer;
-  mQGisIface->unregisterMapLayerPropertiesFactory( mLayerPropertiesFactory );
 }
 
 void GlobePlugin::help()
@@ -1033,12 +873,6 @@ void GlobePlugin::copyFolder( QString sourceFolder, QString destFolder )
     QString destName = destFolder + "/" + files[i];
     copyFolder( srcName, destName );
   }
-}
-
-void GlobePlugin::layerSettingsChanged( QgsMapLayer* layer )
-{
-  layersRemoved( QStringList() << layer->id() );
-  layersAdded( QList<QgsMapLayer*>() << layer );
 }
 
 void GlobePlugin::setGlobeNotRunning()
