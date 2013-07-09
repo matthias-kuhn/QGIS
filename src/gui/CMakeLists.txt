@@ -49,7 +49,6 @@ attributetable/qgsfeatureselectionmodel.cpp
 attributetable/qgsdualview.cpp
 
 qgisgui.cpp
-qgisinterface.cpp
 qgsannotationitem.cpp
 qgsattributeeditor.cpp
 qgsattributedialog.cpp

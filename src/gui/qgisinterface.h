@@ -26,14 +26,14 @@ class QMainWindow;
 class QWidget;
 
 class QgsComposerView;
-class QgsMapLayer;
+class QgsFeature;
+class QgsLegendInterface;
 class QgsMapCanvas;
+class QgsMapLayer;
+class QgsMessageBar;
+class QgsPluginManagerInterface;
 class QgsRasterLayer;
 class QgsVectorLayer;
-class QgsLegendInterface;
-class QgsPluginManagerInterface;
-class QgsFeature;
-class QgsMessageBar;
 
 #include <QObject>
 #include <QFont>
@@ -66,10 +66,10 @@ class GUI_EXPORT QgisInterface : public QObject
   public:
 
     /** Constructor */
-    QgisInterface();
+    QgisInterface() {}
 
     /** Virtual destructor */
-    virtual ~QgisInterface();
+    virtual ~QgisInterface() {}
 
     /** Get pointer to legend interface
       \note added in 1.4
