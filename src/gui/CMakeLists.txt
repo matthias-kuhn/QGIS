@@ -80,6 +80,7 @@ qgsmapcanvas.cpp
 qgsmapcanvasitem.cpp
 qgsmapcanvasmap.cpp
 qgsmapcanvassnapper.cpp
+qgsmaplayerpropertiesfactory.cpp
 qgsmapoverviewcanvas.cpp
 qgsmaptip.cpp
 qgsmaptool.cpp
@@ -107,6 +108,7 @@ qgsscalecombobox.cpp
 qgssvgannotationitem.cpp
 qgstextannotationitem.cpp
 qgsvertexmarker.cpp
+qgsvectorlayerpropertiespage.cpp
 qgsludialog.cpp
 qgssearchquerybuilder.cpp
 qgsexpressionbuilderwidget.cpp
@@ -226,6 +228,7 @@ qgsquerybuilder.h
 qgscollapsiblegroupbox.h
 qgsfilterlineedit.h
 qgssublayersdialog.h
+qgsvectorlayerpropertiespage.h
 )
 
 QT4_WRAP_CPP(QGIS_GUI_MOC_SRCS ${QGIS_GUI_MOC_HDRS})
@@ -248,6 +251,7 @@ qgsmapcanvas.h
 qgsmapcanvasitem.h
 qgsmapcanvasmap.h
 qgsmapcanvassnapper.h
+qgsmaplayerpropertiesfactory.h
 qgsmapoverviewcanvas.h
 qgsmaptool.h
 qgsmaptoolemitpoint.h
@@ -262,6 +266,7 @@ qgscredentialdialog.h
 qgsowssourceselect.h
 qgsprojectionselector.h
 qgsrubberband.h
+qgsvectorlayerpropertiespage.h
 qgsvertexmarker.h
 qgsmaptip.h
 qgsscalecombobox.h

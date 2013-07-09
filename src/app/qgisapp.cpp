@@ -8841,6 +8841,10 @@ void QgisApp::showLayerProperties( QgsMapLayer *ml )
     else
     {
       vlp = new QgsVectorLayerProperties( vlayer, this );
+      Q_FOREACH( QgsMapLayerPropertiesFactory* factory, mMapLayerPropertiesFactories )
+      {
+        vlp->addPropertiesPageFactory( factory );
+      }
       connect( vlp, SIGNAL( refreshLegend( QString, QgsLegendItem::Expansion ) ), mMapLegend, SLOT( refreshLayerSymbology( QString, QgsLegendItem::Expansion ) ) );
     }
 
@@ -9135,6 +9139,15 @@ void QgisApp::osmExportDialog()
   dlg.exec();
 }
 
+void QgisApp::registerMapLayerPropertiesFactory( QgsMapLayerPropertiesFactory* factory )
+{
+  mMapLayerPropertiesFactories << factory;
+}
+
+void QgisApp::unregisterMapLayerPropertiesFactory( QgsMapLayerPropertiesFactory* factory )
+{
+  mMapLayerPropertiesFactories.removeAll( factory );
+}
 
 #ifdef HAVE_TOUCH
 bool QgisApp::gestureEvent( QGestureEvent *event )

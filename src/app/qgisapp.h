@@ -88,10 +88,11 @@ class QgsTileScaleWidget;
 #include "qgsconfig.h"
 #include "qgsfeature.h"
 #include "qgsfeaturestore.h"
+#include "qgsmaplayerpropertiesfactory.h"
+#include "qgspluginmanager.h"
 #include "qgspoint.h"
 #include "qgsrasterlayer.h"
 #include "qgssnappingdialog.h"
-#include "qgspluginmanager.h"
 
 #include "ui_qgisapp.h"
 
@@ -1117,6 +1118,16 @@ class QgisApp : public QMainWindow, private Ui::MainWindow
     void osmImportDialog();
     void osmExportDialog();
 
+    /** Register a new tab in the layer properties dialog
+      \note added in 2.1
+    */
+    void registerMapLayerPropertiesFactory( QgsMapLayerPropertiesFactory* factory );
+
+    /** Unregister a previously registered tab in the layer properties dialog
+      \note added in 2.1
+    */
+    void unregisterMapLayerPropertiesFactory( QgsMapLayerPropertiesFactory* factory );
+
   signals:
     /** emitted when a key is pressed and we want non widget sublasses to be able
       to pick up on this (e.g. maplayer) */
@@ -1379,7 +1390,9 @@ class QgisApp : public QMainWindow, private Ui::MainWindow
     double mScaleFactor;
     //! Current map window extent in real-world coordinates
     QRect *mMapWindow;
-    //! The previously selected non zoom map tool.
+    //! Additional map layer properties pages created by plugins
+    QList<QgsMapLayerPropertiesFactory*> mMapLayerPropertiesFactories;
+    //! The previously selected non zoom map tool
     int mPreviousNonZoomMapTool;
     //QCursor *mCursorZoomIn; //doesnt seem to be used anymore (TS)
     QString mStartupPath;

@@ -34,6 +34,7 @@ class QgsMessageBar;
 class QgsPluginManagerInterface;
 class QgsRasterLayer;
 class QgsVectorLayer;
+class QgsMapLayerPropertiesFactory;
 
 #include <QObject>
 #include <QFont>
@@ -352,6 +353,16 @@ class GUI_EXPORT QgisInterface : public QObject
       \note added in 1.2
     */
     virtual bool unregisterMainWindowAction( QAction* action ) = 0;
+
+    /** Register a new tab in the vector layer properties dialog
+      \note added in 2.1
+    */
+    virtual void registerMapLayerPropertiesFactory( QgsMapLayerPropertiesFactory* factory ) = 0;
+
+    /** Unregister a previously registered tab in the layer properties dialog
+      \note added in 2.1
+    */
+    virtual void unregisterMapLayerPropertiesFactory( QgsMapLayerPropertiesFactory* factory ) = 0;
 
     // @todo is this deprecated in favour of QgsContextHelp?
     /** Open a url in the users browser. By default the QGIS doc directory is used
