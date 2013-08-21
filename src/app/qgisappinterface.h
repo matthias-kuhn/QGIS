@@ -52,6 +52,8 @@ class QgisAppInterface : public QgisInterface
 
     QgsPluginManagerInterface* pluginManagerInterface();
 
+    QgsPluginInterface* pluginInterface( const QString& pluginName );
+
     /* Exposed functions */
 
     //! Zoom map to full extent

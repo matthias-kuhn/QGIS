@@ -2080,6 +2080,16 @@ QgsPluginManager *QgisApp::pluginManager()
   return mPluginManager;
 }
 
+QgsPluginInterface* QgisApp::pluginInterface( const QString& pluginName )
+{
+  QgisPlugin* plugin = QgsPluginRegistry::instance()->plugin( pluginName );
+  if ( plugin )
+  {
+    return plugin->pluginInterface();
+  }
+  return NULL;
+}
+
 QgsMapCanvas *QgisApp::mapCanvas()
 {
   Q_ASSERT( mMapCanvas );

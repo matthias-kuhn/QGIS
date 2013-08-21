@@ -640,3 +640,9 @@ void QgisAppInterface::unregisterMapLayerPropertiesFactory( QgsMapLayerPropertie
 {
   qgis->unregisterMapLayerPropertiesFactory( factory );
 }
+
+
+QgsPluginInterface* QgisAppInterface::pluginInterface( const QString& pluginName )
+{
+  return qgis->pluginInterface( pluginName );
+}

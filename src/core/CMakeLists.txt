@@ -309,6 +309,7 @@ SET(QGIS_CORE_MOC_HDRS
   qgscredentials.h
   qgspluginlayer.h
   qgsproject.h
+  qgsplugininterface.h
   qgsrunprocess.h
   qgsvectorlayer.h
   qgsvectorlayereditbuffer.h
@@ -416,6 +417,7 @@ SET(QGIS_CORE_HDRS
   qgsnumeric.h
   qgspoint.h
   qgsproject.h
+  qgsplugininterface.h
   qgsprojectfiletransform.h
   qgsprojectproperty.h
   qgsprojectversion.h

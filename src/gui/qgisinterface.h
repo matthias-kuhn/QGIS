@@ -19,10 +19,10 @@
 #define QGISINTERFACE_H
 
 class QAction;
-class QMenu;
-class QToolBar;
 class QDockWidget;
 class QMainWindow;
+class QMenu;
+class QToolBar;
 class QWidget;
 
 class QgsComposerView;
@@ -30,11 +30,12 @@ class QgsFeature;
 class QgsLegendInterface;
 class QgsMapCanvas;
 class QgsMapLayer;
+class QgsMapLayerPropertiesFactory;
 class QgsMessageBar;
+class QgsPluginInterface;
 class QgsPluginManagerInterface;
 class QgsRasterLayer;
 class QgsVectorLayer;
-class QgsMapLayerPropertiesFactory;
 
 #include <QObject>
 #include <QFont>
@@ -79,7 +80,7 @@ class GUI_EXPORT QgisInterface : public QObject
 
     virtual QgsPluginManagerInterface* pluginManagerInterface() = 0;
 
-  public slots: // TODO: do these functions really need to be slots?
+    virtual QgsPluginInterface* pluginInterface( const QString& pluginName ) = 0;
 
     /* Exposed functions */
 
