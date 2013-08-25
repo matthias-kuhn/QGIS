@@ -500,6 +500,16 @@ void GlobePlugin::syncExtent()
 
   //get mapCanvas->extent().height() in meters
   QgsRectangle extent = mQGisIface->mapCanvas()->extent();
+
+  double elevation;
+  osgEarth::Util::ElevationQuery* elevationQuery = new ElevationQuery( mMapNode->getMap() );
+  double x = extent.xMaximum() - extent.xMinimum();
+  double y = extent.yMaximum() - extent.yMinimum();
+
+  GeoPoint point = GeoPoint( SpatialReference::create( mQGisIface->mapCanvas()->mapRenderer()->destinationCrs().toWkt().toStdString() ), x, y );
+
+  elevationQuery->getElevation( point, elevation );
+
   QgsDistanceArea dist;
   dist.setEllipsoidalMode( true );
   //dist.setProjectionsEnabled( true );
@@ -512,9 +522,9 @@ void GlobePlugin::syncExtent()
   //camera viewing angle
   double viewAngle = 30;
   //camera distance
-  double distance = height / tan( viewAngle * osg::PI / 180 ); //c = b*cotan(B(rad))
+  double distance = ( elevation + height ) / tan( viewAngle * osg::PI / 180 ); //c = b*cotan(B(rad))
 
-  OE_NOTICE << "map extent: " << height << " camera distance: " << distance << std::endl;
+  OE_NOTICE << "map extent: " << height << " terrain height: " << elevation << " camera distance: " << distance << std::endl;
 
   osgEarth::Util::Viewpoint viewpoint( osg::Vec3d( extent.center().x(), extent.center().y(), 0.0 ), 0.0, -90.0, distance );
   manip->setViewpoint( viewpoint, 4.0 );
