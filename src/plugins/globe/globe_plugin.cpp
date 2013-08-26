@@ -494,28 +494,32 @@ double GlobePlugin::getSelectedElevation()
 
 void GlobePlugin::syncExtent()
 {
+  QgsMapCanvas* mapCanvas = mQGisIface->mapCanvas();
+  QgsMapRenderer* mapRenderer = mapCanvas->mapRenderer();
+  QgsRectangle extent = mapCanvas->extent();
+
   osgEarth::Util::EarthManipulator* manip = dynamic_cast<osgEarth::Util::EarthManipulator*>( mOsgViewer->getCameraManipulator() );
   //rotate earth to north and perpendicular to camera
   manip->setRotation( osg::Quat() );
-
-  //get mapCanvas->extent().height() in meters
-  QgsRectangle extent = mQGisIface->mapCanvas()->extent();
 
   double elevation;
   osgEarth::Util::ElevationQuery* elevationQuery = new ElevationQuery( mMapNode->getMap() );
   double x = extent.xMaximum() - extent.xMinimum();
   double y = extent.yMaximum() - extent.yMinimum();
 
-  GeoPoint point = GeoPoint( SpatialReference::create( mQGisIface->mapCanvas()->mapRenderer()->destinationCrs().toWkt().toStdString() ), x, y );
+  GeoPoint point = GeoPoint( SpatialReference::create( mapRenderer->destinationCrs().toWkt().toStdString() ), x, y );
 
   elevationQuery->getElevation( point, elevation );
 
-  QgsDistanceArea dist;
-  dist.setEllipsoidalMode( true );
-  //dist.setProjectionsEnabled( true );
+  QgsDistanceArea myDa;
+
+  myDa.setSourceCrs( mapRenderer->destinationCrs().srsid() );
+  myDa.setEllipsoidalMode( mapRenderer->hasCrsTransformEnabled() );
+  myDa.setEllipsoid( QgsProject::instance()->readEntry( "Measure", "/Ellipsoid", GEO_NONE ) );  //dist.setProjectionsEnabled( true );
+
   QgsPoint ll = QgsPoint( extent.xMinimum(), extent.yMinimum() );
   QgsPoint ul = QgsPoint( extent.xMinimum(), extent.yMaximum() );
-  double height = dist.measureLine( ll, ul );
+  double height = myDa.measureLine( ll, ul );
 
   //double height = dist.computeDistanceBearing( ll, ul );
 
@@ -939,9 +943,9 @@ void GlobePlugin::layersAdded( QList<QgsMapLayer*> mapLayers )
 
         ModelLayer* nLayer = new ModelLayer( modelOptions );
 
-        osg::ref_ptr<Map> mapNode = mMapNode->getMap();
+        osg::ref_ptr<Map> map = mMapNode->getMap();
 
-        mapNode->addModelLayer( nLayer );
+        map->addModelLayer( nLayer );
       }
       else
       {

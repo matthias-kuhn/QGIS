@@ -114,6 +114,8 @@ class GlobePlugin : public QObject, public QgisPlugin
     //! OSG Viewer
     osgViewer::Viewer* osgViewer() { return mOsgViewer; }
 
+    osgEarth::MapNode* mapNode() { return mMapNode; }
+
   public slots:
     //! Open the 3D viewer window (if not yet open)
     void run();
