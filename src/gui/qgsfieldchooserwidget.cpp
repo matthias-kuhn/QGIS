@@ -20,61 +20,62 @@
 #include "qgslayerchooserwidget.h"
 #include "qgsvectorlayer.h"
 
-QgsFieldChooserWidget::QgsFieldChooserWidget(QgsLayerChooserWidget* layerChooser, QObject *parent)
-  : QObject(parent)
-  , mLayerChooser( layerChooser )
-  , mFilter( new QgsFieldChooserFilter() )
-  , mLayer( 0 )
+QgsFieldChooserWidget::QgsFieldChooserWidget( QgsLayerChooserWidget* layerChooser, QObject *parent )
+    : QObject( parent )
+    , mLayerChooser( layerChooser )
+    , mFilter( new QgsFieldChooserFilter() )
+    , mLayer( 0 )
 {
-  connect(layerChooser, SIGNAL(layerChanged(QgsMapLayer*)), this, SLOT(layerChanged(QgsMapLayer*)));
+  connect( layerChooser, SIGNAL( layerChanged( QgsMapLayer* ) ), this, SLOT( layerChanged( QgsMapLayer* ) ) );
 }
 
-void QgsFieldChooserWidget::setFilter(QgsFieldChooserFilter* filter)
+void QgsFieldChooserWidget::setFilter( QgsFieldChooserFilter* filter )
 {
   mFilter = filter;
 }
 
-void QgsFieldChooserWidget::layerChanged(QgsMapLayer* layer)
+void QgsFieldChooserWidget::layerChanged( QgsMapLayer* layer )
 {
-  if (mLayer)
+  if ( mLayer )
   {
-    disconnect(mLayer, SIGNAL(attributeAdded()), this, SLOT(layerChanged()));
-    disconnect(mLayer, SIGNAL(attributeDeleted()), this, SLOT(layerChanged()));
-    disconnect(mLayer, SIGNAL(layerDeleted()), this, SLOT(layerDeleted()));
+    disconnect( mLayer, SIGNAL( attributeAdded() ), this, SLOT( layerChanged() ) );
+    disconnect( mLayer, SIGNAL( attributeDeleted() ), this, SLOT( layerChanged() ) );
+    disconnect( mLayer, SIGNAL( layerDeleted() ), this, SLOT( layerDeleted() ) );
   }
   mLayer = 0;
   clearWidget();
 
-  if (!layer)
+  if ( !layer )
     return;
 
-  QgsVectorLayer* vl = dynamic_cast<QgsVectorLayer*>(layer);
-  if (!vl)
+  QgsVectorLayer* vl = dynamic_cast<QgsVectorLayer*>( layer );
+  if ( !vl )
     return;
 
   mLayer = vl;
 
-  connect(mLayer, SIGNAL(attributeAdded()), this, SLOT(layerChanged()));
-  connect(mLayer, SIGNAL(attributeDeleted()), this, SLOT(layerChanged()));
-  connect(mLayer, SIGNAL(layerDeleted()), this, SLOT(layerDeleted()));
+  connect( mLayer, SIGNAL( attributeAdded() ), this, SLOT( layerChanged() ) );
+  connect( mLayer, SIGNAL( attributeDeleted() ), this, SLOT( layerChanged() ) );
+  connect( mLayer, SIGNAL( layerDeleted() ), this, SLOT( layerDeleted() ) );
 
 
   const QgsFields &fields = vl->pendingFields();
   for ( int idx = 0; idx < fields.count(); ++idx )
   {
     QString fieldName = fields[idx].name();
-    QString fieldAlias = vl->attributeAlias(idx);
-    DisplayStatus display = mFilter->acceptField(idx);
-    if (display != hidden)
-      addField(fieldAlias, fieldName, display);
+    QString fieldAlias = vl->attributeDisplayName( idx );
+    DisplayStatus display = mFilter->acceptField( idx );
+    if ( display != hidden )
+      addField( fieldAlias, fieldName, display );
   }
 
+  unselect();
 }
 
 void QgsFieldChooserWidget::layerChanged()
 {
   QgsMapLayer* layer = mLayerChooser->getLayer();
-  layerChanged(layer);
+  layerChanged( layer );
 }
 
 void QgsFieldChooserWidget::layerDeleted()

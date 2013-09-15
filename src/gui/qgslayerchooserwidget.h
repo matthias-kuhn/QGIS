@@ -104,6 +104,7 @@ public slots:
    * @brief set the current layer in the widget
    * @param vl the vector layer
    */
+  void setLayer( QString layerid );
   virtual void setLayer( QgsMapLayer* layer )=0;
 
 protected:

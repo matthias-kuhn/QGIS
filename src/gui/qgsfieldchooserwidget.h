@@ -25,55 +25,61 @@
 
 class GUI_EXPORT QgsFieldChooserWidget : public QObject
 {
-  Q_OBJECT
-public:
-  /**
-   * @brief The visibility of the field in the combo depending on the result of the filter
-   */
-  enum DisplayStatus
-  {
-    enabled,
-    disabled,
-    hidden
-  };
-
-  class QgsFieldChooserFilter
-  {
+    Q_OBJECT
   public:
     /**
-     * @brief define if the field should be listed or not.
-     * @param idx the field index
-     * @return a DisplayStatus (enabled, disabled or hidden)
+     * @brief The visibility of the field in the combo depending on the result of the filter
      */
-    virtual DisplayStatus acceptField( int idx ){ Q_UNUSED(idx); return enabled; }
-  };
+    enum DisplayStatus
+    {
+      enabled,
+      disabled,
+      hidden
+    };
 
-  QgsFieldChooserWidget(QgsLayerChooserWidget* layerChooser, QObject *parent = 0);
+    class QgsFieldChooserFilter
+    {
+      public:
+        /**
+         * @brief define if the field should be listed or not.
+         * @param idx the field index
+         * @return a DisplayStatus (enabled, disabled or hidden)
+         */
+        virtual DisplayStatus acceptField( int idx ) { Q_UNUSED( idx ); return enabled; }
+    };
 
-  /**
-   * @brief set the filter to be used to determine layers visibility
-   * @param filter
-   */
-  void setFilter(QgsFieldChooserFilter* filter );
+    QgsFieldChooserWidget( QgsLayerChooserWidget* layerChooser, QObject *parent = 0 );
 
-  virtual bool initWidget(QWidget*)=0;
-  virtual void clearWidget()=0;
-  virtual void addField(QString fieldAlias, QString fieldName, DisplayStatus display )=0;
+    /**
+     * @brief set the filter to be used to determine layers visibility
+     * @param filter
+     */
+    void setFilter( QgsFieldChooserFilter* filter );
 
-signals:
-  void fieldChanged(int);
+    virtual bool initWidget( QWidget* ) = 0;
+    virtual void clearWidget() = 0;
+    virtual void addField( QString fieldAlias, QString fieldName, DisplayStatus display ) = 0;
+    virtual void unselect() = 0;
+    virtual int getFieldIndex() = 0;
+    virtual QString getFieldName() = 0;
 
-public slots:
-  void layerChanged(QgsMapLayer*layer);
-  void layerChanged();
+ public slots:
+    virtual void setField( QString fieldName )=0;
 
-protected slots:
-  void layerDeleted();
+  signals:
+    void fieldChanged( int );
 
-protected:
-  QgsFieldChooserFilter* mFilter;
-  QgsLayerChooserWidget* mLayerChooser;
-  QgsVectorLayer* mLayer;
+  public slots:
+    void layerChanged( QgsMapLayer*layer );
+    void layerChanged();
+
+  protected slots:
+    void layerDeleted();
+
+  protected:
+    QgsLayerChooserWidget* mLayerChooser;
+    QgsFieldChooserFilter* mFilter;
+    QgsVectorLayer* mLayer;
 };
 
 #endif // QGSFIELDCHOOSERWIDGET_H

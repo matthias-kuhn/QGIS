@@ -22,25 +22,30 @@
 
 class QgsFieldChooserCombo : public QgsFieldChooserWidget
 {
-  Q_OBJECT
-public:
-  /** constructor */
-  QgsFieldChooserCombo(QgsLayerChooserWidget* layerChooser, QObject *parent = 0);
+    Q_OBJECT
+  public:
+    /** constructor */
+    QgsFieldChooserCombo( QgsLayerChooserWidget* layerChooser, QObject *parent = 0 );
 
-protected slots:
-  void currentIndexChanged(int idx);
+  protected slots:
+    void currentIndexChanged( int idx );
 
-private:
-  QComboBox* mWidget;
-
-
+  private:
+    QComboBox* mWidget;
 
 
-  // QgsFieldChooserWidget interface
-public:
-  virtual bool initWidget(QWidget* widget);
-  virtual void clearWidget();
-  virtual void addField(QString fieldAlias, QString fieldName, DisplayStatus display);
+
+
+    // QgsFieldChooserWidget interface
+  public:
+    virtual bool initWidget( QWidget* widget );
+    virtual void clearWidget();
+    virtual void addField( QString fieldAlias, QString fieldName, DisplayStatus display );
+    virtual void unselect();
+    virtual int getFieldIndex();
+    virtual QString getFieldName();
+ public slots:
+    virtual void setField(QString fieldName);
 };
 
 #endif // QGSFIELDCHOOSERCOMBO_H
