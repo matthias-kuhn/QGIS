@@ -24,6 +24,9 @@
 #include "qgisapp.h"
 #include "qgsproject.h"
 #include "qgslogger.h"
+#include "qgslayerchoosercombo.h"
+#include "qgslayerchooserwidget.h"
+#include "qgsfieldchoosercombo.h"
 
 #include <QTableWidgetItem>
 #include <QFile>
@@ -47,16 +50,14 @@ QgsAttributeTypeDialog::QgsAttributeTypeDialog( QgsVectorLayer *vl )
   connect( tableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( vCellChanged( int, int ) ) );
   connect( valueRelationEditExpression, SIGNAL( clicked() ), this, SLOT( editValueRelationExpression() ) );
 
-  valueRelationLayer->clear();
-  foreach ( QgsMapLayer *l, QgsMapLayerRegistry::instance()->mapLayers() )
-  {
-    QgsVectorLayer *vl = qobject_cast< QgsVectorLayer * >( l );
-    if ( vl )
-      valueRelationLayer->addItem( vl->name(), vl->id() );
-  }
+  QgsLayerChooserCombo* mValueRelationLayerChooser = new QgsLayerChooserCombo( this );
+  mValueRelationLayerChooser->setFilter( new QgsLayerChooserCombo::QgsVectorLayerChooserFilter() );
+  mValueRelationLayerChooser->initWidget( valueRelationLayer );
 
-  connect( valueRelationLayer, SIGNAL( currentIndexChanged( int ) ), this, SLOT( updateLayerColumns( int ) ) );
-  valueRelationLayer->setCurrentIndex( -1 );
+  QgsFieldChooserCombo* mValueRelationKeyChooser = new QgsFieldChooserCombo( mValueRelationLayerChooser, this );
+  mValueRelationKeyChooser->initWidget( valueRelationKeyColumn );
+  QgsFieldChooserCombo* mValueRelationValueChooser = new QgsFieldChooserCombo( mValueRelationLayerChooser, this );
+  mValueRelationValueChooser->initWidget( valueRelationValueColumn );
 }
 
 QgsAttributeTypeDialog::~QgsAttributeTypeDialog()
@@ -514,9 +515,9 @@ void QgsAttributeTypeDialog::setIndex( int index, QgsVectorLayer::EditType editT
       break;
 
     case QgsVectorLayer::ValueRelation:
-      valueRelationLayer->setCurrentIndex( valueRelationLayer->findData( mValueRelationData.mLayer ) );
-      valueRelationKeyColumn->setCurrentIndex( valueRelationKeyColumn->findText( mValueRelationData.mKey ) );
-      valueRelationValueColumn->setCurrentIndex( valueRelationValueColumn->findText( mValueRelationData.mValue ) );
+      mValueRelationLayerChooser->setLayerId( mValueRelationData.mLayer );
+      mValueRelationKeyChooser->setField( mValueRelationData.mKey );
+      mValueRelationValueChooser->setField( mValueRelationData.mValue );
       valueRelationAllowNull->setChecked( mValueRelationData.mAllowNull );
       valueRelationOrderByValue->setChecked( mValueRelationData.mOrderByValue );
       valueRelationAllowMulti->setChecked( mValueRelationData.mAllowMulti );
@@ -748,27 +749,4 @@ void QgsAttributeTypeDialog::accept()
 QString QgsAttributeTypeDialog::defaultWindowTitle()
 {
   return tr( "Attribute Edit Dialog" );
-}
-
-void QgsAttributeTypeDialog::updateLayerColumns( int idx )
-{
-  valueRelationKeyColumn->clear();
-  valueRelationValueColumn->clear();
-
-  QString id = valueRelationLayer->itemData( idx ).toString();
-
-  QgsVectorLayer *vl = qobject_cast< QgsVectorLayer *>( QgsMapLayerRegistry::instance()->mapLayer( id ) );
-  if ( !vl )
-    return;
-
-  const QgsFields &fields = vl->pendingFields();
-  for ( int idx = 0; idx < fields.count(); ++idx )
-  {
-    QString fieldName = fields[idx].name();
-    valueRelationKeyColumn->addItem( fieldName );
-    valueRelationValueColumn->addItem( fieldName );
-  }
-
-  valueRelationKeyColumn->setCurrentIndex( valueRelationKeyColumn->findText( mValueRelationData.mKey ) );
-  valueRelationValueColumn->setCurrentIndex( valueRelationValueColumn->findText( mValueRelationData.mValue ) );
 }

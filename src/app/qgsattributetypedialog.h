@@ -20,6 +20,8 @@
 #include "ui_qgsattributetypeedit.h"
 
 #include "qgsvectorlayer.h"
+#include "qgslayerchoosercombo.h"
+#include "qgsfieldchoosercombo.h"
 
 class QDialog;
 class QLayout;
@@ -186,11 +188,6 @@ class APP_EXPORT QgsAttributeTypeDialog: public QDialog, private Ui::QgsAttribut
     void vCellChanged( int row, int column );
 
     /**
-     * update columns list
-     */
-    void updateLayerColumns( int idx );
-
-    /**
      * edit the filter expression
      */
     void editValueRelationExpression();
@@ -224,6 +221,9 @@ class APP_EXPORT QgsAttributeTypeDialog: public QDialog, private Ui::QgsAttribut
     QgsVectorLayer::EditType mEditType;
     QString mDateFormat;
     QSize mWidgetSize;
+    QgsLayerChooserCombo* mValueRelationLayerChooser;
+    QgsFieldChooserCombo* mValueRelationKeyChooser;
+    QgsFieldChooserCombo* mValueRelationValueChooser;
 };
 
 #endif
