@@ -23,6 +23,13 @@
 
 #include <QObject>
 
+/**
+  * Handles widget related to selecting a field from the list depending on a vector layer.
+  * It can be associated to a QgsLayerChooserWidget or to a layer.
+  *
+  * Subclasses specific to the type of Widget.
+  * @see QgsLayerChooserCombo
+  */
 class GUI_EXPORT QgsFieldChooserWidget : public QObject
 {
     Q_OBJECT
@@ -37,6 +44,9 @@ class GUI_EXPORT QgsFieldChooserWidget : public QObject
       hidden
     };
 
+    /**
+     * Filter to know how to display the field in the widget
+     */
     class QgsFieldChooserFilter
     {
       public:
@@ -63,17 +73,17 @@ class GUI_EXPORT QgsFieldChooserWidget : public QObject
     virtual int getFieldIndex() = 0;
     virtual QString getFieldName() = 0;
 
- public slots:
-    virtual void setField( QString fieldName )=0;
+  public slots:
+    virtual void setField( QString fieldName ) = 0;
 
   signals:
     void fieldChanged( int );
 
   public slots:
     void layerChanged( QgsMapLayer*layer );
-    void layerChanged();
 
   protected slots:
+    void layerChanged();
     void layerDeleted();
 
   protected:

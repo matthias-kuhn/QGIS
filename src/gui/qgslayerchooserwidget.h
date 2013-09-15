@@ -30,96 +30,106 @@
   * Handles widget related to selecting a layer from the list of
   * layers available in the project.
   *
-  * Subclasses specific to th
+  * Subclasses specific to the type of Widget.
+  * @see QgsLayerChooserCombo
   */
 class GUI_EXPORT QgsLayerChooserWidget : public QObject
 {
-  Q_OBJECT
-public:
-  enum SortMode
-  {
-    sortByName,
-    sortByGroup
-  };
-
-  /**
-   * @brief The visibility of the layer in the combo depending on the result of the filter
-   */
-  enum DisplayStatus
-  {
-    enabled,
-    disabled,
-    hidden
-  };
-
-  class QgsLayerChooserFilter
-  {
+    Q_OBJECT
   public:
+    enum SortMode
+    {
+      sortByName,
+      sortByGroup
+    };
+
     /**
-     * @brief define if the layer should be listed or not.
-     * @param layer the layer
-     * @return a DisplayStatus (enabled, disabled or hidden)
+     * @brief The visibility of the layer in the combo depending on the result of the filter
      */
-    virtual DisplayStatus acceptLayer( QgsMapLayer* layer ){ Q_UNUSED(layer); return enabled; }
-  };
+    enum DisplayStatus
+    {
+      enabled,
+      disabled,
+      hidden
+    };
 
-  class QgsVectorLayerChooserFilter : public QgsLayerChooserFilter
-  {
-    virtual DisplayStatus acceptLayer( QgsMapLayer* layer);
-  };
+    /**
+     * Filter to know how to display the layer in the widget
+     */
+    class QgsLayerChooserFilter
+    {
+      public:
+        /**
+         * @brief define if the layer should be listed or not.
+         * @param layer the layer
+         * @return a DisplayStatus (enabled, disabled or hidden)
+         */
+        virtual DisplayStatus acceptLayer( QgsMapLayer* layer ) { Q_UNUSED( layer ); return enabled; }
+    };
 
-  /** constructor */
-  QgsLayerChooserWidget( QObject *parent = 0);
+    class QgsVectorLayerChooserFilter : public QgsLayerChooserFilter
+    {
+        virtual DisplayStatus acceptLayer( QgsMapLayer* layer );
+    };
 
-  /**
-   * @brief set the filter to be used to determine layers visibility
-   * @param filter
-   */
-  void setFilter(QgsLayerChooserFilter* filter );
+    /** constructor */
+    QgsLayerChooserWidget( QObject *parent = 0 );
 
-  /**
-   * @brief get currently selected layer in the widget
-   * @return
-   */
-  virtual QgsMapLayer* getLayer()=0;
+    /**
+     * @brief set the filter to be used to determine layers visibility
+     * @param filter
+     */
+    void setFilter( QgsLayerChooserFilter* filter );
 
-  /**
-   * @brief initialize the widget to show the layers. Must be redefined in subclasses.
-   * @param widget
-   * @return true if initialization is successful
-   */
-  virtual bool initWidget( QWidget* widget );
+    /**
+     * @brief get currently selected layer in the widget
+     * @return
+     */
+    virtual QgsMapLayer* getLayer() = 0;
 
-  virtual void clearWidget()=0;
-  virtual void addLayer( QgsMapLayer* layer, DisplayStatus display )=0;
+    /**
+     * @brief initialize the widget to show the layers. Must be redefined in subclasses.
+     * @param widget
+     * @return true if initialization is successful
+     */
+    virtual bool initWidget( QWidget* widget );
 
-signals:
-  /**
-   * @brief layerChanged is emitted whenever the selected layer in the widget has changed
-   */
-  void layerChanged( QgsMapLayer* );
+    virtual void clearWidget() = 0;
+    virtual void addLayer( QgsMapLayer* layer, DisplayStatus display ) = 0;
 
-public slots:
-  /**
-   * @brief set the current layer in the widget
-   * @param vl the vector layer
-   */
-  void setLayer( QString layerid );
-  virtual void setLayer( QgsMapLayer* layer )=0;
+  signals:
+    /**
+     * @brief layerChanged is emitted whenever the selected layer in the widget has changed
+     */
+    void layerChanged( QgsMapLayer* );
 
-protected:
-  /**
-   * @brief populates the widget with layers names
-   */
-  void populateLayers();
+  public slots:
+    /**
+     * @brief set the current layer in the widget
+     * @param layerid the layer id
+     * @note must be define using keyword "using" in subclass to avoid shadowing
+     */
+    void setLayerId( QString layerid );
 
-protected slots:
-  void populateLayers(QList<QgsMapLayer*> layerList ) {Q_UNUSED(layerList); return populateLayers();}
-  void populateLayers(QStringList layerList ) {Q_UNUSED(layerList); return populateLayers();}
+    /**
+     * @brief set the current layer in the widget
+     * @param vl the vector layer
+     */
+    virtual void setLayer( QgsMapLayer* layer ) = 0;
 
-private:
-  SortMode mSortMode;
-  QgsLayerChooserFilter* mFilter;
+  protected:
+    /**
+     * @brief populates the widget with layers names
+     */
+    void populateLayers();
+
+  protected slots:
+    void populateLayers( QList<QgsMapLayer*> layerList ) {Q_UNUSED( layerList ); return populateLayers();}
+    void populateLayers( QStringList layerList ) {Q_UNUSED( layerList ); return populateLayers();}
+
+  private:
+    SortMode mSortMode;
+    QgsLayerChooserFilter* mFilter;
 };
 
 #endif // QGSLAYERCHOOSERWIDGET_H

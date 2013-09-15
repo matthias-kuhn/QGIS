@@ -39,6 +39,7 @@ private:
 public:
   virtual bool initWidget(QWidget* widget);
   virtual QgsMapLayer*getLayer();
+  //using QgsLayerChooserWidget::setLayer;
   virtual void setLayer(QgsMapLayer* layer);
   void clearWidget();
   void addLayer( QgsMapLayer* layer, DisplayStatus display );
