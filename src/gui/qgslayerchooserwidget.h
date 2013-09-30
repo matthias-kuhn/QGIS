@@ -36,6 +36,7 @@
 class GUI_EXPORT QgsLayerChooserWidget : public QObject
 {
     Q_OBJECT
+
   public:
     enum SortMode
     {
@@ -75,6 +76,9 @@ class GUI_EXPORT QgsLayerChooserWidget : public QObject
     /** constructor */
     QgsLayerChooserWidget( QObject *parent = 0 );
 
+    virtual ~QgsLayerChooserWidget()
+    {}
+
     /**
      * @brief set the filter to be used to determine layers visibility
      * @param filter
@@ -85,14 +89,14 @@ class GUI_EXPORT QgsLayerChooserWidget : public QObject
      * @brief get currently selected layer in the widget
      * @return
      */
-    virtual QgsMapLayer* getLayer() = 0;
+    virtual QgsMapLayer* getLayer() const = 0;
 
     /**
      * @brief initialize the widget to show the layers. Must be redefined in subclasses.
      * @param widget
      * @return true if initialization is successful
      */
-    virtual bool initWidget( QWidget* widget );
+    virtual bool initWidget( QWidget* widget ) = 0;
 
     virtual void clearWidget() = 0;
     virtual void addLayer( QgsMapLayer* layer, DisplayStatus display ) = 0;

@@ -22,49 +22,59 @@
 #include <QComboBox>
 
 
-QgsLayerChooserCombo::QgsLayerChooserCombo(QObject *parent)
-  : QgsLayerChooserWidget(parent)
-  , mWidget( 0 )
+QgsLayerChooserCombo::QgsLayerChooserCombo( QObject *parent )
+    : QgsLayerChooserWidget( parent )
+    , mWidget( 0 )
 {
 }
 
-bool QgsLayerChooserCombo::initWidget(QWidget *widget)
+bool QgsLayerChooserCombo::initWidget( QWidget *widget )
 {
   mWidget = 0;
-  QComboBox* cb = dynamic_cast<QComboBox*>(widget);
-  if (!cb)
+  QComboBox* cb = dynamic_cast<QComboBox*>( widget );
+  if ( !cb )
     return false;
 
-  connect(cb, SIGNAL(currentIndexChanged(int)), this, SLOT(currentIndexChanged(int)));
+  connect( cb, SIGNAL( currentIndexChanged( int ) ), this, SLOT( currentIndexChanged( int ) ) );
   mWidget = cb;
 
   populateLayers();
-  mWidget->setCurrentIndex(-1);
+  mWidget->setCurrentIndex( -1 );
 
   return true;
 }
 
-QgsMapLayer* QgsLayerChooserCombo::getLayer()
+QgsMapLayer* QgsLayerChooserCombo::getLayer() const
 {
   QgsMapLayer* layer = 0;
-  if (!mWidget)
+  if ( !mWidget )
     return layer;
 
   int idx = mWidget->currentIndex();
-  QString layerId = mWidget->itemData(idx).toString();
-  layer = QgsMapLayerRegistry::instance()->mapLayer(layerId);
+  QString layerId = mWidget->itemData( idx ).toString();
+  layer = QgsMapLayerRegistry::instance()->mapLayer( layerId );
   return layer;
+}
+
+QString QgsLayerChooserCombo::getLayerId() const
+{
+  if ( !mWidget )
+    return QString();
+
+  int idx = mWidget->currentIndex();
+  QString layerId = mWidget->itemData( idx ).toString();
+  return layerId;
 }
 
 void QgsLayerChooserCombo::setLayer( QString layerid )
 {
-  QgsMapLayer* layer = QgsMapLayerRegistry::instance()->mapLayer(layerid);
-  setLayer(layer);
+  QgsMapLayer* layer = QgsMapLayerRegistry::instance()->mapLayer( layerid );
+  setLayer( layer );
 }
 
 void QgsLayerChooserCombo::setLayer( QgsMapLayer* layer )
 {
-  if (!mWidget)
+  if ( !mWidget )
     return;
 
   int idx = mWidget->findData( layer->id() );
@@ -73,31 +83,31 @@ void QgsLayerChooserCombo::setLayer( QgsMapLayer* layer )
 
 void QgsLayerChooserCombo::clearWidget()
 {
-  if (mWidget)
+  if ( mWidget )
     mWidget->clear();
 }
 
-void QgsLayerChooserCombo::addLayer(QgsMapLayer* layer, DisplayStatus display)
+void QgsLayerChooserCombo::addLayer( QgsMapLayer* layer, DisplayStatus display )
 {
-  if (!mWidget)
+  if ( !mWidget )
     return;
   QString layerName = layer->name();
   mWidget->addItem( layerName, QVariant( layer->id() ) );
-  if (display == disabled)
+  if ( display == disabled )
   {
     // dirty trick to disable an item in a combo box
-    int i = mWidget->count()-1;
-    QModelIndex j = mWidget->model()->index(i, 0);
-    mWidget->model()->setData(j, 0, Qt::UserRole-1);
+    int i = mWidget->count() - 1;
+    QModelIndex j = mWidget->model()->index( i, 0 );
+    mWidget->model()->setData( j, 0, Qt::UserRole - 1 );
   }
 }
 
 
-void QgsLayerChooserCombo::currentIndexChanged(int idx)
+void QgsLayerChooserCombo::currentIndexChanged( int idx )
 {
-  if (!mWidget)
+  if ( !mWidget )
     return;
-  QString layerId = mWidget->itemData(idx).toString();
-  QgsMapLayer* layer = QgsMapLayerRegistry::instance()->mapLayer(layerId);
-  emit layerChanged(layer);
+  QString layerId = mWidget->itemData( idx ).toString();
+  QgsMapLayer* layer = QgsMapLayerRegistry::instance()->mapLayer( layerId );
+  emit layerChanged( layer );
 }

@@ -50,13 +50,13 @@ QgsAttributeTypeDialog::QgsAttributeTypeDialog( QgsVectorLayer *vl )
   connect( tableWidget, SIGNAL( cellChanged( int, int ) ), this, SLOT( vCellChanged( int, int ) ) );
   connect( valueRelationEditExpression, SIGNAL( clicked() ), this, SLOT( editValueRelationExpression() ) );
 
-  QgsLayerChooserCombo* mValueRelationLayerChooser = new QgsLayerChooserCombo( this );
+  mValueRelationLayerChooser = new QgsLayerChooserCombo( this );
   mValueRelationLayerChooser->setFilter( new QgsLayerChooserCombo::QgsVectorLayerChooserFilter() );
   mValueRelationLayerChooser->initWidget( valueRelationLayer );
 
-  QgsFieldChooserCombo* mValueRelationKeyChooser = new QgsFieldChooserCombo( mValueRelationLayerChooser, this );
+  mValueRelationKeyChooser = new QgsFieldChooserCombo( mValueRelationLayerChooser, this );
   mValueRelationKeyChooser->initWidget( valueRelationKeyColumn );
-  QgsFieldChooserCombo* mValueRelationValueChooser = new QgsFieldChooserCombo( mValueRelationLayerChooser, this );
+  mValueRelationValueChooser = new QgsFieldChooserCombo( mValueRelationLayerChooser, this );
   mValueRelationValueChooser->initWidget( valueRelationValueColumn );
 }
 
@@ -516,7 +516,7 @@ void QgsAttributeTypeDialog::setIndex( int index, QgsVectorLayer::EditType editT
 
     case QgsVectorLayer::ValueRelation:
       mValueRelationLayerChooser->setLayer( mValueRelationData.mLayer );
-      /*mValueRelationKeyChooser->setField( mValueRelationData.mKey );*/
+      mValueRelationKeyChooser->setField( mValueRelationData.mKey );
       mValueRelationValueChooser->setField( mValueRelationData.mValue );
       valueRelationAllowNull->setChecked( mValueRelationData.mAllowNull );
       valueRelationOrderByValue->setChecked( mValueRelationData.mOrderByValue );
@@ -719,7 +719,7 @@ void QgsAttributeTypeDialog::accept()
       break;
     case 12:
       mEditType = QgsVectorLayer::ValueRelation;
-      mValueRelationData.mLayer = mValueRelationLayerChooser->getLayer()->id();
+      mValueRelationData.mLayer = mValueRelationLayerChooser->getLayerId();
       mValueRelationData.mKey = mValueRelationKeyChooser->getFieldName();
       mValueRelationData.mValue =  mValueRelationValueChooser->getFieldName();
       mValueRelationData.mAllowNull = valueRelationAllowNull->isChecked();

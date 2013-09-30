@@ -73,29 +73,29 @@ void QgsFieldChooserCombo::addField( QString fieldAlias, QString fieldName, Disp
 int QgsFieldChooserCombo::getFieldIndex()
 {
   QString fieldName = getFieldName();
-  return mLayer->fieldNameIndex(fieldName);
+  return mLayer->fieldNameIndex( fieldName );
 }
 
 QString QgsFieldChooserCombo::getFieldName()
 {
-  if (!mWidget)
+  if ( !mWidget )
     return "";
-  if (!mLayer)
+  if ( !mLayer )
     return "";
 
   int idx = mWidget->currentIndex();
-  QString fieldName = mWidget->itemData(idx, Qt::UserRole).toString();
+  QString fieldName = mWidget->itemData( idx, Qt::UserRole ).toString();
 
   return fieldName;
 }
 
-void QgsFieldChooserCombo::setField(QString fieldName)
+void QgsFieldChooserCombo::setField( QString fieldName )
 {
-  if (!mWidget)
+  if ( !mWidget )
     return;
 
-  int idx = mWidget->findData(QVariant(fieldName), Qt::UserRole);
-  mWidget->setCurrentIndex(idx);
+  int idx = mWidget->findData( QVariant( fieldName ), Qt::UserRole );
+  mWidget->setCurrentIndex( idx );
 }
 
 void QgsFieldChooserCombo::currentIndexChanged( int idx )

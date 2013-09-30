@@ -38,8 +38,8 @@ void QgsFieldChooserWidget::layerChanged( QgsMapLayer* layer )
 {
   if ( mLayer )
   {
-    disconnect( mLayer, SIGNAL( attributeAdded() ), this, SLOT( layerChanged() ) );
-    disconnect( mLayer, SIGNAL( attributeDeleted() ), this, SLOT( layerChanged() ) );
+//    disconnect( mLayer, SIGNAL( attributeAdded() ), this, SLOT( layerChanged() ) );
+//    disconnect( mLayer, SIGNAL( attributeDeleted() ), this, SLOT( layerChanged() ) );
     disconnect( mLayer, SIGNAL( layerDeleted() ), this, SLOT( layerDeleted() ) );
   }
   mLayer = 0;
@@ -54,8 +54,8 @@ void QgsFieldChooserWidget::layerChanged( QgsMapLayer* layer )
 
   mLayer = vl;
 
-  connect( mLayer, SIGNAL( attributeAdded() ), this, SLOT( layerChanged() ) );
-  connect( mLayer, SIGNAL( attributeDeleted() ), this, SLOT( layerChanged() ) );
+//  connect( mLayer, SIGNAL( attributeAdded() ), this, SLOT( layerChanged() ) );
+//  connect( mLayer, SIGNAL( attributeDeleted() ), this, SLOT( layerChanged() ) );
   connect( mLayer, SIGNAL( layerDeleted() ), this, SLOT( layerDeleted() ) );
 
 

@@ -44,8 +44,8 @@ class QgsFieldChooserCombo : public QgsFieldChooserWidget
     virtual void unselect();
     virtual int getFieldIndex();
     virtual QString getFieldName();
- public slots:
-    virtual void setField(QString fieldName);
+  public slots:
+    virtual void setField( QString fieldName );
 };
 
 #endif // QGSFIELDCHOOSERCOMBO_H

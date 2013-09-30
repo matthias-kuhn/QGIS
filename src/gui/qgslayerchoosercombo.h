@@ -24,26 +24,30 @@
 
 class GUI_EXPORT QgsLayerChooserCombo : public QgsLayerChooserWidget
 {
-  Q_OBJECT
-public:
-  /** constructor */
-  QgsLayerChooserCombo(QObject *parent = 0);
+    Q_OBJECT
 
-protected slots:
-  void currentIndexChanged(int idx);
+  public:
+    /** constructor */
+    QgsLayerChooserCombo( QObject *parent = 0 );
+    virtual ~QgsLayerChooserCombo()
+    {}
 
-private:
-  QComboBox* mWidget;
+  protected slots:
+    void currentIndexChanged( int idx );
 
-  // QgsLayerChooserWidget interface
-public:
-  virtual bool initWidget(QWidget* widget);
-  virtual QgsMapLayer*getLayer();
-  //using QgsLayerChooserWidget::setLayer;
-  virtual void setLayer(QString layerid);
-  virtual void setLayer(QgsMapLayer* layer);
-  void clearWidget();
-  void addLayer( QgsMapLayer* layer, DisplayStatus display );
+  private:
+    QComboBox* mWidget;
+
+    // QgsLayerChooserWidget interface
+  public:
+    virtual bool initWidget( QWidget* widget );
+    virtual QgsMapLayer* getLayer() const;
+    QString getLayerId() const;
+    //using QgsLayerChooserWidget::setLayer;
+    virtual void setLayer( QString layerid );
+    virtual void setLayer( QgsMapLayer* layer );
+    void clearWidget();
+    void addLayer( QgsMapLayer* layer, DisplayStatus display );
 };
 
 #endif // QGSLAYERCHOOSERCOMBO_H
