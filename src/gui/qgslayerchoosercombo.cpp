@@ -56,6 +56,12 @@ QgsMapLayer* QgsLayerChooserCombo::getLayer()
   return layer;
 }
 
+void QgsLayerChooserCombo::setLayer( QString layerid )
+{
+  QgsMapLayer* layer = QgsMapLayerRegistry::instance()->mapLayer(layerid);
+  setLayer(layer);
+}
+
 void QgsLayerChooserCombo::setLayer( QgsMapLayer* layer )
 {
   if (!mWidget)

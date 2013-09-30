@@ -515,8 +515,8 @@ void QgsAttributeTypeDialog::setIndex( int index, QgsVectorLayer::EditType editT
       break;
 
     case QgsVectorLayer::ValueRelation:
-      mValueRelationLayerChooser->setLayerId( mValueRelationData.mLayer );
-      mValueRelationKeyChooser->setField( mValueRelationData.mKey );
+      mValueRelationLayerChooser->setLayer( mValueRelationData.mLayer );
+      /*mValueRelationKeyChooser->setField( mValueRelationData.mKey );*/
       mValueRelationValueChooser->setField( mValueRelationData.mValue );
       valueRelationAllowNull->setChecked( mValueRelationData.mAllowNull );
       valueRelationOrderByValue->setChecked( mValueRelationData.mOrderByValue );
@@ -719,9 +719,9 @@ void QgsAttributeTypeDialog::accept()
       break;
     case 12:
       mEditType = QgsVectorLayer::ValueRelation;
-      mValueRelationData.mLayer = valueRelationLayer->itemData( valueRelationLayer->currentIndex() ).toString();
-      mValueRelationData.mKey = valueRelationKeyColumn->currentText();
-      mValueRelationData.mValue = valueRelationValueColumn->currentText();
+      mValueRelationData.mLayer = mValueRelationLayerChooser->getLayer()->id();
+      mValueRelationData.mKey = mValueRelationKeyChooser->getFieldName();
+      mValueRelationData.mValue =  mValueRelationValueChooser->getFieldName();
       mValueRelationData.mAllowNull = valueRelationAllowNull->isChecked();
       mValueRelationData.mOrderByValue = valueRelationOrderByValue->isChecked();
       mValueRelationData.mAllowMulti = valueRelationAllowMulti->isChecked();

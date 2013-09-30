@@ -50,12 +50,6 @@ bool QgsLayerChooserWidget::initWidget(QWidget* widget)
   return false;
 }
 
-void QgsLayerChooserWidget::setLayerId(QString layerid)
-{
-  QgsMapLayer* layer = QgsMapLayerRegistry::instance()->mapLayer(layerid);
-  setLayer(layer);
-}
-
 
 void QgsLayerChooserWidget::populateLayers()
 {

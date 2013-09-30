@@ -109,7 +109,7 @@ class GUI_EXPORT QgsLayerChooserWidget : public QObject
      * @param layerid the layer id
      * @note must be define using keyword "using" in subclass to avoid shadowing
      */
-    void setLayerId( QString layerid );
+    virtual void setLayer( QString layerid ) = 0;
 
     /**
      * @brief set the current layer in the widget
