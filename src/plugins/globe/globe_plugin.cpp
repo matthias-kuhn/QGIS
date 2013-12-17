@@ -332,17 +332,15 @@ void GlobePlugin::run()
 
     if ( settings.value( "/Plugin-Globe/anti-aliasing", true ).toBool() )
     {
-      QGLFormat glf = QGLFormat::defaultFormat();
-      glf.setSampleBuffers( true );
       bool aaLevelIsInt;
       int aaLevel;
       QString aaLevelStr = settings.value( "/Plugin-Globe/anti-aliasing-level", "" ).toString();
       aaLevel = aaLevelStr.toInt( &aaLevelIsInt );
       if ( aaLevelIsInt )
       {
-        glf.setSamples( aaLevel );
+        osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
+        ds->setNumMultiSamples( aaLevel );
       }
-      mViewerWidget->setFormat( glf );
     }
 
     // Set a home viewpoint
