@@ -83,6 +83,7 @@ editorwidgets/qgsrangewidgetfactory.cpp
 editorwidgets/qgsrelationwidgetwrapper.cpp
 editorwidgets/qgsrelationreferencefactory.cpp
 editorwidgets/qgsrelationreferencewidget.cpp
+editorwidgets/qgsrelationreferencewidgetwrapper.cpp
 editorwidgets/qgsrelreferenceconfigdlg.cpp
 editorwidgets/qgstexteditconfigdlg.cpp
 editorwidgets/qgstexteditwidget.cpp
@@ -293,6 +294,7 @@ editorwidgets/qgsphotowidget.h
 editorwidgets/qgsrangeconfigdlg.h
 editorwidgets/qgsrangewidget.h
 editorwidgets/qgsrelationreferencewidget.h
+editorwidgets/qgsrelationreferencewidgetwrapper.h
 editorwidgets/qgsrelationwidgetwrapper.h
 editorwidgets/qgsrelreferenceconfigdlg.h
 editorwidgets/qgstexteditconfigdlg.h
@@ -522,6 +524,7 @@ editorwidgets/qgsrangewidget.h
 editorwidgets/qgsrangewidgetfactory.h
 editorwidgets/qgsrelationreferencefactory.h
 editorwidgets/qgsrelationreferencewidget.h
+editorwidgets/qgsrelationreferencewidgetwrapper.h
 editorwidgets/qgsrelationwidgetwrapper.h
 editorwidgets/qgsrelreferenceconfigdlg.h
 editorwidgets/qgstexteditconfigdlg.h
