@@ -19,6 +19,7 @@
 #include "qgsfeature.h"
 #include "qgsgeometry.h"
 
+
 class QgsVectorLayer;
 
 /**
@@ -67,7 +68,6 @@ class GUI_EXPORT QgsVectorLayerTools
      * @return            True if successful
      */
     virtual bool stopEditing( QgsVectorLayer* layer, bool allowCancel = true ) = 0;
-
 };
 
 #endif // QGSVECTORLAYERTOOLS_H
