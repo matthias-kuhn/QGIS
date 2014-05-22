@@ -169,24 +169,20 @@ bool QgsRectangle::contains( const QgsPoint &p ) const
 
 void QgsRectangle::combineExtentWith( QgsRectangle * rect )
 {
-
   xmin = (( xmin < rect->xMinimum() ) ? xmin : rect->xMinimum() );
   xmax = (( xmax > rect->xMaximum() ) ? xmax : rect->xMaximum() );
 
   ymin = (( ymin < rect->yMinimum() ) ? ymin : rect->yMinimum() );
   ymax = (( ymax > rect->yMaximum() ) ? ymax : rect->yMaximum() );
-
 }
 
 void QgsRectangle::combineExtentWith( double x, double y )
 {
-
   xmin = (( xmin < x ) ? xmin : x );
   xmax = (( xmax > x ) ? xmax : x );
 
   ymin = (( ymin < y ) ? ymin : y );
   ymax = (( ymax > y ) ? ymax : y );
-
 }
 
 bool QgsRectangle::isEmpty() const

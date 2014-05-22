@@ -17,7 +17,8 @@
 
 #include <QPushButton>
 #include <QDialog>
-#include <QToolButton>
+#include <QHBoxLayout>
+#include <QTimer>
 
 #include "qgsattributedialog.h"
 #include "qgsapplication.h"
@@ -25,43 +26,99 @@
 #include "qgseditorwidgetfactory.h"
 #include "qgsexpression.h"
 #include "qgsfield.h"
+#include "qgsgeometry.h"
+#include "qgsmapcanvas.h"
+#include "qgsmessagebar.h"
 #include "qgsrelreferenceconfigdlg.h"
 #include "qgsvectorlayer.h"
 
 
 QgsRelationReferenceWidget::QgsRelationReferenceWidget( QWidget* parent )
     : QWidget( parent )
-    , mReferencedLayer( NULL )
-    , mInitialValueAssigned( false )
-    , mAttributeDialog( NULL )
     , mEditorContext( QgsAttributeEditorContext() )
+    , mHighlight( NULL )
+    , mInitialValueAssigned( false )
+    , mMapTool( NULL )
+    , mMessageBarItem( NULL )
+    , mParentAttributeDialog( NULL )
+    , mRelationName( "" )
+    , mReferencedAttributeDialog( NULL )
+    , mReferencedLayer( NULL )
+    , mReferencingLayer( NULL )
+    , mEmbedForm( false )
+    , mReadOnlySelector( false )
+    , mAllowMapIdentification( false )
 {
-  mLayout = new QGridLayout( this );
-  setLayout( mLayout );
+  mTopLayout = new QVBoxLayout( this );
+  mTopLayout->setContentsMargins( 0, 0, 0, 0 );
+  setLayout( mTopLayout );
+
+  QHBoxLayout* editLayout = new QHBoxLayout();
+  editLayout->setContentsMargins( 0, 0, 0, 0 );
+
+  // combobox (for non-geometric relation)
   mComboBox = new QComboBox( this );
-  mLayout->addWidget( mComboBox, 0, 0, 1, 1 );
+  editLayout->addWidget( mComboBox );
+
+  // read-only line edit
+  mLineEdit = new QLineEdit( this );
+  mLineEdit->setReadOnly( true );
+  editLayout->addWidget( mLineEdit );
 
   // action button
-  QToolButton* attributeEditorButton = new QToolButton( this );
+  mAttributeEditorButton = new QToolButton( this );
   mShowFormAction = new QAction( QgsApplication::getThemeIcon( "/mActionToggleEditing.svg" ), tr( "Open Form" ), this );
-  attributeEditorButton->addAction( mShowFormAction );
-  attributeEditorButton->setDefaultAction( mShowFormAction );
-  connect( attributeEditorButton, SIGNAL( triggered( QAction* ) ), this, SLOT( buttonTriggered( QAction* ) ) );
-  mLayout->addWidget( attributeEditorButton, 0, 1, 1, 1 );
+  mHighlightFeatureAction = new QAction( QgsApplication::getThemeIcon( "/mActionHighlightFeature.svg" ), tr( "Highlight feature" ), this );
+  mScaleHighlightFeatureAction = new QAction( QgsApplication::getThemeIcon( "/mActionScaleHighlightFeature.svg" ), tr( "Scale and highlight feature" ), this );
+  mAttributeEditorButton->addAction( mShowFormAction );
+  mAttributeEditorButton->addAction( mHighlightFeatureAction );
+  mAttributeEditorButton->addAction( mScaleHighlightFeatureAction );
+  mAttributeEditorButton->setDefaultAction( mShowFormAction );
+  connect( mAttributeEditorButton, SIGNAL( triggered( QAction* ) ), this, SLOT( buttonTriggered( QAction* ) ) );
+  editLayout->addWidget( mAttributeEditorButton );
+
+  // map identification button
+  mMapIdentificationButton = new QToolButton( this );
+  mMapIdentificationAction = new QAction( QgsApplication::getThemeIcon( "/mActionMapIdentification.svg" ), tr( "Select on map" ), this );
+  mMapIdentificationButton->addAction( mMapIdentificationAction );
+  mMapIdentificationButton->setDefaultAction( mMapIdentificationAction );
+  connect( mMapIdentificationButton, SIGNAL( triggered( QAction* ) ), this, SLOT( mapIdentification() ) );
+  editLayout->addWidget( mMapIdentificationButton );
+
+  // spacer
+  editLayout->addItem( new QSpacerItem( 0, 0, QSizePolicy::Expanding ) );
+
+  // add line to top layout
+  mTopLayout->addLayout( editLayout );
 
   // embed form
   mAttributeEditorFrame = new QgsCollapsibleGroupBox( this );
   mAttributeEditorFrame->setCollapsed( true );
   mAttributeEditorLayout = new QVBoxLayout( mAttributeEditorFrame );
   mAttributeEditorFrame->setLayout( mAttributeEditorLayout );
-  mLayout->addWidget( mAttributeEditorFrame, 1, 0, 1, 3 );
+  mTopLayout->addWidget( mAttributeEditorFrame );
 
-  mLayout->addItem( new QSpacerItem( 0, 0, QSizePolicy::Expanding ), 0, 2, 1, 1 );
-}
+  // default mode is combobox, non geometric relation and no embed form
+  mLineEdit->hide();
+  mMapIdentificationButton->hide();
 
-void QgsRelationReferenceWidget::displayEmbedForm( bool display )
-{
-  mAttributeEditorFrame->setVisible( display );
+  // get if the widget is shown in attribute dialog
+  QWidget* pwdg = parent;
+  while ( pwdg )
+  {
+    if ( pwdg->objectName() == "QgsAttributeDialog" )
+    {
+      mParentAttributeDialog = qobject_cast<QDialog*>( pwdg );
+      break;
+    }
+    pwdg = pwdg->parentWidget();
+  }
+
+  // remove highlight on close
+  if ( mParentAttributeDialog )
+  {
+    connect( mParentAttributeDialog, SIGNAL( finished( int ) ), this, SLOT( deleteHighlight() ) );
+  }
 }
 
 void QgsRelationReferenceWidget::setRelation( QgsRelation relation, bool allowNullValue )
@@ -70,9 +127,13 @@ void QgsRelationReferenceWidget::setRelation( QgsRelation relation, bool allowNu
   {
     if ( allowNullValue )
     {
-      mComboBox->addItem( tr( "(no selection)" ), QVariant( field().type() ) );
+      const QString nullValue = QSettings().value( "qgis/nullValue", "NULL" ).toString();
+      mComboBox->addItem( nullValue );
+      mComboBox->setItemData( mComboBox->count() - 1, Qt::gray, Qt::ForegroundRole );
     }
 
+    mReferencingLayer = relation.referencingLayer();
+    mRelationName = relation.name();
     mReferencedLayer = relation.referencedLayer();
     int refFieldIdx = mReferencedLayer->fieldNameIndex( relation.fieldPairs().first().second );
 
@@ -91,6 +152,7 @@ void QgsRelationReferenceWidget::setRelation( QgsRelation relation, bool allowNu
       mFidFkMap.insert( f.id(), f.attribute( refFieldIdx ) );
     }
 
+
     // Only connect after iterating, to have only one iterator on the referenced table at once
     connect( mComboBox, SIGNAL( currentIndexChanged( int ) ), this, SLOT( referenceChanged( int ) ) );
   }
@@ -101,20 +163,29 @@ void QgsRelationReferenceWidget::setRelation( QgsRelation relation, bool allowNu
     font.setItalic( true );
     lbl->setStyleSheet( "QLabel { color: red; } " );
     lbl->setFont( font );
-    mLayout->addWidget( lbl, 1, 0, 1, 3 );
+    mTopLayout->addWidget( lbl, 1, 0 );
   }
 }
 
 void QgsRelationReferenceWidget::setRelationEditable( bool editable )
 {
+  mLineEdit->setEnabled( editable );
   mComboBox->setEnabled( editable );
+  mMapIdentificationButton->setEnabled( editable );
 }
 
 void QgsRelationReferenceWidget::setRelatedFeature( const QVariant& value )
 {
   QgsFeatureId fid = mFidFkMap.key( value );
+  if ( mReferencedLayer )
+    setRelatedFeature( fid );
+}
+
+void QgsRelationReferenceWidget::setRelatedFeature( const QgsFeatureId& fid )
+{
   int oldIdx = mComboBox->currentIndex();
-  mComboBox->setCurrentIndex( mComboBox->findData( fid ) );
+  int newIdx = mComboBox->findData( fid );
+  mComboBox->setCurrentIndex( newIdx );
 
   if ( !mInitialValueAssigned )
   {
@@ -125,6 +196,28 @@ void QgsRelationReferenceWidget::setRelatedFeature( const QVariant& value )
       referenceChanged( mComboBox->currentIndex() );
     mInitialValueAssigned = true;
   }
+
+  // update line edit
+  mLineEdit->setText( mFidFkMap.value( fid ).toString() );
+}
+
+void QgsRelationReferenceWidget::mapToolDeactivated()
+{
+  if ( mParentAttributeDialog )
+  {
+    mParentAttributeDialog->show();
+  }
+}
+
+void QgsRelationReferenceWidget::deleteMessageBarItem()
+{
+  QgsMessageBar* messageBar = mEditorContext.messageBar();
+  if ( !messageBar || !mMessageBarItem )
+    return;
+
+  messageBar->popWidget( mMessageBarItem );
+
+  mMessageBarItem = NULL;
 }
 
 QVariant QgsRelationReferenceWidget::relatedFeature()
@@ -145,11 +238,36 @@ void QgsRelationReferenceWidget::setEditorContext( QgsAttributeEditorContext con
   mEditorContext = context;
 }
 
+void QgsRelationReferenceWidget::setEmbedForm( bool display )
+{
+  mAttributeEditorFrame->setVisible( display );
+}
+
+void QgsRelationReferenceWidget::setReadOnlySelector( bool readOnly )
+{
+  mComboBox->setHidden( readOnly );
+  mLineEdit->setVisible( readOnly );
+}
+
+void QgsRelationReferenceWidget::setAllowMapIdentification( bool allowMapIdentification )
+{
+  mMapIdentificationButton->setVisible( allowMapIdentification );
+}
+
 void QgsRelationReferenceWidget::buttonTriggered( QAction* action )
 {
   if ( action == mShowFormAction )
   {
+    highlightFeature( false );
     openForm();
+  }
+  else if ( action == mHighlightFeatureAction )
+  {
+    highlightFeature( false );
+  }
+  else if ( action == mScaleHighlightFeatureAction )
+  {
+    highlightFeature( true );
   }
 }
 
@@ -168,14 +286,115 @@ void QgsRelationReferenceWidget::openForm()
     return;
 
   // TODO: Get a proper QgsDistanceArea thingie
-  mAttributeDialog = new QgsAttributeDialog( mReferencedLayer, new QgsFeature( feat ), true, this, true, mEditorContext );
-  mAttributeDialog->exec();
-  delete mAttributeDialog;
+  mReferencedAttributeDialog = new QgsAttributeDialog( mReferencedLayer, new QgsFeature( feat ), true, this, true, mEditorContext );
+  mReferencedAttributeDialog->exec();
+  delete mReferencedAttributeDialog;
+}
+
+void QgsRelationReferenceWidget::highlightFeature( bool scale )
+{
+  QgsFeatureId fid = mComboBox->itemData( mComboBox->currentIndex() ).value<QgsFeatureId>();
+
+  QgsFeature feat;
+
+  if ( !mReferencedLayer )
+    return;
+
+  mReferencedLayer->getFeatures( QgsFeatureRequest().setFilterFid( fid ) ).nextFeature( feat );
+
+  if ( !feat.isValid() )
+    return;
+
+  QgsMapCanvas* canvas = mEditorContext.mapCanvas();
+  if ( !canvas )
+    return;
+
+  QgsGeometry* geom = feat.geometry();
+  if ( !geom )
+  {
+    return;
+  }
+
+  // scale
+  if ( scale )
+  {
+    QgsRectangle featBBox = geom->boundingBox();
+    featBBox = canvas->mapSettings().layerToMapCoordinates( mReferencedLayer, featBBox );
+    QgsRectangle extent = canvas->extent();
+    if ( !extent.contains( featBBox ) )
+    {
+      extent.combineExtentWith( &featBBox );
+      extent.scale( 1.1 );
+      canvas->setExtent( extent );
+      canvas->refresh();
+    }
+  }
+
+  // highlight
+  deleteHighlight();
+  mHighlight = new QgsHighlight( canvas, feat, mReferencedLayer );
+  QSettings settings;
+  QColor color = QColor( settings.value( "/Map/highlight/color", QGis::DEFAULT_HIGHLIGHT_COLOR.name() ).toString() );
+  int alpha = settings.value( "/Map/highlight/colorAlpha", QGis::DEFAULT_HIGHLIGHT_COLOR.alpha() ).toInt();
+  double buffer = settings.value( "/Map/highlight/buffer", QGis::DEFAULT_HIGHLIGHT_BUFFER_MM ).toDouble();
+  double minWidth = settings.value( "/Map/highlight/minWidth", QGis::DEFAULT_HIGHLIGHT_MIN_WIDTH_MM ).toDouble();
+
+  mHighlight->setColor( color ); // sets also fill with default alpha
+  color.setAlpha( alpha );
+  mHighlight->setFillColor( color ); // sets fill with alpha
+  mHighlight->setBuffer( buffer );
+  mHighlight->setMinWidth( minWidth );
+  mHighlight->show();
+
+  QTimer* timer = new QTimer( this );
+  timer->setSingleShot( true );
+  connect( timer, SIGNAL( timeout() ), this, SLOT( deleteHighlight() ) );
+  timer->start( 3000 );
+}
+
+void QgsRelationReferenceWidget::deleteHighlight()
+{
+  if ( mHighlight )
+  {
+    mHighlight->hide();
+    delete mHighlight;
+  }
+  mHighlight = NULL;
+}
+
+void QgsRelationReferenceWidget::mapIdentification()
+{
+  if ( !mReferencedLayer )
+    return;
+
+  QgsVectorLayerTools* tools = mEditorContext.vectorLayerTools();
+  if ( !tools )
+    return;
+  QgsMapCanvas* canvas = mEditorContext.mapCanvas();
+  if ( !canvas )
+    return;
+
+  mMapTool = new QgsMapToolIdentifyFeature( mReferencedLayer, canvas );
+  canvas->setMapTool( mMapTool );
+  connect( mMapTool, SIGNAL( featureIdentified( QgsFeatureId ) ), this, SLOT( featureIdentified( QgsFeatureId ) ) );
+  connect( mMapTool, SIGNAL( deactivated() ), this, SLOT( mapToolDeactivated() ) );
+
+  QgsMessageBar* messageBar = mEditorContext.messageBar();
+  if ( messageBar )
+  {
+    QString title = QString( "Relation %1 for %2" ).arg( mRelationName ).arg( mReferencingLayer->name() );
+    QString msg = tr( "identify a feature of %1 to be associated" ).arg( mReferencedLayer->name() );
+    mMessageBarItem = QgsMessageBar::createMessage( title, msg );
+    messageBar->pushItem( mMessageBarItem );
+    connect( mMapTool, SIGNAL( deactivated() ), this, SLOT( deleteMessageBarItem() ) );
+  }
 }
 
 void QgsRelationReferenceWidget::referenceChanged( int index )
 {
   QgsFeatureId fid = mComboBox->itemData( index ).value<QgsFeatureId>();
+
+  highlightFeature( false );
 
   emit relatedFeatureChanged( mFidFkMap.value( fid ) );
 
@@ -189,21 +408,33 @@ void QgsRelationReferenceWidget::referenceChanged( int index )
     if ( feat.isValid() )
     {
       // Backup old dialog and delete only after creating the new dialog, so we can "hot-swap" the contained QgsFeature
-      QgsAttributeDialog* oldDialog = mAttributeDialog;
+      QgsAttributeDialog* oldDialog = mReferencedAttributeDialog;
 
-      if ( mAttributeDialog )
+      if ( mReferencedAttributeDialog )
       {
-        mAttributeEditorLayout->removeWidget( mAttributeDialog );
+        mAttributeEditorLayout->removeWidget( mReferencedAttributeDialog );
       }
 
       // TODO: Get a proper QgsDistanceArea thingie
-      mAttributeDialog = new QgsAttributeDialog( mReferencedLayer, new QgsFeature( feat ), true, mAttributeEditorFrame, false, mEditorContext );
-      QWidget* attrDialog = mAttributeDialog;
+      mReferencedAttributeDialog = new QgsAttributeDialog( mReferencedLayer, new QgsFeature( feat ), true, mAttributeEditorFrame, false, mEditorContext );
+      QWidget* attrDialog = mReferencedAttributeDialog;
       attrDialog->setWindowFlags( Qt::Widget ); // Embed instead of opening as window
       mAttributeEditorLayout->addWidget( attrDialog );
       attrDialog->show();
 
       delete oldDialog;
     }
+  }
+}
+
+void QgsRelationReferenceWidget::featureIdentified( const QgsFeatureId& fid )
+{
+  setRelatedFeature( fid );
+
+  // deactivate map tool if activate
+  if ( mMapTool )
+  {
+    QgsMapCanvas* canvas = mMapTool->canvas();
+    canvas->unsetMapTool( mMapTool );
   }
 }

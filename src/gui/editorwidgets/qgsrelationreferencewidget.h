@@ -19,8 +19,12 @@
 #include "qgsattributeeditorcontext.h"
 #include "qgscollapsiblegroupbox.h"
 #include "qgsfeature.h"
+#include "qgshighlight.h"
+#include "qgsmaptoolidentifyfeature.h"
 
 #include <QComboBox>
+#include <QToolButton>
+#include <QLineEdit>
 #include <QVBoxLayout>
 
 class QgsAttributeDialog;
@@ -29,10 +33,12 @@ class QgsVectorLayerTools;
 class GUI_EXPORT QgsRelationReferenceWidget : public QWidget
 {
     Q_OBJECT
+    Q_PROPERTY( bool embedForm READ embedForm WRITE setEmbedForm )
+    Q_PROPERTY( bool readOnlySelector READ readOnlySelector WRITE setReadOnlySelector )
+    Q_PROPERTY( bool allowMapIdentification READ allowMapIdentification WRITE setAllowMapIdentification )
+
   public:
     explicit QgsRelationReferenceWidget( QWidget* parent );
-
-    void displayEmbedForm( bool display );
 
     void setRelation( QgsRelation relation , bool allowNullValue );
 
@@ -44,25 +50,63 @@ class GUI_EXPORT QgsRelationReferenceWidget : public QWidget
 
     void setEditorContext( QgsAttributeEditorContext context );
 
+    bool embedForm() {return mEmbedForm;}
+    void setEmbedForm( bool display );
+
+    bool readOnlySelector() {return mReadOnlySelector;}
+    void setReadOnlySelector( bool readOnly );
+
+    bool allowMapIdentification() {return mAllowMapIdentification;}
+    void setAllowMapIdentification( bool allowMapIdentification );
+
   signals:
     void relatedFeatureChanged( QVariant );
 
   private slots:
     void buttonTriggered( QAction* action );
+    void deleteHighlight();
+    void mapIdentification();
     void referenceChanged( int index );
-    void openForm();
+    void setRelatedFeature( const QgsFeatureId& fid );
+    void featureIdentified( const QgsFeatureId& fid );
+    void mapToolDeactivated();
+    void deleteMessageBarItem();
+
 
   private:
-    QgsVectorLayer* mReferencedLayer;
+    void openForm();
+    void highlightFeature( bool scale = false );
+
+    // initialized
+    QgsAttributeEditorContext mEditorContext;
+    QgsHighlight* mHighlight;
     bool mInitialValueAssigned;
-    QgsAttributeDialog* mAttributeDialog;
-    QGridLayout* mLayout;
+    QgsMapToolIdentifyFeature* mMapTool;
+    QgsMessageBarItem* mMessageBarItem;
+    QDialog* mParentAttributeDialog;
+    QString mRelationName;
+    QgsAttributeDialog* mReferencedAttributeDialog;
+    QgsVectorLayer* mReferencedLayer;
+    QgsVectorLayer* mReferencingLayer;
+
+    // Q_PROPERTY
+    bool mEmbedForm;
+    bool mReadOnlySelector;
+    bool mAllowMapIdentification;
+
+    // UI
+    QVBoxLayout* mTopLayout;
     QHash<QgsFeatureId, QVariant> mFidFkMap; // Mapping from feature id => foreign key
+    QToolButton* mMapIdentificationButton;
+    QToolButton* mAttributeEditorButton;
+    QAction* mHighlightFeatureAction;
+    QAction* mScaleHighlightFeatureAction;
     QAction* mShowFormAction;
+    QAction* mMapIdentificationAction;
     QComboBox* mComboBox;
     QgsCollapsibleGroupBox* mAttributeEditorFrame;
     QVBoxLayout* mAttributeEditorLayout;
-    QgsAttributeEditorContext mEditorContext;
+    QLineEdit* mLineEdit;
 };
 
 

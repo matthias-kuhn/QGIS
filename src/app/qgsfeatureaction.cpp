@@ -107,44 +107,15 @@ bool QgsFeatureAction::editFeature()
   bool res = false;
 
   if ( !mLayer )
-    return res;
+    return false;
 
   QgsAttributeDialog *dialog = newDialog( false );
 
-  if ( !mLayer->isEditable() )
-  {
-    res = dialog->exec();
-  }
-  else
-  {
-    QgsAttributes src = mFeature.attributes();
-    if ( !mFeature.isValid() )
-      dialog->setIsAddDialog( true );
+  if ( !mFeature.isValid() )
+  	dialog->setIsAddDialog( true );
+  dialog->show();
 
-    if ( dialog->exec() )
-    {
-      mLayer->beginEditCommand( text() );
-
-      const QgsAttributes &dst = mFeature.attributes();
-      for ( int i = 0; i < dst.count(); ++i )
-      {
-        if ( dst[i] != src[i] )
-        {
-          mLayer->changeAttributeValue( mFeature.id(), i, dst[i], src[i] );
-        }
-      }
-
-      mLayer->endEditCommand();
-      res = true;
-    }
-    else
-    {
-      res = false;
-    }
-  }
-
-  delete dialog;
-  return res;
+  return true;
 }
 
 bool QgsFeatureAction::addFeature( const QgsAttributeMap& defaultAttributes )

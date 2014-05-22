@@ -40,13 +40,17 @@ void QgsRelationReferenceWidgetWrapper::initWidget( QWidget* editor )
 
   mWidget->setEditorContext( mEditorContext );
 
-  mWidget->displayEmbedForm( config( "ShowForm", true ).toBool() );
-  connect( mWidget, SIGNAL( showForm() ), this, SLOT( openForm() ) );
+  bool showForm = config( "ShowForm", true ).toBool();
+  bool mapIdent = config( "MapIdentification", false ).toBool();
+  bool readOnlyWidget = config( "ReadOnly", false ).toBool();
+  mWidget->setEmbedForm( showForm );
+  mWidget->setAllowMapIdentification( mapIdent );
+  mWidget->setReadOnlySelector( readOnlyWidget );
 
   QgsRelation relation = QgsProject::instance()->relationManager()->relation( config( "Relation" ).toString() );
   mWidget->setRelation( relation, config( "AllowNULL" ).toBool() );
 
-  connect( mWidget, SIGNAL( relatedFeatureChanged( QgsFeatureId ) ), this, SLOT( relatedFeatureChanged( QgsFeatureId ) ) );
+  connect( mWidget, SIGNAL(relatedFeatureChanged(QVariant)), this, SIGNAL(valueChanged(QVariant)) );
 }
 
 QVariant QgsRelationReferenceWidgetWrapper::value()
@@ -71,9 +75,4 @@ void QgsRelationReferenceWidgetWrapper::setEnabled( bool enabled )
     return;
 
   mWidget->setRelationEditable( enabled );
-}
-
-void QgsRelationReferenceWidgetWrapper::relatedFeatureChanged( QgsFeatureId featureId )
-{
-  emit valueChanged( featureId );
 }
