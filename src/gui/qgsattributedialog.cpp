@@ -98,7 +98,8 @@ int QgsAttributeDialog::exec()
 {
   if ( mDialog )
   {
-    return mDialog->exec();
+    mDialog->show();
+    return QDialog::Accepted;
   }
   else
   {
