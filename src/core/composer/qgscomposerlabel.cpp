@@ -30,8 +30,10 @@
 #include <QPainter>
 #include <QSettings>
 #include <QTimer>
-#include <QWebFrame>
-#include <QWebPage>
+#ifdef WITH_QT_WEBKIT
+  #include <QWebFrame>
+  #include <QWebPage>
+#endif
 #include <QEventLoop>
 
 QgsComposerLabel::QgsComposerLabel( QgsComposition *composition )
@@ -110,6 +112,7 @@ void QgsComposerLabel::paint( QPainter* painter, const QStyleOptionGraphicsItem*
 
   if ( mHtmlState )
   {
+#ifdef WITH_QT_WEBKIT
     painter->scale( 1.0 / mHtmlUnitsToMM / 10.0, 1.0 / mHtmlUnitsToMM / 10.0 );
     QWebPage *webPage = new QWebPage();
     webPage->setNetworkAccessManager( QgsNetworkAccessManager::instance() );
@@ -162,6 +165,7 @@ void QgsComposerLabel::paint( QPainter* painter, const QStyleOptionGraphicsItem*
       loop.exec();
     }
     webPage->mainFrame()->render( painter );//DELETE WEBPAGE ?
+#endif
   }
   else
   {

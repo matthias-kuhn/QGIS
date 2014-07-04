@@ -18,7 +18,9 @@
 #include "qgscomposerutils.h"
 #include "qgscomposerarrow.h"
 #include "qgscomposerframe.h"
-#include "qgscomposerhtml.h"
+#ifdef WITH_QTWEBKIT
+  #include "qgscomposerhtml.h"
+#endif
 #include "qgscomposerlabel.h"
 #include "qgscomposerlegend.h"
 #include "qgscomposermap.h"
@@ -628,6 +630,7 @@ const QgsComposerMap* QgsComposition::getComposerMapById( const int id ) const
   return 0;
 }
 
+#ifdef WITH_QTWEBKIT
 const QgsComposerHtml* QgsComposition::getComposerHtmlByItem( QgsComposerItem *item ) const
 {
   // an html item will be a composer frame and if it is we can try to get
@@ -646,6 +649,7 @@ const QgsComposerHtml* QgsComposition::getComposerHtmlByItem( QgsComposerItem *i
   }
   return 0;
 }
+#endif
 
 const QgsComposerItem* QgsComposition::getComposerItemById( const QString theId ) const
 {
@@ -1330,6 +1334,7 @@ void QgsComposition::addItemsFromXML( const QDomElement& elem, const QDomDocumen
   }
   // html
   //TODO - fix this. pasting multiframe frame items has no effect
+#ifdef WITH_QTWEBKIT
   QDomNodeList composerHtmlList = elem.elementsByTagName( "ComposerHtml" );
   for ( int i = 0; i < composerHtmlList.size(); ++i )
   {
@@ -1347,6 +1352,7 @@ void QgsComposition::addItemsFromXML( const QDomElement& elem, const QDomDocumen
       frame->setZValue( frame->zValue() + zOrderOffset );
     }*/
   }
+#endif
   QDomNodeList composerAttributeTableV2List = elem.elementsByTagName( "ComposerAttributeTableV2" );
   for ( int i = 0; i < composerAttributeTableV2List.size(); ++i )
   {
@@ -2375,6 +2381,7 @@ void QgsComposition::addComposerTable( QgsComposerAttributeTable* table )
   emit composerTableAdded( table );
 }
 
+#ifdef WITH_QTWEBKIT
 void QgsComposition::addComposerHtmlFrame( QgsComposerHtml* html, QgsComposerFrame* frame )
 {
   addItem( frame );
@@ -2384,6 +2391,7 @@ void QgsComposition::addComposerHtmlFrame( QgsComposerHtml* html, QgsComposerFra
 
   emit composerHtmlFrameAdded( html, frame );
 }
+#endif
 
 void QgsComposition::addComposerTableFrame( QgsComposerAttributeTableV2 *table, QgsComposerFrame *frame )
 {
@@ -2555,11 +2563,13 @@ void QgsComposition::sendItemAddedSignal( QgsComposerItem* item )
   {
     //emit composerFrameAdded( multiframe, frame, );
     QgsComposerMultiFrame* mf = frame->multiFrame();
+#ifdef WITH_QTWEBKIT
     QgsComposerHtml* html = dynamic_cast<QgsComposerHtml*>( mf );
     if ( html )
     {
       emit composerHtmlFrameAdded( html, frame );
     }
+#endif
     QgsComposerAttributeTableV2* table = dynamic_cast<QgsComposerAttributeTableV2*>( mf );
     if ( table )
     {

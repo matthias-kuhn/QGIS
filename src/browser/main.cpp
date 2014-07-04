@@ -88,8 +88,10 @@ int main( int argc, char ** argv )
   editorWidgetRegistry->registerWidget( "TextEdit", new QgsTextEditWidgetFactory( QObject::tr( "Text Edit" ) ) );
   editorWidgetRegistry->registerWidget( "ValueRelation", new QgsValueRelationWidgetFactory( QObject::tr( "Value Relation" ) ) );
   editorWidgetRegistry->registerWidget( "UuidGenerator", new QgsUuidWidgetFactory( QObject::tr( "Uuid Generator" ) ) );
+#ifdef WITH_QTWEBKIT
   editorWidgetRegistry->registerWidget( "Photo", new QgsPhotoWidgetFactory( QObject::tr( "Photo" ) ) );
   editorWidgetRegistry->registerWidget( "WebView", new QgsWebViewWidgetFactory( QObject::tr( "Web View" ) ) );
+#endif
   editorWidgetRegistry->registerWidget( "Color", new QgsColorWidgetFactory( QObject::tr( "Color" ) ) );
   editorWidgetRegistry->registerWidget( "RelationReference", new QgsRelationReferenceFactory( QObject::tr( "Relation Reference" ), 0, 0 ) );
   editorWidgetRegistry->registerWidget( "DateTime", new QgsDateTimeEditFactory( QObject::tr( "Date/Time" ) ) );

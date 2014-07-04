@@ -76,9 +76,6 @@ editorwidgets/qgsfilenamewidgetwrapper.cpp
 editorwidgets/qgsfilenamewidgetfactory.cpp
 editorwidgets/qgshiddenwidgetwrapper.cpp
 editorwidgets/qgshiddenwidgetfactory.cpp
-editorwidgets/qgsphotoconfigdlg.cpp
-editorwidgets/qgsphotowidgetwrapper.cpp
-editorwidgets/qgsphotowidgetfactory.cpp
 editorwidgets/qgsrangeconfigdlg.cpp
 editorwidgets/qgsrangewidgetwrapper.cpp
 editorwidgets/qgsrangewidgetfactory.cpp
@@ -102,10 +99,6 @@ editorwidgets/qgsvaluemapwidgetfactory.cpp
 editorwidgets/qgsvaluerelationconfigdlg.cpp
 editorwidgets/qgsvaluerelationwidgetwrapper.cpp
 editorwidgets/qgsvaluerelationwidgetfactory.cpp
-editorwidgets/qgswebviewconfigdlg.cpp
-editorwidgets/qgswebviewwidgetwrapper.cpp
-editorwidgets/qgswebviewwidgetfactory.cpp
-editorwidgets/qgswebviewwidgetfactory.cpp
 
 
 layertree/qgscustomlayerorderwidget.cpp
@@ -169,7 +162,6 @@ qgsformannotationitem.cpp
 qgsgenericprojectionselector.cpp
 qgshighlight.cpp
 qgsidentifymenu.cpp
-qgshtmlannotationitem.cpp
 qgslegendinterface.cpp
 qgsludialog.cpp
 qgsmanageconnectionsdialog.cpp
@@ -220,6 +212,19 @@ qgstextannotationitem.cpp
 qgsvertexmarker.cpp
 qgsunitselectionwidget.cpp
 )
+
+IF (WITH_QTWEBKIT)
+  SET(QGIS_GUI_SRCS ${QGIS_GUI_SRCS}
+    editorwidgets/qgsphotoconfigdlg.cpp
+    editorwidgets/qgsphotowidgetwrapper.cpp
+    editorwidgets/qgsphotowidgetfactory.cpp
+    editorwidgets/qgswebviewconfigdlg.cpp
+    editorwidgets/qgswebviewwidgetwrapper.cpp
+    editorwidgets/qgswebviewwidgetfactory.cpp
+    editorwidgets/qgswebviewwidgetfactory.cpp
+    qgshtmlannotationitem.cpp
+  )
+ENDIF (WITH_QTWEBKIT)
 
 IF (WITH_TOUCH)
   SET(QGIS_GUI_SRCS
@@ -301,8 +306,6 @@ editorwidgets/qgsdummyconfigdlg.h
 editorwidgets/qgsenumerationwidgetwrapper.h
 editorwidgets/qgsfilenamewidgetwrapper.h
 editorwidgets/qgshiddenwidgetwrapper.h
-editorwidgets/qgsphotoconfigdlg.h
-editorwidgets/qgsphotowidgetwrapper.h
 editorwidgets/qgsrangeconfigdlg.h
 editorwidgets/qgsrangewidgetwrapper.h
 editorwidgets/qgsrelationreferenceconfigdlg.h
@@ -319,8 +322,6 @@ editorwidgets/qgsvaluemapconfigdlg.h
 editorwidgets/qgsvaluemapwidgetwrapper.h
 editorwidgets/qgsvaluerelationconfigdlg.h
 editorwidgets/qgsvaluerelationwidgetwrapper.h
-editorwidgets/qgswebviewconfigdlg.h
-editorwidgets/qgswebviewwidgetwrapper.h
 
 layertree/qgscustomlayerorderwidget.h
 layertree/qgslayertreemapcanvasbridge.h
@@ -369,7 +370,6 @@ qgsfieldproxymodel.h
 qgsfilterlineedit.h
 qgsformannotationitem.h
 qgsgenericprojectionselector.h
-qgshtmlannotationitem.h
 qgsidentifymenu.h
 qgslegendinterface.h
 qgslonglongvalidator.h
@@ -411,6 +411,16 @@ qgsslider.h
 qgssublayersdialog.h
 qgsunitselectionwidget.h
 )
+
+IF (WITH_QTWEBKIT)
+  SET( QGIS_GUI_MOC_HDRS ${QGIS_GUI_MOC_HDRS}
+    editorwidgets/qgsphotoconfigdlg.h
+    editorwidgets/qgsphotowidgetwrapper.h
+    editorwidgets/qgswebviewconfigdlg.h
+    editorwidgets/qgswebviewwidgetwrapper.h
+    qgshtmlannotationitem.h
+  )
+ENDIF (WITH_QTWEBKIT)
 
 QT4_WRAP_CPP(QGIS_GUI_MOC_SRCS ${QGIS_GUI_MOC_HDRS})
 
@@ -490,7 +500,6 @@ qgssublayersdialog.h
 qgsvectorlayertools.h
 qgsvertexmarker.h
 qgsnumericsortlistviewitem.h
-qgsannotationitem.h
 qgstextannotationitem.h
 qgssvgannotationitem.h
 qgscomposerruler.h
@@ -536,9 +545,6 @@ editorwidgets/qgsfilenamewidgetwrapper.h
 editorwidgets/qgsfilenamewidgetfactory.h
 editorwidgets/qgshiddenwidgetwrapper.h
 editorwidgets/qgshiddenwidgetfactory.h
-editorwidgets/qgsphotoconfigdlg.h
-editorwidgets/qgsphotowidgetwrapper.h
-editorwidgets/qgsphotowidgetfactory.h
 editorwidgets/qgsrangeconfigdlg.h
 editorwidgets/qgsrangewidgetwrapper.h
 editorwidgets/qgsrangewidgetfactory.h
@@ -562,9 +568,6 @@ editorwidgets/qgsvaluemapwidgetfactory.h
 editorwidgets/qgsvaluerelationconfigdlg.h
 editorwidgets/qgsvaluerelationwidgetwrapper.h
 editorwidgets/qgsvaluerelationwidgetfactory.h
-editorwidgets/qgswebviewconfigdlg.h
-editorwidgets/qgswebviewwidgetwrapper.h
-editorwidgets/qgswebviewwidgetfactory.h
 
 layertree/qgscustomlayerorderwidget.h
 layertree/qgslayertreemapcanvasbridge.h
@@ -572,6 +575,18 @@ layertree/qgslayertreeview.h
 
 raster/qgsrasterrendererwidget.h
 )
+
+IF (WITH_QTWEBKIT)
+  SET(QGIS_GUI_HDRS ${QGIS_GUI_HDRS}
+    editorwidgets/qgsphotoconfigdlg.h
+    editorwidgets/qgsphotowidgetwrapper.h
+    editorwidgets/qgsphotowidgetfactory.h
+    editorwidgets/qgswebviewconfigdlg.h
+    editorwidgets/qgswebviewwidgetwrapper.h
+    editorwidgets/qgswebviewwidgetfactory.h
+    qgsannotationitem.h
+  )
+ENDIF (WITH_QTWEBKIT)
 
 IF (WITH_TOUCH)
   SET(QGIS_GUI_HDRS
