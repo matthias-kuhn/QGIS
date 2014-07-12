@@ -202,6 +202,9 @@ void QgsOptionsDialogBase::showEvent( QShowEvent* e )
   {
     updateOptionsListVerticalTabs();
     optionsStackedWidget_CurrentChanged( mOptListWidget->currentRow() );
+#ifdef ANDROID
+    showMaximized();
+#endif
   }
   else
   {
