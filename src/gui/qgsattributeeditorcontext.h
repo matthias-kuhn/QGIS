@@ -19,9 +19,11 @@
 #include <QMap>
 #include <QWidget>
 
-#include <qgsdistancearea.h>
-#include <qgsvectorlayer.h>
-#include <qgsvectorlayertools.h>
+#include "qgsdistancearea.h"
+#include "qgsmapcanvas.h"
+#include "qgsmessagebar.h"
+#include "qgsvectorlayer.h"
+#include "qgsvectorlayertools.h"
 
 
 /**
@@ -46,6 +48,12 @@ class GUI_EXPORT QgsAttributeEditorContext
     void setVectorLayerTools( QgsVectorLayerTools* vlTools ) { mVectorLayerTools = vlTools; }
     QgsVectorLayerTools* vectorLayerTools() { return mVectorLayerTools; }
 
+    void setMapCanvas( QgsMapCanvas* canvas ) { mMapCanvas = canvas; }
+    QgsMapCanvas* mapCanvas() { return mMapCanvas;}
+
+    void setMessageBar( QgsMessageBar* messageBar ) { mMessageBar = messageBar; }
+    QgsMessageBar* messageBar() { return mMessageBar; }
+
     /**
      * When copying the context for another layer,  call this.
      * Will adjast the distance area for this layer
@@ -56,6 +64,8 @@ class GUI_EXPORT QgsAttributeEditorContext
 
   private:
     QgsVectorLayerTools* mVectorLayerTools;
+    QgsMapCanvas* mMapCanvas;
+    QgsMessageBar* mMessageBar;
 
     //! vectorlayer => ( fieldIdx, proxyWidget )
     QMap<QgsVectorLayer*, QMap<int, QWidget*> > mProxyWidgets;

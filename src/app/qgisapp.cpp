@@ -668,6 +668,8 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, QWidget * parent, 
   QgsEditorWidgetRegistry* editorWidgetRegistry = QgsEditorWidgetRegistry::instance();
   QgsAttributeEditorContext context;
   context.setVectorLayerTools( vectorLayerTools() );
+  context.setMapCanvas( mMapCanvas );
+  context.setMessageBar( mInfoBar );
   editorWidgetRegistry->registerWidget( "Classification", new QgsClassificationWidgetWrapperFactory( tr( "Classification" ) ) );
   editorWidgetRegistry->registerWidget( "Range", new QgsRangeWidgetFactory( tr( "Range" ) ) );
   editorWidgetRegistry->registerWidget( "UniqueValues", new QgsUniqueValueWidgetFactory( tr( "Unique Values" ) ) );
