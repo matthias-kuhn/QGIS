@@ -407,9 +407,6 @@ void QgsRelationReferenceWidget::referenceChanged( int index )
 
     if ( feat.isValid() )
     {
-      // Backup old dialog and delete only after creating the new dialog, so we can "hot-swap" the contained QgsFeature
-      QgsAttributeDialog* oldDialog = mReferencedAttributeDialog;
-
       if ( mReferencedAttributeDialog )
       {
         mAttributeEditorLayout->removeWidget( mReferencedAttributeDialog );
@@ -421,8 +418,6 @@ void QgsRelationReferenceWidget::referenceChanged( int index )
       attrDialog->setWindowFlags( Qt::Widget ); // Embed instead of opening as window
       mAttributeEditorLayout->addWidget( attrDialog );
       attrDialog->show();
-
-      delete oldDialog;
     }
   }
 }
