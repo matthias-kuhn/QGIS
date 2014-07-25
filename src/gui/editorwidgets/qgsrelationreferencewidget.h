@@ -38,6 +38,13 @@ class GUI_EXPORT QgsRelationReferenceWidget : public QWidget
     Q_PROPERTY( bool allowMapIdentification READ allowMapIdentification WRITE setAllowMapIdentification )
 
   public:
+    enum CanvasExtent
+    {
+      Fixed,
+      Pan,
+      Scale
+    };
+
     explicit QgsRelationReferenceWidget( QWidget* parent );
 
     void setRelation( QgsRelation relation , bool allowNullValue );
@@ -63,8 +70,9 @@ class GUI_EXPORT QgsRelationReferenceWidget : public QWidget
     void relatedFeatureChanged( QVariant );
 
   private slots:
-    void buttonTriggered( QAction* action );
+    void highlightActionTriggered( QAction* action );
     void deleteHighlight();
+    void openForm();
     void mapIdentification();
     void referenceChanged( int index );
     void setRelatedFeature( const QgsFeatureId& fid );
@@ -74,8 +82,7 @@ class GUI_EXPORT QgsRelationReferenceWidget : public QWidget
 
 
   private:
-    void openForm();
-    void highlightFeature( bool scale = false );
+    void highlightFeature( CanvasExtent canvasExtent = Fixed );
 
     // initialized
     QgsAttributeEditorContext mEditorContext;
@@ -98,10 +105,12 @@ class GUI_EXPORT QgsRelationReferenceWidget : public QWidget
     QVBoxLayout* mTopLayout;
     QHash<QgsFeatureId, QVariant> mFidFkMap; // Mapping from feature id => foreign key
     QToolButton* mMapIdentificationButton;
-    QToolButton* mAttributeEditorButton;
+    QToolButton* mOpenFormButton;
+    QToolButton* mHighlightFeatureButton;
     QAction* mHighlightFeatureAction;
     QAction* mScaleHighlightFeatureAction;
-    QAction* mShowFormAction;
+    QAction* mPanHighlightFeatureAction;
+    QAction* mOpenFormAction;
     QAction* mMapIdentificationAction;
     QComboBox* mComboBox;
     QgsCollapsibleGroupBox* mAttributeEditorFrame;

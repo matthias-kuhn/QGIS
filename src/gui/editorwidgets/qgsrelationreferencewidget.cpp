@@ -65,17 +65,25 @@ QgsRelationReferenceWidget::QgsRelationReferenceWidget( QWidget* parent )
   mLineEdit->setReadOnly( true );
   editLayout->addWidget( mLineEdit );
 
-  // action button
-  mAttributeEditorButton = new QToolButton( this );
-  mShowFormAction = new QAction( QgsApplication::getThemeIcon( "/mActionToggleEditing.svg" ), tr( "Open Form" ), this );
+  // open form button
+  mOpenFormButton = new QToolButton( this );
+  mOpenFormAction = new QAction( QgsApplication::getThemeIcon( "/mActionToggleEditing.svg" ), tr( "Open related feature form" ), this );
+  mOpenFormButton->addAction( mOpenFormAction );
+  mOpenFormButton->setDefaultAction( mOpenFormAction );
+  connect( mOpenFormButton, SIGNAL( triggered( QAction* ) ), this, SLOT( openForm() ) );
+  editLayout->addWidget( mOpenFormButton );
+
+  // highlight button
+  mHighlightFeatureButton = new QToolButton( this );
   mHighlightFeatureAction = new QAction( QgsApplication::getThemeIcon( "/mActionHighlightFeature.svg" ), tr( "Highlight feature" ), this );
   mScaleHighlightFeatureAction = new QAction( QgsApplication::getThemeIcon( "/mActionScaleHighlightFeature.svg" ), tr( "Scale and highlight feature" ), this );
-  mAttributeEditorButton->addAction( mShowFormAction );
-  mAttributeEditorButton->addAction( mHighlightFeatureAction );
-  mAttributeEditorButton->addAction( mScaleHighlightFeatureAction );
-  mAttributeEditorButton->setDefaultAction( mShowFormAction );
-  connect( mAttributeEditorButton, SIGNAL( triggered( QAction* ) ), this, SLOT( buttonTriggered( QAction* ) ) );
-  editLayout->addWidget( mAttributeEditorButton );
+  mPanHighlightFeatureAction = new QAction( QgsApplication::getThemeIcon( "/mActionPanHighlightFeature.svg" ), tr( "Pan and highlight feature" ), this );
+  mHighlightFeatureButton->addAction( mHighlightFeatureAction );
+  mHighlightFeatureButton->addAction( mScaleHighlightFeatureAction );
+  mHighlightFeatureButton->addAction( mPanHighlightFeatureAction );
+  mHighlightFeatureButton->setDefaultAction( mHighlightFeatureAction );
+  connect( mHighlightFeatureButton, SIGNAL( triggered( QAction* ) ), this, SLOT( highlightActionTriggered( QAction* ) ) );
+  editLayout->addWidget( mHighlightFeatureButton );
 
   // map identification button
   mMapIdentificationButton = new QToolButton( this );
@@ -251,23 +259,23 @@ void QgsRelationReferenceWidget::setReadOnlySelector( bool readOnly )
 
 void QgsRelationReferenceWidget::setAllowMapIdentification( bool allowMapIdentification )
 {
+  mHighlightFeatureButton->setVisible( allowMapIdentification );
   mMapIdentificationButton->setVisible( allowMapIdentification );
 }
 
-void QgsRelationReferenceWidget::buttonTriggered( QAction* action )
+void QgsRelationReferenceWidget::highlightActionTriggered( QAction* action )
 {
-  if ( action == mShowFormAction )
+  if ( action == mHighlightFeatureAction )
   {
-    highlightFeature( false );
-    openForm();
-  }
-  else if ( action == mHighlightFeatureAction )
-  {
-    highlightFeature( false );
+    highlightFeature();
   }
   else if ( action == mScaleHighlightFeatureAction )
   {
-    highlightFeature( true );
+    highlightFeature( Scale );
+  }
+  else if ( action == mPanHighlightFeatureAction )
+  {
+    highlightFeature( Pan );
   }
 }
 
@@ -291,7 +299,7 @@ void QgsRelationReferenceWidget::openForm()
   delete mReferencedAttributeDialog;
 }
 
-void QgsRelationReferenceWidget::highlightFeature( bool scale )
+void QgsRelationReferenceWidget::highlightFeature( CanvasExtent canvasExtent )
 {
   QgsFeatureId fid = mComboBox->itemData( mComboBox->currentIndex() ).value<QgsFeatureId>();
 
@@ -315,8 +323,8 @@ void QgsRelationReferenceWidget::highlightFeature( bool scale )
     return;
   }
 
-  // scale
-  if ( scale )
+  // scale or pan
+  if ( canvasExtent == Scale )
   {
     QgsRectangle featBBox = geom->boundingBox();
     featBBox = canvas->mapSettings().layerToMapCoordinates( mReferencedLayer, featBBox );
@@ -328,6 +336,12 @@ void QgsRelationReferenceWidget::highlightFeature( bool scale )
       canvas->setExtent( extent );
       canvas->refresh();
     }
+  }
+  else if ( canvasExtent == Pan )
+  {
+    QgsPoint center = geom->centroid()->asPoint();
+    center = canvas->mapSettings().layerToMapCoordinates( mReferencedLayer, center );
+    canvas->zoomByFactor( 1.0, &center ); // refresh is done in this method
   }
 
   // highlight
@@ -394,7 +408,7 @@ void QgsRelationReferenceWidget::referenceChanged( int index )
 {
   QgsFeatureId fid = mComboBox->itemData( index ).value<QgsFeatureId>();
 
-  highlightFeature( false );
+  highlightFeature();
 
   emit relatedFeatureChanged( mFidFkMap.value( fid ) );
 

@@ -461,6 +461,7 @@
         <file>themes/default/mActionMapIdentification.svg</file>
         <file>themes/default/mActionHighlightFeature.svg</file>
         <file>themes/default/mActionScaleHighlightFeature.svg</file>
+        <file>themes/default/mActionPanHighlightFeature.svg</file>
     </qresource>
     <qresource prefix="/images/tips">
         <file alias="symbol_levels.png">qgis_tips/symbol_levels.png</file>

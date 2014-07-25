@@ -10,7 +10,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    id="svg2"
-   sodipodi:docname="mActionScaleHighlightFeature.svg"
+   sodipodi:docname="mHighlightFeatureAction.svg"
    inkscape:export-filename="/home/cafuego/Desktop/Simple Lightbulb.png"
    viewBox="0 0 24 24"
    sodipodi:version="0.32"
@@ -96,7 +96,7 @@
        transform="matrix(3.1015,0,0,3.1015,-994.61,-1036.2)">
       <g
          id="g3493"
-         transform="matrix(0.02720686,0,0,0.02720686,324.90832,554.98759)">
+         transform="matrix(0.0290863,0,0,0.0290863,324.10418,554.11594)">
         <path
            id="path2213"
            sodipodi:nodetypes="czsczscc"
@@ -166,38 +166,32 @@
            inkscape:connector-curvature="0" />
       </g>
       <path
-         transform="matrix(0.41153162,0,0,0.4038456,330.91983,563.37951)"
-         d="M 17.96122,7 A 5.9612203,6.0742435 0 1 1 6.0387797,7 5.9612203,6.0742435 0 1 1 17.96122,7 z"
-         sodipodi:ry="6.0742435"
-         sodipodi:rx="5.9612203"
-         sodipodi:cy="7"
-         sodipodi:cx="12"
-         id="path3834"
-         style="opacity:0.8;fill:#e6e6e6;fill-opacity:1;fill-rule:nonzero;stroke:#505050;stroke-width:0.75218332;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:7;display:inline"
-         sodipodi:type="arc" />
+         inkscape:connector-curvature="0"
+         inkscape:export-ydpi="90"
+         inkscape:export-xdpi="90"
+         inkscape:export-filename="E:\Program Files\QGIS-Dev\themes\gis-0.1.1\path2844.png"
+         sodipodi:nodetypes="cccccccc"
+         id="path2844"
+         d="m 334.7972,568.91478 1.13549,-1.1355 -0.75699,0 0,-0.75699 -0.757,0 0,0.75699 -0.757,0 1.1355,1.1355 z"
+         style="fill:#6d97c4;fill-opacity:1;fill-rule:evenodd;stroke:#415a75;stroke-width:0.25233239;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline;enable-background:new" />
       <path
          inkscape:connector-curvature="0"
-         sodipodi:nodetypes="ccccc"
-         id="path3832"
-         d="m 333.71164,567.74009 c 0,0.61327 0.6133,0.61327 0.6133,0.61327 0,0 -2.14658,2.14641 -2.14658,2.14641 l -0.6133,-0.61325 2.14658,-2.14643 z"
-         style="fill:#ffcc30;fill-opacity:1;fill-rule:evenodd;stroke:#505050;stroke-width:0.30664286;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline" />
+         style="fill:#6d97c4;fill-opacity:1;fill-rule:evenodd;stroke:#415a75;stroke-width:0.25233239;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline;enable-background:new"
+         d="m 332.02154,566.13912 1.1355,1.1355 0,-0.757 0.75699,0 0,-0.757 -0.75699,0 0,-0.75699 -1.1355,1.13549 z"
+         id="path2846"
+         sodipodi:nodetypes="cccccccc" />
       <path
          inkscape:connector-curvature="0"
-         sodipodi:nodetypes="ccccc"
-         id="path3836"
-         d="m 333.25166,568.20004 0.6133,-0.61327 0.61331,0.61327 -0.61331,0.61326 -0.6133,-0.61326 z"
-         style="fill:#000000;fill-rule:evenodd;stroke:#505050;stroke-width:0.30664286;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline" />
+         style="fill:#6d97c4;fill-opacity:1;fill-rule:evenodd;stroke:#415a75;stroke-width:0.25233239;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline;enable-background:new"
+         d="m 334.7972,563.36347 1.13549,1.13549 -0.75699,0 0,0.75699 -0.757,0 0,-0.75699 -0.757,0 1.1355,-1.13549 z"
+         id="path2848"
+         sodipodi:nodetypes="cccccccc" />
       <path
          inkscape:connector-curvature="0"
-         sodipodi:nodetypes="czzzz"
-         id="path3838"
-         d="m 334.47827,564.82709 c 0.61331,-0.9199 1.36224,-1.04196 1.83992,-0.61327 0.47769,0.42869 -0.6133,0.30664 -1.22661,0.9199 -0.61331,0.61327 0,1.83979 -0.61331,1.83979 -0.61331,0 -0.61331,-1.22652 0,-2.14642 z"
-         style="opacity:0.7;fill:#fcffff;fill-rule:evenodd;stroke:none;display:inline" />
-      <path
-         inkscape:connector-curvature="0"
-         id="path2832"
-         d="m 332.02505,569.7332 1.22661,-1.22653"
-         style="opacity:0.5;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#fcffff;stroke-width:0.30664286;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+         sodipodi:nodetypes="cccccccc"
+         id="path2850"
+         d="m 337.57285,566.13912 -1.13549,1.1355 0,-0.757 -0.75699,0 0,-0.757 0.75699,0 0,-0.75699 1.13549,1.13549 z"
+         style="fill:#6d97c4;fill-opacity:1;fill-rule:evenodd;stroke:#415a75;stroke-width:0.25233239;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline;enable-background:new" />
     </g>
   </g>
   <metadata
@@ -215,7 +209,7 @@
             <dc:title>Openclipart</dc:title>
           </cc:Agent>
         </dc:publisher>
-        <dc:title />
+        <dc:title></dc:title>
         <dc:date>2009-01-16T03:09:00</dc:date>
         <dc:description>A screw-in light bulb</dc:description>
         <dc:source>https://openclipart.org/detail/21171/light-bulb-by-cafuego-21171</dc:source>
