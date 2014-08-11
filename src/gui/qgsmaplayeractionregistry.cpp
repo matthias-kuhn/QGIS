@@ -72,7 +72,7 @@ bool QgsMapLayerAction::canRunUsingLayer( QgsMapLayer* layer ) const
   return false;
 }
 
-void QgsMapLayerAction::triggerForFeature( QgsMapLayer* layer, QgsFeature* feature )
+void QgsMapLayerAction::triggerForFeature( QgsMapLayer* layer, const QgsFeature* feature )
 {
   emit triggeredForFeature( layer, feature );
   //also trigger this action for the specified layer
