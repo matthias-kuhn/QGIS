@@ -134,6 +134,13 @@ class CORE_EXPORT QgsVectorLayerCache : public QObject
     void setFullCache( bool fullCache );
 
     /**
+     * Can be used to determine if this cache is set up to keep all features.
+     *
+     * @return true if every feature is cached
+     */
+    bool fullCache() { return mFullCache; }
+
+    /**
      * @brief
      * Adds a {@link QgsAbstractCacheIndex} to this cache. Cache indices know about features present
      * in this cache and decide, if enough information is present in the cache to respond to a {@link QgsFeatureRequest}.

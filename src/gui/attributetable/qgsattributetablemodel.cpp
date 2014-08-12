@@ -294,7 +294,7 @@ void QgsAttributeTableModel::loadLayer()
   }
 
   QgsFeatureIterator features;
-  bool fetchAttributes = ( mLayerCache->cacheSize() > mLayerCache->layer()->featureCount() );
+  bool fetchAttributes = ( mLayerCache->cacheSize() > mLayerCache->layer()->featureCount() || mLayerCache->fullCache() );
 
   if ( fetchAttributes )
   {
@@ -316,7 +316,6 @@ void QgsAttributeTableModel::loadLayer()
   QgsFeature feat;
   while ( features.nextFeature( feat ) )
   {
-
     int n = mRowIdMap.size();
 
     mIdRowMap.insert( feat.id(), n );
