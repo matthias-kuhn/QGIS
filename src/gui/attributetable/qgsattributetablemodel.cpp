@@ -128,7 +128,7 @@ bool QgsAttributeTableModel::removeRows( int row, int count, const QModelIndex &
   return true;
 }
 
-void QgsAttributeTableModel::featureAdded( QgsFeatureId fid )
+void QgsAttributeTableModel::featureAdded(QgsFeatureId fid )
 {
   QgsDebugMsgLevel( QString( "(%2) fid: %1" ).arg( fid ).arg( mFeatureRequest.filterType() ), 4 );
   bool featOk = true;
@@ -141,6 +141,7 @@ void QgsAttributeTableModel::featureAdded( QgsFeatureId fid )
     mFieldCache[ fid ] = mFeat.attribute( mCachedField );
 
     int n = mRowIdMap.size();
+
     beginInsertRows( QModelIndex(), n, n );
 
     mIdRowMap.insert( fid, n );
@@ -285,8 +286,6 @@ void QgsAttributeTableModel::loadAttributes()
 
 void QgsAttributeTableModel::loadLayer()
 {
-  QgsDebugMsg( "entered." );
-
   if ( rowCount() != 0 )
   {
     beginRemoveRows( QModelIndex(), 0, rowCount() - 1 );
@@ -294,30 +293,62 @@ void QgsAttributeTableModel::loadLayer()
     endRemoveRows();
   }
 
-  QgsFeatureIterator features = mLayerCache->getFeatures( mFeatureRequest );
+  QgsFeatureIterator features;
+  bool fetchAttributes = ( mLayerCache->cacheSize() > mLayerCache->layer()->featureCount() );
 
-  int i = 0;
+  if ( fetchAttributes )
+  {
+    // If we are going to be able to cache everything, load it right away
+    features = mLayerCache->getFeatures( mFeatureRequest );
+  }
+  else
+  {
+    // If we are not able to cache everything, load a list of ids first. We will warm up the cache later
+    QgsFeatureRequest request = mFeatureRequest;
+    request.setSubsetOfAttributes( QgsAttributeList() ).setFlags( QgsFeatureRequest::NoGeometry );
+    features = mLayerCache->layer()->getFeatures( request );
+  }
 
-  QTime t;
+  QTime t, t1;
   t.start();
+  t1.start();
 
   QgsFeature feat;
   while ( features.nextFeature( feat ) )
   {
-    ++i;
+
+    int n = mRowIdMap.size();
+
+    mIdRowMap.insert( feat.id(), n );
+    mRowIdMap.insert( n, feat.id() );
 
     if ( t.elapsed() > 1000 )
     {
       bool cancel = false;
-      emit( progress( i, cancel ) );
+      emit( progress( n, cancel ) );
       if ( cancel )
         break;
 
       t.restart();
     }
-    mFeat = feat;
-    featureAdded( feat.id() );
   }
+
+  // If we did not yet fetch attributes, warm the cache up now
+  if ( !fetchAttributes )
+  {
+    QgsFeatureIterator it = mLayerCache->getFeatures( mFeatureRequest );
+    int i = 0;
+    while ( it.nextFeature( feat ) )
+    {
+      if ( ++i > mLayerCache->cacheSize() )
+        break;
+    }
+  }
+
+  beginInsertRows( QModelIndex(), 0, mRowIdMap.size() );
+  endInsertRows();
+
+  QgsDebugMsg( QString( "Loaded %1 rows in %2 seconds" ).arg( rowCount() ).arg( t1.elapsed() / 1000.0 ) );
 
   emit finished();
 
