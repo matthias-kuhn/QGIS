@@ -264,7 +264,7 @@ IF (ENABLE_TESTS)
   # Adds some testing specific build targets e.g. make Experimental
   INCLUDE(Dart)
   # Define "make check" as alias for "make test" - thanks geos :-)
-  add_custom_target(check COMMAND ctest --output-on-failure)
+  add_custom_target(check COMMAND ctest --output-on-failure -V)
   # Additional test configuration options e.g. max upload size of test report
   CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/CTestCustom.cmake.in"
