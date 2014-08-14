@@ -47,6 +47,8 @@ class GUI_EXPORT QgsRelationReferenceWidget : public QWidget
 
     explicit QgsRelationReferenceWidget( QWidget* parent );
 
+    ~QgsRelationReferenceWidget();
+
     void setRelation( QgsRelation relation , bool allowNullValue );
 
     void setRelationEditable( bool editable );
@@ -95,6 +97,7 @@ class GUI_EXPORT QgsRelationReferenceWidget : public QWidget
     QgsAttributeDialog* mReferencedAttributeDialog;
     QgsVectorLayer* mReferencedLayer;
     QgsVectorLayer* mReferencingLayer;
+    QWidget* mWindowWidget;
 
     // Q_PROPERTY
     bool mEmbedForm;

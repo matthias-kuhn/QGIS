@@ -395,6 +395,8 @@ void QgsRelationReferenceWidget::mapIdentification()
 
   mMapTool = new QgsMapToolIdentifyFeature( mReferencedLayer, canvas );
   canvas->setMapTool( mMapTool );
+  mWindowWidget = window();
+  mWindowWidget->hide();
   connect( mMapTool, SIGNAL( featureIdentified( QgsFeatureId ) ), this, SLOT( featureIdentified( QgsFeatureId ) ) );
   connect( mMapTool, SIGNAL( deactivated() ), this, SLOT( mapToolDeactivated() ) );
 
@@ -451,4 +453,7 @@ void QgsRelationReferenceWidget::featureIdentified( const QgsFeatureId& fid )
     QgsMapCanvas* canvas = mMapTool->canvas();
     canvas->unsetMapTool( mMapTool );
   }
+
+  if ( mWindowWidget )
+    mWindowWidget->show();
 }
