@@ -129,6 +129,11 @@ QgsRelationReferenceWidget::QgsRelationReferenceWidget( QWidget* parent )
   }
 }
 
+QgsRelationReferenceWidget::~QgsRelationReferenceWidget()
+{
+  delete mMapTool;
+}
+
 void QgsRelationReferenceWidget::setRelation( QgsRelation relation, bool allowNullValue )
 {
   if ( relation.isValid() )
