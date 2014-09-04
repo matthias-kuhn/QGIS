@@ -132,7 +132,7 @@
 #include "qgsformannotationitem.h"
 #include "qgsfieldcalculator.h"
 #ifdef WITH_QTWEBKIT
-  #include "qgshtmlannotationitem.h"
+#include "qgshtmlannotationitem.h"
 #endif
 #include "qgsgenericprojectionselector.h"
 #include "qgsgpsinformationwidget.h"
@@ -285,7 +285,7 @@
 #include "qgsuuidwidgetfactory.h"
 #include "qgsphotowidgetfactory.h"
 #ifdef WITH_QTWEBKIT
-  #include "qgswebviewwidgetfactory.h"
+#include "qgswebviewwidgetfactory.h"
 #endif
 #include "qgscolorwidgetfactory.h"
 #include "qgsrelationreferencefactory.h"
@@ -1535,8 +1535,15 @@ void QgisApp::createToolBars()
   // qmainwindow::saveState and qmainwindow::restoreState
   // work properly
 
+#ifndef WITH_SAVEONLYTOOLBAR
+  mSaveToolBar->hide();
+#endif
+
   QList<QToolBar*> toolbarMenuToolBars;
   toolbarMenuToolBars << mFileToolBar
+#ifdef WITH_SAVEONLYTOOLBAR
+  << mSaveToolBar
+#endif
   << mLayerToolBar
   << mDigitizeToolBar
   << mAdvancedDigitizeToolBar
