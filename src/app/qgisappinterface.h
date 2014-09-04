@@ -297,6 +297,9 @@ class APP_EXPORT QgisAppInterface : public QgisInterface
 
     //! ToolBars
     virtual QToolBar *fileToolBar() override;
+#ifdef WITH_SAVEONLYTOOLBAR
+    virtual QToolBar *saveToolBar();
+#endif
     virtual QToolBar *layerToolBar() override;
     virtual QToolBar *mapNavToolToolBar() override;
     virtual QToolBar *digitizeToolBar() override;
