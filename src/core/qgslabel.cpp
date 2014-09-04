@@ -581,27 +581,27 @@ const unsigned char* QgsLabel::labelPoint( labelpoint& point, const unsigned cha
 #endif
   Q_ASSERT( geom + 1 + sizeof( wkbType ) <= geomend );
 
-  geom++; // skip endianness
-  memcpy( &wkbType, geom, sizeof( wkbType ) );
-  geom += sizeof( wkbType );
+  QgsConstWkbPtr wkbPtr( geom + 1 );
+  wkbPtr >> wkbType;
 
-  int dims = 2;
+#if ( defined Q_ASSERT )
+  int dims = ( wkbType == QGis::WKBLineString25D || wkbType == QGis::WKBPolygon25D ) ? 3 : 2;
+#endif
 
   switch ( wkbType )
   {
     case QGis::WKBPoint25D:
     case QGis::WKBPoint:
     {
-      Q_ASSERT( geom + 2*sizeof( double ) <= geomend );
-      double *pts = ( double * )geom;
+      Q_ASSERT( wkbPtr + 2*sizeof( double ) <= geomend );
+      double pts[2];
+      wkbPtr >> pts[0] >> pts[1];
       point.p.set( pts[0], pts[1] );
       point.angle = 0.0;
-      geom += 2 * sizeof( double );
     }
     break;
 
     case QGis::WKBLineString25D:
-      dims = 3;
     case QGis::WKBLineString: // Line center
     {
       Q_ASSERT( geom + sizeof( int ) <= geomend );
@@ -611,72 +611,111 @@ const unsigned char* QgsLabel::labelPoint( labelpoint& point, const unsigned cha
       Q_ASSERT( geom + nPoints*sizeof( double )*dims <= geomend );
 
       // get line center
-      double *pts = ( double * )geom;
       double tl = 0.0;
+
+      double x1, y1 = qSNaN();
+
       for ( int i = 1; i < nPoints; i++ )
       {
-        double dx = pts[dims*i]   - pts[dims*( i-1 )];
-        double dy = pts[dims*i+1] - pts[dims*( i-1 )+1];
+        double x2, y2;
+
+        if ( qIsNaN( x1 ) )
+        {
+          wkbPtr >> x1 >> y1;
+          if ( wkbType == QGis::WKBLineString25D )
+            wkbPtr += sizeof( double );
+        }
+        else
+        {
+          x1 = x2;
+          y1 = y2;
+        }
+
+        wkbPtr >> x2 >> y2;
+        if ( wkbType == QGis::WKBLineString25D )
+          wkbPtr += sizeof( double );
+
+        double dx = x2 - x1;
+        double dy = y2 - y1;
         tl += sqrt( dx * dx + dy * dy );
       }
       tl /= 2.0;
 
       // find line center
       double l = 0.0;
+
+      x1 = y1 = qSNaN();
+
       for ( int i = 1; i < nPoints; i++ )
       {
-        double dx = pts[dims*i]   - pts[dims*( i-1 )];
-        double dy = pts[dims*i+1] - pts[dims*( i-1 )+1];
+        double x2, y2;
+
+        if ( qIsNaN( x1 ) )
+        {
+          wkbPtr >> x1 >> y1;
+          if ( wkbType == QGis::WKBLineString25D )
+            wkbPtr += sizeof( double );
+        }
+        else
+        {
+          x1 = x2;
+          y1 = y2;
+        }
+
+        wkbPtr >> x2 >> y2;
+        if ( wkbType == QGis::WKBLineString25D )
+          wkbPtr += sizeof( double );
+
+        double dx = x2 - x1;
+        double dy = y2 - y1;
         double dl = sqrt( dx * dx + dy * dy );
 
         if ( l + dl > tl )
         {
           double k = ( tl - l ) / dl;
 
-          point.p.set( pts[dims*( i-1 )]   + k * dx,
-                       pts[dims*( i-1 )+1] + k * dy );
+          point.p.set( x1 + k * dx,
+                       y1 + k * dy );
           point.angle = atan2( dy, dx ) * 180.0 * M_1_PI;
           break;
         }
 
         l += dl;
       }
-
-      geom += nPoints * sizeof( double ) * dims;
     }
     break;
 
     case QGis::WKBPolygon25D:
-      dims = 3;
     case QGis::WKBPolygon: // centroid of outer ring
     {
-      Q_ASSERT( geom + sizeof( int ) <= geomend );
-      int nRings = *( unsigned int * )geom;
-      geom += sizeof( int );
+      Q_ASSERT( wkbPtr + sizeof( int ) <= geomend );
+      int nRings;
+      wkbPtr >> nRings;
 
       for ( int i = 0; i < nRings; ++i )
       {
-        Q_ASSERT( geom + sizeof( int ) <= geomend );
-        int nPoints = *( unsigned int * )geom;
-        geom += sizeof( int );
+        Q_ASSERT( wkbPtr + sizeof( int ) <= geomend );
+        int nPoints;
+        wkbPtr >> nPoints;
 
         Q_ASSERT( geom + nPoints*sizeof( double )*dims <= geomend );
 
         if ( i == 0 )
         {
           double sx = 0.0, sy = 0.0;
-          double *pts = ( double* ) geom;
           for ( int j = 0; j < nPoints - 1; j++ )
           {
-            sx += pts[dims*j];
-            sy += pts[dims*j+1];
+            double x, y;
+            wkbPtr >> x >> y;
+            sx += x;
+            sy += y;
+            if ( wkbType == QGis::WKBPolygon25D )
+              wkbPtr += sizeof( double );
           }
           point.p.set( sx / ( nPoints - 1 ),
                        sy / ( nPoints - 1 ) );
           point.angle = 0.0;
         }
-
-        geom += nPoints * sizeof( double ) * dims;
       }
     }
     break;
