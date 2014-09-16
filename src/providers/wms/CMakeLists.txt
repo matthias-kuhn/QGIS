@@ -26,6 +26,10 @@ INCLUDE_DIRECTORIES( . ../../core ../../core/raster ../../gui
   ${QT_QTSCRIPT_INCLUDE_DIR}
 )
 
+IF (Qt5Core_FOUND)
+  FIND_PACKAGE(Qt5Script REQUIRED)
+ENDIF (Qt5Core_FOUND)
+
 ADD_LIBRARY(wmsprovider MODULE ${WMS_SRCS} ${WMS_MOC_SRCS})
 
 TARGET_LINK_LIBRARIES(wmsprovider
