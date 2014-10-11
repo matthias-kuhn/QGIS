@@ -13,4 +13,4 @@ before_script:
   - cmake ..
   - make -j2
 
-script: xvfb-run ctest -V
+script: xvfb-run ctest --output-on-failure
