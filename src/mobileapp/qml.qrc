@@ -12,6 +12,8 @@
         <file alias="GradientBackground.qml">qml/GradientBackground.qml</file>
         <file alias="MenuElement.qml">qml/MenuElement.qml</file>
         <file alias="Menu.qml">qml/Menu.qml</file>
+        <file alias="MapPage.qml">qml/MapPage.qml</file>
+        <file alias="Page.qml">qml/Page.qml</file>
         <file alias="OpaqueBackground.qml">qml/OpaqueBackground.qml</file>
         <file alias="Spinner.qml">qml/Spinner.qml</file>
         <file alias="TextField.qml">qml/TextField.qml</file>

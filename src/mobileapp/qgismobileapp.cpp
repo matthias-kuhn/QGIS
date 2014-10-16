@@ -36,14 +36,12 @@ QgisMobileapp::QgisMobileapp( QgsApplication *app, QWidget *parent, Qt::WFlags f
   mView->setGeometry( 0 ,0, 800, 480 );
 
   QgsMapCanvasProxy* mapCanvasProxy = mView->rootObject()->findChild<QgsMapCanvasProxy *>("theMapCanvas");
-  if (mapCanvasProxy == 0)
-  {
-    qDebug() << "Map canvas don't returned from QML";
-    abort();
-  }
+
+  Q_ASSERT( mapCanvasProxy );
+
   // Setup map canvas
   mMapCanvas = mapCanvasProxy->mapCanvas();
-  mMapCanvas->freeze(false);
+
   mMapCanvas->setVisible(true);
 
   show();
