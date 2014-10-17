@@ -40,6 +40,8 @@ ENDIF (WITH_GRASS)
 
 SET (WITH_DESKTOP TRUE CACHE BOOL "Determines whether QGIS desktop should be built")
 
+SET (WITH_MOBILE FALSE CACHE BOOL "Determines whether a mobile device optimized app based on QtQuick should be built")
+
 # mapserver by us disabled default because it needs FastCGI (which is optional dependency)
 SET (WITH_MAPSERVER FALSE CACHE BOOL "Determines whether QGIS mapserver should be built")
 IF(WITH_MAPSERVER)
@@ -222,8 +224,6 @@ SET(QT_MIN_VERSION 4.7.0)
 SET (ENABLE_QT5 FALSE CACHE BOOL "If enabled will try to find Qt5 before looking for Qt4")
 IF (ENABLE_QT5)
   FIND_PACKAGE(Qt5Core QUIET)
-ENDIF (ENABLE_QT5)
-IF (Qt5Core_FOUND)
   SET (WITH_QTWEBKIT TRUE CACHE BOOL "Disables parts built with QtWebkit")
   FIND_PACKAGE(Qt5Gui REQUIRED)
   FIND_PACKAGE(Qt5Widgets REQUIRED)
@@ -245,7 +245,7 @@ IF (Qt5Core_FOUND)
   SET(QT5_BUILD TRUE)
 
   INCLUDE("cmake/modules/ECMQt4To5Porting.cmake")
-ELSE(Qt5Core_FOUND)
+ELSE(ENABLE_QT5)
   SET(WITH_QTWEBKIT TRUE)
   FIND_PACKAGE(Qt4 ${QT_MIN_VERSION} REQUIRED)
   SET(QT_USE_QTXML 1)
@@ -265,7 +265,7 @@ ELSE(Qt5Core_FOUND)
     FIND_PACKAGE(QtMobility 1.1.0)
   ENDIF (WITH_QTMOBILITY)
 
-ENDIF(Qt5Core_FOUND)
+ENDIF(ENABLE_QT5)
 
 MESSAGE(STATUS "Found Qt version: ${QTVERSION}")
 
