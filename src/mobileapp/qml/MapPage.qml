@@ -68,6 +68,7 @@ Page {
         id: actionBar
 
         anchors.top: parent.top
+        height: 0.2
 
         ActionButton {
             icon: "/images/icon"
