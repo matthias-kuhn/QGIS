@@ -20,6 +20,8 @@
 
 #include "qgismobileapp.h"
 #include "qgsmapcanvasproxy.h"
+#include "qgsproject.h"
+#include "qgsmaplayerregistry.h"
 
 QgisMobileapp::QgisMobileapp( QgsApplication *app, QWidget *parent, Qt::WFlags flags )
     : QMainWindow( parent, flags )
@@ -44,6 +46,9 @@ QgisMobileapp::QgisMobileapp( QgsApplication *app, QWidget *parent, Qt::WFlags f
 
   mMapCanvas->setVisible(true);
 
+  connect( QgsMapLayerRegistry::instance(), SIGNAL(layersAdded(QList<QgsMapLayer*>)), this, SLOT(layersAdded(QList<QgsMapLayer*>) ) );
+  QgsProject::instance()->read( QString( "/home/mku/dev/python/QGEP/project/qgep_en.qgs" ) );
+
   show();
 }
 
@@ -59,7 +64,18 @@ void QgisMobileapp::initDeclarative()
   mView->rootContext()->setContextProperty( "dp", dp );
 }
 
+void QgisMobileapp::layersAdded(QList<QgsMapLayer*> layers)
+{
+  QList<QgsMapCanvasLayer> canvasLayers;
+  Q_FOREACH( QgsMapLayer* layer, layers )
+  {
+    canvasLayers << QgsMapCanvasLayer( layer );
+  }
+
+  mMapCanvas->setLayerSet( canvasLayers );
+}
+
 QgisMobileapp::~QgisMobileapp()
 {
-
+  delete QgsProject::instance();
 }

@@ -4,10 +4,10 @@
 #include <qgsmaprenderer.h>
 #include <QApplication>
 
-QgsMapCanvasProxy::QgsMapCanvasProxy(QGraphicsItem *parent) :
-    QGraphicsProxyWidget(parent)
+QgsMapCanvasProxy::QgsMapCanvasProxy( QGraphicsItem *parent ) :
+    QGraphicsProxyWidget( parent )
 {
-    mMapCanvas = new QgsMapCanvas( (QWidget *)parent );
+    mMapCanvas = new QgsMapCanvas();
     mMapCanvas->enableAntiAliasing(true);
     mMapCanvas->setCanvasColor( Qt::white );
 
@@ -19,7 +19,11 @@ QgsMapCanvasProxy::QgsMapCanvasProxy(QGraphicsItem *parent) :
     connect(mMapCanvas, SIGNAL( renderComplete(QPainter*) ), this, SIGNAL( renderCompleted() ) );
 }
 
-QgsMapCanvas *QgsMapCanvasProxy::mapCanvas()
+QgsMapCanvasProxy::~QgsMapCanvasProxy()
+{
+}
+
+QgsMapCanvas *QgsMapCanvasProxy::mapCanvas() const
 {
   return mMapCanvas;
 }

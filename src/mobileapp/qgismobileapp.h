@@ -32,9 +32,14 @@ public:
 
   void initDeclarative();
 
+  private slots:
+    void layersAdded( QList<QgsMapLayer*> layers );
+
+
 private:
-  QDeclarativeView *mView;
+  QDeclarativeView* mView;
   QgsMapCanvas *mMapCanvas;
+  QList<QgsMapLayer*> mLayers;
 };
 
 #endif // QGISMOBILEAPP_H

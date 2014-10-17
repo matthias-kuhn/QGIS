@@ -12,7 +12,9 @@ class QgsMapCanvasProxy : public QGraphicsProxyWidget
     Q_OBJECT
 public:
     explicit QgsMapCanvasProxy(QGraphicsItem *parent = 0);
-    QgsMapCanvas* mapCanvas();
+    ~QgsMapCanvasProxy();
+
+    QgsMapCanvas* mapCanvas() const;
 
     virtual bool event( QEvent * event );
 
