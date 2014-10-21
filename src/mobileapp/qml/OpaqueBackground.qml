@@ -16,8 +16,8 @@
 import QtQuick 1.1
 
 Rectangle {
-    height: mainwindow.height
-    width: mainwindow.width
+    height: mainWindow.height
+    width: mainWindow.width
     x: 0; y: 0
     color: "black"
     opacity: 0.5

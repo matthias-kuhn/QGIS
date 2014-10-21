@@ -8,52 +8,46 @@ Window {
 
     MapPage {
         id: mapPage
-        objectName: 'theMapPage'
+        objectName: 'mapPage'
         // Visible by default
         visible: true
         anchors.fill: parent
     }
-    Rectangle {
-        anchors.centerIn: parent
-        width: 100
-        height: 40
-        radius: 5
-        color: "lightgray"
-
-        Text {
-            anchors.centerIn: parent
-            text: "Quit"
-            color: "black"
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: Qt.quit()
-        }
-    }
 
     Item {
-        id: mainmenu
-        anchors.fill: parent
-        visible: false
-        OpaqueBackground {
+      id: mainmenu
+      anchors.fill: parent
+      visible: false
+
+      Menu {
+        z: 1500
+        anchors.centerIn: parent
+        model: [ 'Load Project'
+               , 'Settings'
+               , 'Quit'
+        ]
+
+        onValueChanged: {
+          switch ( id ) {
+            case 0:
+              console.log( "loadProject" )
+              break
+            case 1:
+              console.log( "about" )
+              break
+            case 2:
+              Qt.quit()
+              break
+          }
         }
-        Menu {
-            anchors.centerIn: parent
-            model: ["Settings", "About", "Quit"]
-            onValueChanged: {
-                switch (index) {
-                case 0:
-                    console.log("settings")
-                    break
-                case 1:
-                    console.log("about")
-                    break
-                case 2:
-                    Qt.quit()
-                    break
-                }
-            }
-        }
+      }
+
+      OpaqueBackground {
+      }
     } // mainmenu
+
+    // The style
+   HoloDark {
+       id: visual
+   }
 }

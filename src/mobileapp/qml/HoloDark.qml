@@ -16,92 +16,97 @@
 import QtQuick 1.1
 
 Item {
-    // See https://github.com/android/platform_frameworks_base/blob/master/core/res/res/values/colors.xm
+  // See https://github.com/android/platform_frameworks_base/blob/master/core/res/res/values/colors.xm
 
-    property color screenBackground: "#000000"
-    property color screenBackgroundGradStart: "#000000"
-    property color screenBackgroundGradEnd: "#101214"
+  property color screenBackground: "#000000"
+  property color screenBackgroundGradStart: "#000000"
+  property color screenBackgroundGradEnd: "#101214"
 
-    // Action bar
-    property color actionBarBackground: "#282828"
-    property color actionBarForeground: "#f4f4f4"
-    property int actionBarHeight: 40*dp
+  // Action bar
+  property color actionBarBackground: "#282828"
+  property color actionBarForeground: "#f4f4f4"
+  property int actionBarWidth: buttonHeight*dp + 10*dp
 
-    // Menu
-    property color menuBackground: "#282828"
-    property color menuForeground: "#f4f4f4"
-    property color menuSeparator: "#3e3e3e"
-    property int menuElementHeight: 48*dp
+  // Action button
+  property color actionButtonBgFirst: "#d3d3d3"
+  property color actionButtonBgSecond:"#707070"
 
-    // Dialog
-    property color dialogHeaderForeground: "#33b5e5"
-    property color dialogHeaderBorder: "#33b5e5"
-    property int dialogHeaderHeight: 52*dp
-    property color dialogBackground: "#282828"
-    property color dialogForeground: "#d4d4d4"
-    property color dialogButtonForeground: "#d4d4d4"
-    property color dialogButtonBorder: "#3e3e3e"
+  // Menu
+  property color menuBackground: "#282828"
+  property color menuForeground: "#f4f4f4"
+  property color menuSeparator: "#3e3e3e"
+  property int menuElementHeight: 48*dp
 
-    property color listSeparator: "#3e3e3e"
-    property int listHeight: 52*dp
+  // Dialog
+  property color dialogHeaderForeground: "#33b5e5"
+  property color dialogHeaderBorder: "#33b5e5"
+  property int dialogHeaderHeight: 52*dp
+  property color dialogBackground: "#282828"
+  property color dialogForeground: "#d4d4d4"
+  property color dialogButtonForeground: "#d4d4d4"
+  property color dialogButtonBorder: "#3e3e3e"
 
-    // Button
-    property color buttonBackground: "#999999"
-    property color buttonForeground: "#ffffff"
-    property int buttonFontSize: 16*dp
-    property int buttonHeight: 48*dp
-    property int buttonWidth: 192*dp
-    property color activatedButtonBackground: "#33b5e5"
-    property color activatedButtonForeground: "#ffffff"
-    property color deactivatedButtonBackground: "#1c1e1f"
-    property color deactivatedButtonForeground: "#616162"
+  property color listSeparator: "#3e3e3e"
+  property int listHeight: 52*dp
 
-    property color iconForeground: "#cdcdcd"
+  // Button
+  property color buttonBackground: "#999999"
+  property color buttonForeground: "#ffffff"
+  property int buttonFontSize: 16*dp
+  property int buttonHeight: 48*dp
+  property color activatedButtonBackground: "#33b5e5"
+  property color activatedButtonForeground: "#ffffff"
+  property color deactivatedButtonBackground: "#1c1e1f"
+  property color deactivatedButtonForeground: "#616162"
 
-    property color highlighted: "#33b5e5"
+  property color iconForeground: "#cdcdcd"
 
-    // Inputs
-    property int inputLabelHeight: 24*dp
-    property color inputLabelForeground: "#bbbbbb"
-    property int inputHeight: 36*dp
-    property color inputForeground: "#ffffff"
-    property color inputBorder:  "#bbbbbb"
+  property color highlighted: "#33b5e5"
 
-    // Checkboxes
-    property string checkboxNormalCheckedIcon: "/themes/holodark/checkbox-normal-checked.png"
-    property string checkboxNormalUncheckedIcon: "/themes/holodark/checkbox-normal-unchecked.png"
-    property string checkboxDisabledCheckedIcon: "/themes/holodark/checkbox-disabled-checked.png"
-    property string checkboxDisabledUncheckedIcon: "/themes/holodark/checkbox-disabled-unchecked.png"
+  // Inputs
+  property int inputLabelHeight: 24*dp
+  property color inputLabelForeground: "#bbbbbb"
+  property int inputHeight: 36*dp
+  property color inputForeground: "#ffffff"
+  property color inputBorder:  "#bbbbbb"
 
-    // Some colors
-    property color blueLight: "#33b5e5"
-    property color greeLight: "#99cc00"
-    property color redLight: "#ff4444"
-    property color blueDark: "#0099cc"
-    property color greeDark: "#669900"
-    property color redDark: "#cc0000"
-    property color purple: "#aa66cc"
-    property color orangeLight: "#ffbb33"
-    property color orangeDark: "#ff8800"
-    property color blueBright: "#00ddff"
+  // Checkboxes
+  property string checkboxNormalCheckedIcon: "/themes/holodark/checkbox-normal-checked.png"
+  property string checkboxNormalUncheckedIcon: "/themes/holodark/checkbox-normal-unchecked.png"
+  property string checkboxDisabledCheckedIcon: "/themes/holodark/checkbox-disabled-checked.png"
+  property string checkboxDisabledUncheckedIcon: "/themes/holodark/checkbox-disabled-unchecked.png"
 
-    property int smallFontSize: 16*dp
-    property int mediumFontSize: 24*dp
-    property int largeFontSize: 32*dp
+  // Some colors
+  property color blueLight: "#33b5e5"
+  property color greeLight: "#99cc00"
+  property color redLight: "#ff4444"
+  property color blueDark: "#0099cc"
+  property color greeDark: "#669900"
+  property color redDark: "#cc0000"
+  property color purple: "#aa66cc"
+  property color orangeLight: "#ffbb33"
+  property color orangeDark: "#ff8800"
+  property color blueBright: "#00ddff"
 
-    // Toasts
-    property color toastBackground: "#272727"
-    property color toastForeground: "#ffffff"
-    property int toastFontSize: 16*dp
+  property int smallFontSize: 16*dp
+  property int mediumFontSize: 24*dp
+  property int largeFontSize: 32*dp
 
-    // Icons
-    property string addIcon: "/themes/holodark/add.png"
-    property string newIcon: "/themes/holodark/new.png"
-    property string removeIcon: "/themes/holodark/remove.png"
-    property string moveIcon: "/themes/holodark/move.png"
-    property string locationIcon: "/themes/holodark/location.png"
-    property string locationAddIcon: "/themes/holodark/location-add.png"
-    property string undoIcon: "/themes/holodark/undo.png"
-    property string previousIcon: "/themes/holodark/previous.png"
-    property string layersIcon: "/themes/holodark/layers.png"
+  // Toasts
+  property color toastBackground: "#272727"
+  property color toastForeground: "#ffffff"
+  property int toastFontSize: 16*dp
+
+  // Icons
+  property string addIcon: "/themes/holodark/add.png"
+  property string newIcon: "/themes/holodark/new.png"
+  property string removeIcon: "/themes/holodark/remove.png"
+  property string moveIcon: "/themes/holodark/move.png"
+  property string locationIcon: "/themes/holodark/location.png"
+  property string locationAddIcon: "/themes/holodark/location-add.png"
+  property string undoIcon: "/themes/holodark/undo.png"
+  property string previousIcon: "/themes/holodark/previous.png"
+  property string layersIcon: "/themes/holodark/layers.png"
+  property string settingsIcon: "/themes/holodark/settings.png"
+  property string mapIcon: "/themes/holodark/map.png"
 }

@@ -25,9 +25,9 @@ Rectangle {
 
     // Populate the list view
     onModelChanged: {
-        for(var i = 0; i < container.model.length; i++) {
-            menuModel.append( {"value":container.model[i] } )
-        }
+      for(var i = 0; i < container.model.length; i++) {
+        menuModel.append( { "value":container.model[i] } )
+      }
     }
 
     clip: true
@@ -36,23 +36,23 @@ Rectangle {
     color: visual.menuBackground
 
     ListView {
-        id: menuView
+      id: menuView
 
-        anchors.fill: parent
-        model: ListModel { id: menuModel }
+      anchors.fill: parent
+      model: ListModel { id: menuModel }
 
-        delegate: MenuElement {
-            height: container.elementHeight
+      delegate: MenuElement {
+        height: container.elementHeight
 
-            Text {
-                text: value
+        Text {
+          text: value
 
-                anchors.verticalCenter: parent.verticalCenter
-                color: visual.menuForeground
-                x: 16*dp
-            }
-
-            onClicked: valueChanged(index)
+          anchors.verticalCenter: parent.verticalCenter
+          color: visual.menuForeground
+          x: 16*dp
         }
+
+        onClicked: valueChanged(index)
+      }
     }
 }

@@ -1,9 +1,9 @@
 /***************************************************************************
-    ActionBar.qml  -  Action bar based on Android design guidelines
+    ToolButton.qml  -  Tool button based on Android design guidelines
      --------------------------------------
-    Date                 : 08-Jul-2012
-    Copyright            : (C) 2012 by Ramon Carrillo
-    Email                : racarrillo91 at gmail.com
+    Date                 : 20.10.2014
+    Copyright            : (C) 2014 by Matthias Kuhn
+    Email                : matthias dot kuhn at gmx dot ch
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -15,23 +15,38 @@
 
 import QtQuick 1.1
 
-Flow {
-  width: visual.actionBarWidth
-  height: parent.height
+Item {
+  id: container
 
-/*
-  Rectangle {
+  property alias iconHeight: actionButton.iconHeight
+  property alias iconWidth: actionButton.iconWidth
 
-    anchors.fill: parent
+  property variant model: []
+
+  signal clicked()
+  signal pressAndHold()
+  signal currentToolChanged( string id )
+
+  anchors.margins: 5*dp
+
+  onModelChanged: {
+    model.forEach(
+          function( element ) {
+
+          }
+    )
   }
 
-  Column {
-    anchors.margins: 5*dp
-    anchors.fill: parent
-
-
+  ActionButton
+  {
+    id: actionButton
+    onClicked: {
+      container.currentToolChanged( 'test' )
+    }
   }
 
-*/
-  spacing: 5
+  Menu {
+    id: menu
+    visible: false
+  }
 }

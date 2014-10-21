@@ -16,54 +16,63 @@
 import QtQuick 1.1
 
 Item {
-    id: container
+  id: container
 
-    property alias icon: icon.source
-    property alias iconHeight: icon.height
-    property alias iconWidth: icon.width
-    property bool disable: value
+  property alias icon: icon.source
+  property alias iconHeight: icon.height
+  property alias iconWidth: icon.width
 
+  signal clicked()
+  signal pressAndHold()
+/*
+  function activate() {
+      highlight.visible = true
+  }
 
-    signal clicked()
-    signal pressAndHold()
+  function deactivate() {
+      highlight.visible = false
+  }
+*/
+  height: visual.buttonHeight
+  width: visual.buttonHeight
 
-    function activate() {
-        highlight.visible = true
+  anchors.margins: 5*dp
+
+  Rectangle {
+    id: background
+    radius: visual.actionBarWidth / 10
+    color: "lightgray"
+    anchors.fill: parent
+    gradient: Gradient {
+      GradientStop { position: 0.0; color: visual.actionButtonBgFirst }
+      GradientStop { position: 1.0; color: visual.actionButtonBgSecond }
     }
+  }
+  Rectangle {
+      id: highlight
 
-    function deactivate() {
-        highlight.visible = false
-    }
+      anchors.fill: parent
+      color: visual.highlighted
+      visible: false
+  }
 
-    height: visual.actionBarHeight
-    width: visual.actionBarHeight
+  Image {
+      id: icon
 
-    Rectangle {
-        id: highlight
+      source: "/images/icon"
+      anchors.centerIn: parent
+      smooth: true
+  }
 
-        anchors.fill: parent
-        color: visual.highlighted
-        visible: false
-    }
+  MouseArea {
+      anchors.fill: parent
 
-    Image {
-        id: icon
+      // Propagate events
+      onClicked: container.clicked()
+      onPressAndHold: container.pressAndHold()
 
-        source: "/images/icon"
-        anchors.centerIn: parent
-        smooth: true
-    }
-
-    MouseArea {
-        anchors.fill: parent
-
-        // Propagate events
-        onClicked: container.clicked()
-        onPressAndHold: container.pressAndHold()
-
-        // Visual feedback
-        onPressed: highlight.visible = true
-        onReleased: highlight.visible = false
-    }
-
+      // Visual feedback
+      onPressed: highlight.visible = true
+      onReleased: highlight.visible = false
+  }
 }
