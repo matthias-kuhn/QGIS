@@ -14,4 +14,4 @@ before_script:
   - cmake -DWITH_MAPSERVER=ON ..
   - make -j2
 
-script: xvfb-run make Continuous
+script: xvfb-run ctest --force-new-ctest-process --output-on-failure -D Experimental --track Travis
