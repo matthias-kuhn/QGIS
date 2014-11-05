@@ -12,6 +12,5 @@ before_script:
   - mkdir build
   - cd build
   - cmake -DWITH_MAPSERVER=ON ..
-  - make -j2
 
 script: xvfb-run ctest -j2 --output-on-failure -D Continuous
