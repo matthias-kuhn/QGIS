@@ -1399,8 +1399,8 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
         QgsMapTool* mDeletePart;
         QgsMapTool* mNodeTool;
         QgsMapTool* mRotatePointSymbolsTool;
-#ifdef WITH_QTWEBKIT
         QgsMapTool* mAnnotation;
+#ifdef WITH_QTWEBKIT
         QgsMapTool* mHtmlAnnotation;
 #endif
         QgsMapTool* mFormAnnotation;

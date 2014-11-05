@@ -132,7 +132,7 @@
 #include "qgsformannotationitem.h"
 #include "qgsfieldcalculator.h"
 #ifdef WITH_QTWEBKIT
-#include "qgshtmlannotationitem.h"
+  #include "qgshtmlannotationitem.h"
 #endif
 #include "qgsgenericprojectionselector.h"
 #include "qgsgpsinformationwidget.h"
@@ -272,24 +272,6 @@
 
 // Editor widgets
 #include "qgseditorwidgetregistry.h"
-#include "qgsclassificationwidgetwrapperfactory.h"
-#include "qgsrangewidgetfactory.h"
-#include "qgsuniquevaluewidgetfactory.h"
-#include "qgsfilenamewidgetfactory.h"
-#include "qgsvaluemapwidgetfactory.h"
-#include "qgsenumerationwidgetfactory.h"
-#include "qgshiddenwidgetfactory.h"
-#include "qgscheckboxwidgetfactory.h"
-#include "qgstexteditwidgetfactory.h"
-#include "qgsvaluerelationwidgetfactory.h"
-#include "qgsuuidwidgetfactory.h"
-#include "qgsphotowidgetfactory.h"
-#ifdef WITH_QTWEBKIT
-#include "qgswebviewwidgetfactory.h"
-#endif
-#include "qgscolorwidgetfactory.h"
-#include "qgsrelationreferencefactory.h"
-#include "qgsdatetimeeditfactory.h"
 
 //
 // Conditional Includes
@@ -669,25 +651,7 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, QWidget * parent, 
   mVectorLayerTools = new QgsGuiVectorLayerTools();
 
   // Init the editor widget types
-  QgsEditorWidgetRegistry* editorWidgetRegistry = QgsEditorWidgetRegistry::instance();
-  editorWidgetRegistry->registerWidget( "Classification", new QgsClassificationWidgetWrapperFactory( tr( "Classification" ) ) );
-  editorWidgetRegistry->registerWidget( "Range", new QgsRangeWidgetFactory( tr( "Range" ) ) );
-  editorWidgetRegistry->registerWidget( "UniqueValues", new QgsUniqueValueWidgetFactory( tr( "Unique Values" ) ) );
-  editorWidgetRegistry->registerWidget( "FileName", new QgsFileNameWidgetFactory( tr( "File Name" ) ) );
-  editorWidgetRegistry->registerWidget( "ValueMap", new QgsValueMapWidgetFactory( tr( "Value Map" ) ) );
-  editorWidgetRegistry->registerWidget( "Enumeration", new QgsEnumerationWidgetFactory( tr( "Enumeration" ) ) );
-  editorWidgetRegistry->registerWidget( "Hidden", new QgsHiddenWidgetFactory( tr( "Hidden" ) ) );
-  editorWidgetRegistry->registerWidget( "CheckBox", new QgsCheckboxWidgetFactory( tr( "Check Box" ) ) );
-  editorWidgetRegistry->registerWidget( "TextEdit", new QgsTextEditWidgetFactory( tr( "Text Edit" ) ) );
-  editorWidgetRegistry->registerWidget( "ValueRelation", new QgsValueRelationWidgetFactory( tr( "Value Relation" ) ) );
-  editorWidgetRegistry->registerWidget( "UuidGenerator", new QgsUuidWidgetFactory( tr( "Uuid Generator" ) ) );
-#ifdef WITH_QTWEBKIT
-  editorWidgetRegistry->registerWidget( "Photo", new QgsPhotoWidgetFactory( tr( "Photo" ) ) );
-  editorWidgetRegistry->registerWidget( "WebView", new QgsWebViewWidgetFactory( tr( "Web View" ) ) );
-#endif
-  editorWidgetRegistry->registerWidget( "Color", new QgsColorWidgetFactory( tr( "Color" ) ) );
-  editorWidgetRegistry->registerWidget( "RelationReference", new QgsRelationReferenceFactory( tr( "Relation Reference" ), mMapCanvas, mInfoBar ) );
-  editorWidgetRegistry->registerWidget( "DateTime", new QgsDateTimeEditFactory( tr( "Date/Time" ) ) );
+  QgsEditorWidgetRegistry::initEditors( mMapCanvas, mInfoBar );
 
   mInternalClipboard = new QgsClipboard; // create clipboard
   connect( mInternalClipboard, SIGNAL( changed() ), this, SLOT( clipboardChanged() ) );
@@ -900,11 +864,15 @@ QgisApp::~QgisApp()
   delete mMapTools.mAddPart;
   delete mMapTools.mAddRing;
   delete mMapTools.mFillRing;
+  delete mMapTools.mAnnotation;
   delete mMapTools.mChangeLabelProperties;
   delete mMapTools.mDeletePart;
   delete mMapTools.mDeleteRing;
   delete mMapTools.mFeatureAction;
   delete mMapTools.mFormAnnotation;
+#ifdef WITH_QTWEBKIT
+  delete mMapTools.mHtmlAnnotation;
+#endif
   delete mMapTools.mIdentify;
   delete mMapTools.mMeasureAngle;
   delete mMapTools.mMeasureArea;
@@ -928,10 +896,6 @@ QgisApp::~QgisApp()
   delete mMapTools.mSplitParts;
   delete mMapTools.mSvgAnnotation;
   delete mMapTools.mTextAnnotation;
-#ifdef WITH_QTWEBKIT
-  delete mMapTools.mAnnotation;
-  delete mMapTools.mHtmlAnnotation;
-#endif
 
   delete mpMaptip;
 
@@ -1138,7 +1102,9 @@ void QgisApp::createActions()
   connect( mActionDraw, SIGNAL( triggered() ), this, SLOT( refreshMapCanvas() ) );
   connect( mActionTextAnnotation, SIGNAL( triggered() ), this, SLOT( addTextAnnotation() ) );
   connect( mActionFormAnnotation, SIGNAL( triggered() ), this, SLOT( addFormAnnotation() ) );
+#ifdef WITH_QTWEBKIT
   connect( mActionHtmlAnnotation, SIGNAL( triggered() ), this, SLOT( addHtmlAnnotation() ) );
+#endif
   connect( mActionSvgAnnotation, SIGNAL( triggered() ), this, SLOT( addSvgAnnotation() ) );
   connect( mActionAnnotation, SIGNAL( triggered() ), this, SLOT( modifyAnnotation() ) );
   connect( mActionLabeling, SIGNAL( triggered() ), this, SLOT( labeling() ) );
@@ -1535,15 +1501,8 @@ void QgisApp::createToolBars()
   // qmainwindow::saveState and qmainwindow::restoreState
   // work properly
 
-#ifndef WITH_SAVEONLYTOOLBAR
-  mSaveToolBar->hide();
-#endif
-
   QList<QToolBar*> toolbarMenuToolBars;
   toolbarMenuToolBars << mFileToolBar
-#ifdef WITH_SAVEONLYTOOLBAR
-  << mSaveToolBar
-#endif
   << mLayerToolBar
   << mDigitizeToolBar
   << mAdvancedDigitizeToolBar
@@ -1631,7 +1590,9 @@ void QgisApp::createToolBars()
   bt->setPopupMode( QToolButton::MenuButtonPopup );
   bt->addAction( mActionTextAnnotation );
   bt->addAction( mActionFormAnnotation );
+#ifdef WITH_QTWEBKIT
   bt->addAction( mActionHtmlAnnotation );
+#endif
   bt->addAction( mActionSvgAnnotation );
   bt->addAction( mActionAnnotation );
 
@@ -1640,7 +1601,9 @@ void QgisApp::createToolBars()
   {
     case 0: defAnnotationAction = mActionTextAnnotation; break;
     case 1: defAnnotationAction = mActionFormAnnotation; break;
+#ifdef WITH_QTWEBKIT
     case 2: defAnnotationAction = mActionHtmlAnnotation; break;
+#endif
     case 3: defAnnotationAction = mActionSvgAnnotation; break;
     case 4: defAnnotationAction =  mActionAnnotation; break;
 
@@ -1986,7 +1949,9 @@ void QgisApp::setTheme( QString theThemeName )
   mActionAddToOverview->setIcon( QgsApplication::getThemeIcon( "/mActionInOverview.svg" ) );
   mActionAnnotation->setIcon( QgsApplication::getThemeIcon( "/mActionAnnotation.png" ) );
   mActionFormAnnotation->setIcon( QgsApplication::getThemeIcon( "/mActionFormAnnotation.png" ) );
+#ifdef WITH_QTWEBKIT
   mActionHtmlAnnotation->setIcon( QgsApplication::getThemeIcon( "/mActionFormAnnotation.png" ) );
+#endif
   mActionTextAnnotation->setIcon( QgsApplication::getThemeIcon( "/mActionTextAnnotation.png" ) );
   mActionLabeling->setIcon( QgsApplication::getThemeIcon( "/mActionLabeling.png" ) );
   mActionShowPinnedLabels->setIcon( QgsApplication::getThemeIcon( "/mActionShowPinnedLabels.svg" ) );
@@ -2151,10 +2116,8 @@ void QgisApp::createCanvasTools()
 #endif
   mMapTools.mSvgAnnotation = new QgsMapToolSvgAnnotation( mMapCanvas );
   mMapTools.mSvgAnnotation->setAction( mActionSvgAnnotation );
-#ifdef WITH_QTWEBKIT
   mMapTools.mAnnotation = new QgsMapToolAnnotation( mMapCanvas );
   mMapTools.mAnnotation->setAction( mActionAnnotation );
-#endif
   mMapTools.mAddFeature = new QgsMapToolAddFeature( mMapCanvas );
   mMapTools.mAddFeature->setAction( mActionAddFeature );
   mMapTools.mMoveFeature = new QgsMapToolMoveFeature( mMapCanvas );
@@ -4686,9 +4649,7 @@ void QgisApp::addSvgAnnotation()
 
 void QgisApp::modifyAnnotation()
 {
-#ifdef WITH_QTWEBKIT
   mMapCanvas->setMapTool( mMapTools.mAnnotation );
-#endif
 }
 
 void QgisApp::labelingFontNotFound( QgsVectorLayer* vlayer, const QString& fontfamily )
@@ -5586,6 +5547,7 @@ bool QgisApp::loadAnnotationItemsFromProject( const QDomDocument& doc )
     QgsFormAnnotationItem* newFormItem = new QgsFormAnnotationItem( mMapCanvas );
     newFormItem->readXML( doc, formItemList.at( i ).toElement() );
   }
+
 #ifdef WITH_QTWEBKIT
   QDomNodeList htmlItemList = doc.elementsByTagName( "HtmlAnnotationItem" );
   for ( int i = 0; i < htmlItemList.size(); ++i )
@@ -9091,9 +9053,8 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer* layer )
   mActionZoomToLayer->setEnabled( true );
 
   mActionCopyStyle->setEnabled( true );
-#ifndef ANDROID
   mActionPasteStyle->setEnabled( clipboard()->hasFormat( QGSCLIPBOARD_STYLE_MIME ) );
-#endif
+
   /***********Vector layers****************/
   if ( layer->type() == QgsMapLayer::VectorLayer )
   {
