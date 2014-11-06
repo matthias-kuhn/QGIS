@@ -715,7 +715,7 @@ ADD_DEPENDENCIES(qgis_core version)
 # because of htonl
 IF (WIN32)
   FIND_LIBRARY(SETUPAPI_LIBRARY NAMES setupapi PATHS $ENV{LIB})
-  TARGET_LINK_LIBRARIES(qgis_core wsock32 ${SETUPAPI_LIBRARY})
+  TARGET_LINK_LIBRARIES(qgis_core wsock32 setupapi)
 ENDIF (WIN32)
 
 IF(APPLE)
