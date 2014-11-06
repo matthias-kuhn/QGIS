@@ -14,4 +14,4 @@ before_script:
   - cmake -DWITH_MAPSERVER=ON ..
   - make -j2
 
-script: xvfb-run ctest -j2 --output-on-failure # -D Experimental
+script: xvfb-run ctest -j2 --output-on-failure -D Experimental
