@@ -5,6 +5,10 @@ compiler:
 
 cache: apt
 
+env:
+  - QGIS_WITH_QT5=1
+  -
+
 before_script:
   - sudo apt-get update -qq
   - sudo add-apt-repository ppa:ubuntugis/ppa -y
