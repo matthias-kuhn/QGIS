@@ -218,6 +218,9 @@ SET (HAVE_MSSQL TRUE)
 
 #############################################################
 # search for Qt4
+IF (DEFINED ENV{QGIS_WITH_QT5})
+  SET(ENABLE_QT5 TRUE)
+ENDIF(DEFINED ENV{QGIS_WITH_QT5})
 SET(QT_MIN_VERSION 4.7.0)
 SET (ENABLE_QT5 FALSE CACHE BOOL "If enabled will try to find Qt5 before looking for Qt4")
 IF (ENABLE_QT5)
