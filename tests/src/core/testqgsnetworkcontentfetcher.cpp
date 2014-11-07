@@ -17,7 +17,7 @@
 
 #include "qgsnetworkcontentfetcher.h"
 #include <QObject>
-#include <QtTest>
+#include <QtTest/QtTest>
 #include <QNetworkReply>
 
 class TestQgsNetworkContentFetcher: public QObject
