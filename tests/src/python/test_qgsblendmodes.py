@@ -34,7 +34,7 @@ from qgis.core import (QgsVectorLayer,
                        QgsMapLayerRegistry,
                        QgsMapRenderer,
                        QgsCoordinateReferenceSystem,
-                       QgsRenderChecker,
+                       QgsMultiRenderChecker,
                        QgsRasterLayer,
                        QgsRasterDataProvider,
                        QgsMultiBandColorRenderer,
@@ -112,7 +112,7 @@ class TestQgsBlendModes(TestCase):
         self.mLineLayer.setBlendMode(QPainter.CompositionMode_Difference)
         self.mPolygonLayer.setBlendMode(QPainter.CompositionMode_Difference)
 
-        checker = QgsRenderChecker()
+        checker = QgsMultiRenderChecker()
         checker.setControlName("expected_vector_blendmodes")
         checker.setMapSettings(self.mapSettings)
         checker.setColorTolerance( 1 )
@@ -138,7 +138,7 @@ class TestQgsBlendModes(TestCase):
         #Set feature blending for line layer
         self.mLineLayer.setFeatureBlendMode(QPainter.CompositionMode_Plus)
 
-        checker = QgsRenderChecker()
+        checker = QgsMultiRenderChecker()
         checker.setControlName("expected_vector_featureblendmodes")
         checker.setMapSettings(self.mapSettings)
         checker.setColorTolerance( 1 )
@@ -163,7 +163,7 @@ class TestQgsBlendModes(TestCase):
         #Set feature blending for line layer
         self.mLineLayer.setLayerTransparency( 50 )
 
-        checker = QgsRenderChecker()
+        checker = QgsMultiRenderChecker()
         checker.setControlName("expected_vector_layertransparency")
         checker.setMapSettings(self.mapSettings)
         checker.setColorTolerance( 1 )
@@ -183,7 +183,7 @@ class TestQgsBlendModes(TestCase):
 
         #Set blending mode for top layer
         self.mRasterLayer1.setBlendMode(QPainter.CompositionMode_Plus)
-        checker = QgsRenderChecker()
+        checker = QgsMultiRenderChecker()
         checker.setControlName("expected_raster_blendmodes")
         checker.setMapSettings(self.mapSettings)
         checker.setColorTolerance( 1 )
