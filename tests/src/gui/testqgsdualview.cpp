@@ -14,7 +14,7 @@
  ***************************************************************************/
 
 
-#include <QtTest>
+#include <QtTest/QtTest>
 
 #include <attributetable/qgsattributetableview.h>
 #include <attributetable/qgsdualview.h>
