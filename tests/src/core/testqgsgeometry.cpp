@@ -64,7 +64,7 @@ class TestQgsGeometry: public QObject
 
   private:
     /** A helper method to do a render check to see if the geometry op is as expected */
-    bool renderCheck(QString theTestName, QString theComment = "", int mismatchCount = 0 );
+    bool renderCheck( QString theTestName, QString theComment = "", int mismatchCount = 0 );
     /** A helper method to dump to qdebug the geometry of a multipolygon */
     void dumpMultiPolygon( QgsMultiPolygon &theMultiPolygon );
     /** A helper method to dump to qdebug the geometry of a polygon */
@@ -412,7 +412,7 @@ void TestQgsGeometry::bufferCheck()
   delete mypBufferGeometry;
   QVERIFY( renderCheck( "geometry_bufferCheck", "Checking buffer(10,10) of B" ) );
 }
-bool TestQgsGeometry::renderCheck(QString theTestName, QString theComment , int mismatchCount )
+bool TestQgsGeometry::renderCheck( QString theTestName, QString theComment , int mismatchCount )
 {
   mReport += "<h2>" + theTestName + "</h2>\n";
   mReport += "<h3>" + theComment + "</h3>\n";
@@ -422,7 +422,7 @@ bool TestQgsGeometry::renderCheck(QString theTestName, QString theComment , int 
   QgsRenderChecker myChecker;
   myChecker.setControlName( "expected_" + theTestName );
   myChecker.setRenderedImage( myFileName );
-  bool myResultFlag = myChecker.compareImages( theTestName );
+  bool myResultFlag = myChecker.compareImages( theTestName, mismatchCount );
   mReport += myChecker.report();
   return myResultFlag;
 }
