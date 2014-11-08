@@ -64,7 +64,7 @@ class TestQgsGeometry: public QObject
 
   private:
     /** A helper method to do a render check to see if the geometry op is as expected */
-    bool renderCheck( QString theTestName, QString theComment = "" );
+    bool renderCheck(QString theTestName, QString theComment = "", int mismatchCount = 0 );
     /** A helper method to dump to qdebug the geometry of a multipolygon */
     void dumpMultiPolygon( QgsMultiPolygon &theMultiPolygon );
     /** A helper method to dump to qdebug the geometry of a polygon */
@@ -329,7 +329,7 @@ void TestQgsGeometry::simplifyCheck1()
   QVERIFY( myLine.size() > 0 ); //check that the union created a feature
   dumpPolyline( myLine );
   delete mypSimplifyGeometry;
-  QVERIFY( renderCheck( "geometry_simplifyCheck1", "Checking simplify of line" ) );
+  QVERIFY( renderCheck( "geometry_simplifyCheck1", "Checking simplify of line", 4 ) );
 }
 void TestQgsGeometry::intersectionCheck1()
 {
@@ -412,7 +412,7 @@ void TestQgsGeometry::bufferCheck()
   delete mypBufferGeometry;
   QVERIFY( renderCheck( "geometry_bufferCheck", "Checking buffer(10,10) of B" ) );
 }
-bool TestQgsGeometry::renderCheck( QString theTestName, QString theComment )
+bool TestQgsGeometry::renderCheck(QString theTestName, QString theComment , int mismatchCount )
 {
   mReport += "<h2>" + theTestName + "</h2>\n";
   mReport += "<h3>" + theComment + "</h3>\n";
