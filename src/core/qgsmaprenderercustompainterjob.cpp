@@ -91,7 +91,18 @@ void QgsMapRendererCustomPainterJob::start()
 
   // now we are ready to start rendering!
   connect( &mFutureWatcher, SIGNAL( finished() ), SLOT( futureFinished() ) );
+  
+  QgsDebugMsg(QString( "Number of active Threads %1" ).arg(QThreadPool::globalInstance()->activeThreadCount()) );
+  QgsDebugMsg(QString( "Number of Threads %1" ).arg(QThreadPool::globalInstance()->maxThreadCount()) );
 
+
+  if (QThreadPool::globalInstance()->activeThreadCount() == QThreadPool::globalInstance()->maxThreadCount()) {
+    QThreadPool::globalInstance()->setMaxThreadCount( QThreadPool::globalInstance()->maxThreadCount() + 1);
+  }
+
+  QgsDebugMsg(QString( "Number of active Threads %1" ).arg(QThreadPool::globalInstance()->activeThreadCount()) );
+  QgsDebugMsg(QString( "Number of Threads %1" ).arg(QThreadPool::globalInstance()->maxThreadCount()) );
+  
   mFuture = QtConcurrent::run( staticRender, this );
   mFutureWatcher.setFuture( mFuture );
 }
