@@ -115,6 +115,7 @@ class TestQgsBlendModes(TestCase):
         checker = QgsRenderChecker()
         checker.setControlName("expected_vector_blendmodes")
         checker.setMapSettings(self.mapSettings)
+        checker.setColorTolerance( 1 )
 
         myResult = checker.runTest("vector_blendmodes", 1500);
         myMessage = ('vector blending failed')
@@ -140,6 +141,7 @@ class TestQgsBlendModes(TestCase):
         checker = QgsRenderChecker()
         checker.setControlName("expected_vector_featureblendmodes")
         checker.setMapSettings(self.mapSettings)
+        checker.setColorTolerance( 1 )
 
         myResult = checker.runTest("vector_featureblendmodes", 1500);
         myMessage = ('vector feature blending failed')
@@ -164,6 +166,7 @@ class TestQgsBlendModes(TestCase):
         checker = QgsRenderChecker()
         checker.setControlName("expected_vector_layertransparency")
         checker.setMapSettings(self.mapSettings)
+        checker.setColorTolerance( 1 )
 
         myResult = checker.runTest("vector_layertransparency", 1500);
         myMessage = ('vector layer transparency failed')
@@ -183,6 +186,8 @@ class TestQgsBlendModes(TestCase):
         checker = QgsRenderChecker()
         checker.setControlName("expected_raster_blendmodes")
         checker.setMapSettings(self.mapSettings)
+        checker.setColorTolerance( 1 )
+        checker.setColorTolerance( 1 )
 
         myResult = checker.runTest("raster_blendmodes", 1500);
         myMessage = ('raster blending failed')
