@@ -1,34 +1,34 @@
-# Macros for PyQt4
+# Macros for PyQt5
 # ~~~~~~~~~~~~~~~~
 # Copyright (c) 2009, Juergen E. Fischer <jef at norbit dot de>
 # Redistribution and use is allowed according to the terms of the BSD license.
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 
 
-IF(NOT PYUIC4_PROGRAM)
+IF(NOT PYUIC5_PROGRAM)
   IF (MSVC)
-    FIND_PROGRAM(PYUIC4_PROGRAM
-      NAMES pyuic4.bat
+    FIND_PROGRAM(PYUIC5_PROGRAM
+      NAMES pyuic5.bat
       PATHS $ENV{LIB_DIR}/bin
     )
   ELSE(MSVC)
-    FIND_PROGRAM(PYUIC4_PROGRAM NAMES python2-pyuic4 pyuic4)
+    FIND_PROGRAM(PYUIC5_PROGRAM NAMES python2-pyuic5 pyuic5)
   ENDIF (MSVC)
 
-  IF (NOT PYUIC4_PROGRAM)
-    MESSAGE(FATAL_ERROR "pyuic4 not found - aborting")
-  ENDIF (NOT PYUIC4_PROGRAM)
-ENDIF(NOT PYUIC4_PROGRAM)
+  IF (NOT PYUIC5_PROGRAM)
+    MESSAGE(FATAL_ERROR "pyuic5 not found - aborting")
+  ENDIF (NOT PYUIC5_PROGRAM)
+ENDIF(NOT PYUIC5_PROGRAM)
 
-# Adapted from QT4_WRAP_UI
+# Adapted from QT5_WRAP_UI
 MACRO(PYQT_WRAP_UI outfiles )
   IF(WIN32)
-    SET(PYUIC4_WRAPPER "${CMAKE_SOURCE_DIR}/scripts/pyuic4-wrapper.bat")
-    SET(PYUIC4_WRAPPER_PATH "${QGIS_OUTPUT_DIRECTORY}/bin/${CMAKE_BUILD_TYPE}")
+    SET(PYUIC5_WRAPPER "${CMAKE_SOURCE_DIR}/scripts/pyuic-wrapper.bat")
+    SET(PYUIC5_WRAPPER_PATH "${QGIS_OUTPUT_DIRECTORY}/bin/${CMAKE_BUILD_TYPE}")
   ELSE(WIN32)
     # TODO osx
-    SET(PYUIC4_WRAPPER "${CMAKE_SOURCE_DIR}/scripts/pyuic4-wrapper.sh")
-    SET(PYUIC4_WRAPPER_PATH "${QGIS_OUTPUT_DIRECTORY}/lib")
+    SET(PYUIC5_WRAPPER "${CMAKE_SOURCE_DIR}/scripts/pyuic-wrapper.sh")
+    SET(PYUIC5_WRAPPER_PATH "${QGIS_OUTPUT_DIRECTORY}/lib")
   ENDIF(WIN32)
 
   FOREACH(it ${ARGN})
@@ -36,7 +36,7 @@ MACRO(PYQT_WRAP_UI outfiles )
     GET_FILENAME_COMPONENT(infile ${it} ABSOLUTE)
     SET(outfile ${CMAKE_CURRENT_BINARY_DIR}/ui_${outfile}.py)
     ADD_CUSTOM_COMMAND(OUTPUT ${outfile}
-      COMMAND ${PYUIC4_WRAPPER} "${PYUIC4_PROGRAM}" "${PYUIC4_WRAPPER_PATH}" "${QGIS_OUTPUT_DIRECTORY}/python" ${infile} -o ${outfile}
+      COMMAND ${PYUIC5_WRAPPER} "${PYUIC5_PROGRAM}" "${PYUIC5_WRAPPER_PATH}" "${QGIS_OUTPUT_DIRECTORY}/python" ${infile} -o ${outfile}
       MAIN_DEPENDENCY ${infile}                       
       DEPENDS pygui pycore
     )
@@ -44,22 +44,22 @@ MACRO(PYQT_WRAP_UI outfiles )
   ENDFOREACH(it)
 ENDMACRO(PYQT_WRAP_UI)
 
-IF(NOT PYRCC4_PROGRAM)
+IF(NOT pyrcc5_PROGRAM)
   IF (MSVC)
-    FIND_PROGRAM(PYRCC4_PROGRAM
-      NAMES pyrcc4.exe
+    FIND_PROGRAM(pyrcc5_PROGRAM
+      NAMES pyrcc5.exe
       PATHS $ENV{LIB_DIR}/bin
     )
   ELSE(MSVC)
-    FIND_PROGRAM(PYRCC4_PROGRAM pyrcc4)
+    FIND_PROGRAM(pyrcc5_PROGRAM pyrcc5)
   ENDIF (MSVC)
 
-  IF (NOT PYRCC4_PROGRAM)
-    MESSAGE(FATAL_ERROR "pyrcc4 not found - aborting")
-  ENDIF (NOT PYRCC4_PROGRAM)
-ENDIF(NOT PYRCC4_PROGRAM)
+  IF (NOT pyrcc5_PROGRAM)
+    MESSAGE(FATAL_ERROR "pyrcc5 not found - aborting")
+  ENDIF (NOT pyrcc5_PROGRAM)
+ENDIF(NOT pyrcc5_PROGRAM)
 
-# Adapted from QT4_ADD_RESOURCES
+# Adapted from QT5_ADD_RESOURCES
 MACRO (PYQT_ADD_RESOURCES outfiles )
   FOREACH (it ${ARGN})
     GET_FILENAME_COMPONENT(outfile ${it} NAME_WE)
@@ -80,7 +80,7 @@ MACRO (PYQT_ADD_RESOURCES outfiles )
       SET(_RC_DEPENDS ${_RC_DEPENDS} "${_RC_FILE}")
     ENDFOREACH(_RC_FILE)
     ADD_CUSTOM_COMMAND(OUTPUT ${outfile}
-      COMMAND ${PYRCC4_PROGRAM} -name ${outfile} -o ${outfile} ${infile}
+      COMMAND ${pyrcc5_PROGRAM} -name ${outfile} -o ${outfile} ${infile}
       MAIN_DEPENDENCY ${infile}
       DEPENDS ${_RC_DEPENDS})
     SET(${outfiles} ${${outfiles}} ${outfile})

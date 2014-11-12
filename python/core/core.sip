@@ -4,8 +4,9 @@
 
 %Import QtCore/QtCoremod.sip
 %Import QtGui/QtGuimod.sip
-%Import QtXml/QtXmlmod.sip
+%Import QtXmlPatterns/QtXmlPatternsmod.sip
 %Import QtNetwork/QtNetworkmod.sip
+%Import QtWidgets/QtWidgetsmod.sip
 
 %Include conversions.sip
 %Include qgsexception.sip

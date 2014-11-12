@@ -7,4 +7,5 @@ shift 3
 
 export LD_LIBRARY_PATH PYTHONPATH
 
+echo "$PYUIC4"
 $PYUIC4 $@

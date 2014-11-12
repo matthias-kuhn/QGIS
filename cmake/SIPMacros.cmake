@@ -61,6 +61,7 @@ MACRO(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
 
     FILE(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_module_path})    # Output goes in this dir.
 
+    MESSAGE(STATUS "Including sip files: ${SIP_INCLUDES}")
     SET(_sip_includes)
     FOREACH (_inc ${SIP_INCLUDES})
         GET_FILENAME_COMPONENT(_abs_inc ${_inc} ABSOLUTE)
