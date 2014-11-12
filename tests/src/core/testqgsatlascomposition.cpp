@@ -168,7 +168,6 @@ void TestQgsAtlasComposition::initTestCase()
 void TestQgsAtlasComposition::cleanupTestCase()
 {
   delete mComposition;
-  delete mVectorLayer;
 
   QString myReportFile = QDir::tempPath() + QDir::separator() + "qgistest.html";
   QFile myFile( myReportFile );
@@ -178,6 +177,8 @@ void TestQgsAtlasComposition::cleanupTestCase()
     myQTextStream << mReport;
     myFile.close();
   }
+
+  QgsApplication::exitQgis();
 }
 
 void TestQgsAtlasComposition::init()
@@ -264,7 +265,7 @@ void TestQgsAtlasComposition::fixedscale_render()
     mLabel1->adjustSizeToText();
 
     QgsCompositionChecker checker( QString( "atlas_fixedscale%1" ).arg((( int )fit ) + 1 ), mComposition );
-    QVERIFY( checker.testComposition( mReport, 0, 100 ) );
+    QVERIFY( checker.testComposition( mReport, 0, 200 ) );
   }
   mAtlas->endRender();
 
