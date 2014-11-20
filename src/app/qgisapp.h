@@ -74,6 +74,7 @@ class QgsDecorationItem;
 
 class QgsMessageLogViewer;
 class QgsMessageBar;
+class QgsMessageBarItem;
 
 class QgsScaleComboBox;
 
@@ -417,6 +418,9 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     *   addWFS and GPS plugins.
     */
     QToolBar *fileToolBar() { return mFileToolBar; }
+#ifdef WITH_SAVEONLYTOOLBAR
+    QToolBar *saveToolBar() { return mSaveToolBar; }
+#endif
     QToolBar *layerToolBar() { return mLayerToolBar; }
     QToolBar *mapNavToolToolBar() { return mMapNavToolBar; }
     QToolBar *digitizeToolBar() { return mDigitizeToolBar; }
@@ -669,6 +673,11 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
 #endif
 
   private slots:
+#ifdef ANDROID
+    void showBusyRenderingMessage();
+    void showBusyRenderingMessageDelayed();
+    void hideBusyRenderingMessage();
+#endif
     //! validate a SRS
     void validateSrs( QgsCoordinateReferenceSystem &crs );
 
@@ -1546,6 +1555,14 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     /** Timer for map tips
      */
     QTimer *mpMapTipsTimer;
+
+    /** Timer for showbusy for rendering
+     */
+#ifdef ANDROID
+    QTimer *mBusyRenderingTimer;
+    //! Map canvas is rendering message
+    QgsMessageBarItem *mBusyRenderingMessage;
+#endif
 
     //! Helps to make people dizzy
     QTimer* mDizzyTimer;
