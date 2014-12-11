@@ -725,9 +725,8 @@ void QgsMapCanvas::rendererJobFinished()
 
 void QgsMapCanvas::mapUpdateTimeout()
 {
-  mMap->setContent( mJob->renderedImage(), mSettings.visibleExtent() );
+  mMap->setContent( mJob->renderedImage(), mJob->mapSettings().visibleExtent() );
 }
-
 
 void QgsMapCanvas::stopRendering()
 {
