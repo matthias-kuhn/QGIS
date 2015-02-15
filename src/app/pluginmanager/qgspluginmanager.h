@@ -116,8 +116,10 @@ class QgsPluginManager : public QgsOptionsDialogBase, private Ui::QgsPluginManag
     //! Load/unload plugin by double click
     void on_vwPlugins_doubleClicked( const QModelIndex & index );
 
+#ifdef WITH_QTWEBKIT
     //! Handle click in the web wiew
     void on_wvDetails_linkClicked( const QUrl & url );
+#endif
 
     //! Update the filter when user changes the filter expression
     void on_leFilter_textChanged( QString theText );

@@ -351,12 +351,14 @@ class CORE_EXPORT QgsComposition : public QGraphicsScene
      @return QgsComposerMap or 0 pointer if the composer map item does not exist*/
     const QgsComposerMap* getComposerMapById( const int id ) const;
 
+#ifdef WITH_QTWEBKIT
     /**Returns the composer html with specified id (a string as named in the
       composer user interface item properties).
       @param item the item.
       @return QgsComposerHtml pointer or 0 pointer if no such item exists.
      */
     Q_DECL_DEPRECATED const QgsComposerHtml* getComposerHtmlByItem( QgsComposerItem *item ) const;
+#endif
 
     /**Returns a composer item given its text identifier.
        Ids are not necessarely unique, but this function returns only one element.
@@ -562,8 +564,10 @@ class CORE_EXPORT QgsComposition : public QGraphicsScene
     void addComposerShape( QgsComposerShape* shape );
     /**Adds a composer table to the graphics scene and advices composer to create a widget for it (through signal)*/
     void addComposerTable( QgsComposerAttributeTable* table );
+#ifdef WITH_QTWEBKIT
     /**Adds composer html frame and advises composer to create a widget for it (through signal)*/
     void addComposerHtmlFrame( QgsComposerHtml* html, QgsComposerFrame* frame );
+#endif
     /**Adds composer tablev2 frame and advises composer to create a widget for it (through signal)*/
     void addComposerTableFrame( QgsComposerAttributeTableV2* table, QgsComposerFrame* frame );
 
@@ -870,8 +874,10 @@ class CORE_EXPORT QgsComposition : public QGraphicsScene
     void selectedItemChanged( QgsComposerItem* selected );
     /**Is emitted when new composer arrow has been added to the view*/
     void composerArrowAdded( QgsComposerArrow* arrow );
+#ifdef WITH_QTWEBKIT
     /**Is emitted when a new composer html has been added to the view*/
     void composerHtmlFrameAdded( QgsComposerHtml* html, QgsComposerFrame* frame );
+#endif
     /**Is emitted when new composer label has been added to the view*/
     void composerLabelAdded( QgsComposerLabel* label );
     /**Is emitted when new composer map has been added to the view*/

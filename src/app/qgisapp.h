@@ -380,6 +380,7 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     QAction *actionHelpAPI() { return mActionHelpAPI; }
     QAction *actionQgisHomePage() { return mActionQgisHomePage; }
     QAction *actionCheckQgisVersion() { return mActionCheckQgisVersion; }
+
     QAction *actionAbout() { return mActionAbout; }
     QAction *actionSponsors() { return mActionSponsors; }
 
@@ -666,8 +667,11 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
 
     //! QGis Sponsors
     void sponsors();
+
+#ifdef WITH_QTWEBKIT
     //! About QGis
     void about();
+#endif
     //! Add a raster layer to the map (will prompt user for file name using dlg )
     void addRasterLayer();
     //#ifdef HAVE_POSTGRESQL

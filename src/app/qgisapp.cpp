@@ -99,7 +99,9 @@
 #include "qgisappstylesheet.h"
 #include "qgis.h"
 #include "qgisplugin.h"
-#include "qgsabout.h"
+#ifdef WITH_QTWEBKIT
+  #include "qgsabout.h"
+#endif
 #include "qgsapplayertreeviewmenuprovider.h"
 #include "qgsapplication.h"
 #include "qgsattributeaction.h"
@@ -1293,7 +1295,9 @@ void QgisApp::createActions()
   connect( mActionNeedSupport, SIGNAL( triggered() ), this, SLOT( supportProviders() ) );
   connect( mActionQgisHomePage, SIGNAL( triggered() ), this, SLOT( helpQgisHomePage() ) );
   connect( mActionCheckQgisVersion, SIGNAL( triggered() ), this, SLOT( checkQgisVersion() ) );
+#ifdef WITH_QTWEBKIT
   connect( mActionAbout, SIGNAL( triggered() ), this, SLOT( about() ) );
+#endif
   connect( mActionSponsors, SIGNAL( triggered() ), this, SLOT( sponsors() ) );
 
   connect( mActionShowPinnedLabels, SIGNAL( toggled( bool ) ), this, SLOT( showPinnedLabels( bool ) ) );
@@ -1979,7 +1983,9 @@ void QgisApp::setTheme( QString theThemeName )
   mActionDecreaseContrast->setIcon( QgsApplication::getThemeIcon( "/mActionDecreaseContrast.svg" ) );
   mActionZoomActualSize->setIcon( QgsApplication::getThemeIcon( "/mActionZoomNative.png" ) );
   mActionQgisHomePage->setIcon( QgsApplication::getThemeIcon( "/mActionQgisHomePage.png" ) );
+#ifdef WITH_QTWEBKIT
   mActionAbout->setIcon( QgsApplication::getThemeIcon( "/mActionHelpAbout.png" ) );
+#endif
   mActionSponsors->setIcon( QgsApplication::getThemeIcon( "/mActionHelpSponsors.png" ) );
   mActionDraw->setIcon( QgsApplication::getThemeIcon( "/mActionDraw.svg" ) );
   mActionToggleEditing->setIcon( QgsApplication::getThemeIcon( "/mActionToggleEditing.svg" ) );
@@ -2212,8 +2218,10 @@ void QgisApp::createCanvasTools()
   mMapTools.mTextAnnotation->setAction( mActionTextAnnotation );
   mMapTools.mFormAnnotation = new QgsMapToolFormAnnotation( mMapCanvas );
   mMapTools.mFormAnnotation->setAction( mActionFormAnnotation );
+#ifdef WITH_QTWEBKIT
   mMapTools.mHtmlAnnotation = new QgsMapToolHtmlAnnotation( mMapCanvas );
   mMapTools.mHtmlAnnotation->setAction( mActionHtmlAnnotation );
+#endif
   mMapTools.mSvgAnnotation = new QgsMapToolSvgAnnotation( mMapCanvas );
   mMapTools.mSvgAnnotation->setAction( mActionSvgAnnotation );
   mMapTools.mAnnotation = new QgsMapToolAnnotation( mMapCanvas );
@@ -2724,6 +2732,7 @@ void QgisApp::sponsors()
   sponsors->activateWindow();
 }
 
+#ifdef WITH_QTWEBKIT
 void QgisApp::about()
 {
   static QgsAbout *abt = NULL;
@@ -2789,6 +2798,7 @@ void QgisApp::about()
   abt->raise();
   abt->activateWindow();
 }
+#endif
 
 void QgisApp::addLayerDefinition()
 {
@@ -5715,13 +5725,14 @@ bool QgisApp::loadAnnotationItemsFromProject( const QDomDocument& doc )
     QgsFormAnnotationItem* newFormItem = new QgsFormAnnotationItem( mMapCanvas );
     newFormItem->readXML( doc, formItemList.at( i ).toElement() );
   }
-
+#ifdef WITH_QTWEBKIT
   QDomNodeList htmlItemList = doc.elementsByTagName( "HtmlAnnotationItem" );
   for ( int i = 0; i < htmlItemList.size(); ++i )
   {
     QgsHtmlAnnotationItem* newHtmlItem = new QgsHtmlAnnotationItem( mMapCanvas );
     newHtmlItem->readXML( doc, htmlItemList.at( i ).toElement() );
   }
+#endif
 
   QDomNodeList svgItemList = doc.elementsByTagName( "SVGAnnotationItem" );
   for ( int i = 0; i < svgItemList.size(); ++i )

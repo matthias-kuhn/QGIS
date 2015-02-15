@@ -21,6 +21,7 @@
 #include <QString>
 #include <QApplication>
 #include <QSettings>
+#include <QLabel>
 
 #include "qgshelpviewer.h"
 #include "qgsapplication.h"
@@ -72,7 +73,7 @@ void QgsHelpViewer::showHelp( QString help )
   // Set the browser text to the help contents
   QString myStyle = QgsApplication::reportStyleSheet();
   QString helpContents = "<head><style>" + myStyle + "</style></head><body>" + help + "</body>";
-  webView->setHtml( helpContents );
+  webView->setText( helpContents );
   setWindowTitle( tr( "QGIS Help" ) );
 
 #ifndef WIN32

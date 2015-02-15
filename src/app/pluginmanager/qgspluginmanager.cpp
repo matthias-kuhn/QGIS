@@ -30,7 +30,9 @@
 #include <QActionGroup>
 #include <QTextStream>
 #include <QTimer>
-#include <QWebPage>
+#ifdef WITH_QTWEBKIT
+  #include <QWebPage>
+#endif
 #include <QDesktopServices>
 
 #include "qgis.h"
@@ -97,7 +99,10 @@ QgsPluginManager::QgsPluginManager( QWidget * parent, bool pluginsAreEnabled, Qt
 
   // Preset widgets
   leFilter->setFocus( Qt::MouseFocusReason );
+
+#ifdef WITH_QTWEBKIT
   wvDetails->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
+#endif
 
   // Don't restore the last used tab from QSettings
   mOptionsListWidget->setCurrentRow( 0 );
@@ -473,7 +478,7 @@ void QgsPluginManager::reloadModelData()
 
   if ( !mCurrentlyDisplayedPlugin.isEmpty() )
   {
-    wvDetails->setHtml( "" );
+    wvDetails->setText( "" );
     buttonInstall->setEnabled( false );
     buttonUninstall->setEnabled( false );
   }
@@ -839,7 +844,7 @@ void QgsPluginManager::showPluginDetails( QStandardItem * item )
 
   html += "</body>";
 
-  wvDetails->setHtml( html );
+  wvDetails->setText( html );
 
   // Set buttonInstall text (and sometimes focus)
   buttonInstall->setDefault( false );
@@ -1084,7 +1089,7 @@ void QgsPluginManager::setCurrentTab( int idx )
       // tabInfoHTML += "<style>" + QgsApplication::reportStyleSheet() + "</style>";
       tabInfoHTML += it.value();
     }
-    wvDetails->setHtml( tabInfoHTML );
+    wvDetails->setText( tabInfoHTML );
 
     // disable buttons
     buttonInstall->setEnabled( false );
@@ -1151,7 +1156,7 @@ void QgsPluginManager::on_vwPlugins_doubleClicked( const QModelIndex & theIndex 
 }
 
 
-
+#ifdef WITH_QTWEBKIT
 void QgsPluginManager::on_wvDetails_linkClicked( const QUrl & url )
 {
   if ( url.scheme() == "rpc2" )
@@ -1178,7 +1183,7 @@ void QgsPluginManager::on_wvDetails_linkClicked( const QUrl & url )
     QDesktopServices::openUrl( url );
   }
 }
-
+#endif
 
 
 void QgsPluginManager::on_leFilter_textChanged( QString theText )

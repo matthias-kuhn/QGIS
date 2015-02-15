@@ -935,6 +935,7 @@ void QgsComposerView::mouseReleaseEvent( QMouseEvent* e )
       }
       else
       {
+#ifdef WITH_QTWEBKIT
         QgsComposerHtml* composerHtml = new QgsComposerHtml( composition(), true );
         QgsAddRemoveMultiFrameCommand* command = new QgsAddRemoveMultiFrameCommand( QgsAddRemoveMultiFrameCommand::Added,
             composerHtml, composition(), tr( "Html item added" ) );
@@ -945,11 +946,10 @@ void QgsComposerView::mouseReleaseEvent( QMouseEvent* e )
         composition()->beginMultiFrameCommand( composerHtml, tr( "Html frame added" ) );
         composerHtml->addFrame( frame );
         composition()->endMultiFrameCommand();
-
         composition()->setAllUnselected();
         frame->setSelected( true );
         emit selectedItemChanged( frame );
-
+#endif
         removeRubberBand();
         emit actionFinished();
       }
