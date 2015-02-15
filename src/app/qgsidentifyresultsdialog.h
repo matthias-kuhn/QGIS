@@ -30,7 +30,9 @@
 
 #include <QWidget>
 #include <QList>
-#include <QWebView>
+#ifdef WITH_QTWEBKIT
+  #include <QWebView>
+#endif
 
 class QCloseEvent;
 class QTreeWidgetItem;
@@ -49,6 +51,7 @@ class QwtPlotCurve;
  *@author Gary E.Sherman
  */
 
+#ifdef WITH_QTWEBKIT
 class APP_EXPORT QgsIdentifyResultsWebView : public QWebView
 {
     Q_OBJECT
@@ -60,20 +63,6 @@ class APP_EXPORT QgsIdentifyResultsWebView : public QWebView
   protected:
     void contextMenuEvent( QContextMenuEvent* ) override;
     QWebView *createWindow( QWebPage::WebWindowType type ) override;
-};
-
-class APP_EXPORT QgsIdentifyResultsFeatureItem: public QTreeWidgetItem
-{
-  public:
-    QgsIdentifyResultsFeatureItem( const QgsFields &fields, const QgsFeature &feature, const QgsCoordinateReferenceSystem &crs, const QStringList & strings = QStringList() );
-    const QgsFields &fields() const { return mFields; }
-    const QgsFeature &feature() const { return mFeature; }
-    const QgsCoordinateReferenceSystem &crs() { return mCrs; }
-
-  private:
-    QgsFields mFields;
-    QgsFeature mFeature;
-    QgsCoordinateReferenceSystem mCrs;
 };
 
 class APP_EXPORT QgsIdentifyResultsWebViewItem: public QObject, public QTreeWidgetItem
@@ -94,6 +83,22 @@ class APP_EXPORT QgsIdentifyResultsWebViewItem: public QObject, public QTreeWidg
     QgsIdentifyResultsWebView *mWebView;
 };
 
+#endif
+
+class APP_EXPORT QgsIdentifyResultsFeatureItem: public QTreeWidgetItem
+{
+  public:
+    QgsIdentifyResultsFeatureItem( const QgsFields &fields, const QgsFeature &feature, const QgsCoordinateReferenceSystem &crs, const QStringList & strings = QStringList() );
+    const QgsFields &fields() const { return mFields; }
+    const QgsFeature &feature() const { return mFeature; }
+    const QgsCoordinateReferenceSystem &crs() { return mCrs; }
+
+  private:
+    QgsFields mFields;
+    QgsFeature mFeature;
+    QgsCoordinateReferenceSystem mCrs;
+};
+
 class APP_EXPORT QgsIdentifyPlotCurve
 {
   public:
@@ -106,6 +111,7 @@ class APP_EXPORT QgsIdentifyPlotCurve
   private:
     QwtPlotCurve* mPlotCurve;
 };
+
 
 class APP_EXPORT QgsIdentifyResultsDialog: public QDialog, private Ui::QgsIdentifyResultsBase
 {

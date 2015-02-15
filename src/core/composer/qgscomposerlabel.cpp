@@ -30,9 +30,12 @@
 #include <QPainter>
 #include <QSettings>
 #include <QTimer>
-#include <QWebFrame>
-#include <QWebPage>
 #include <QEventLoop>
+
+#ifdef WITH_QTWEBKIT
+  #include <QWebFrame>
+  #include <QWebPage>
+#endif
 
 QgsComposerLabel::QgsComposerLabel( QgsComposition *composition )
     : QgsComposerItem( composition )
@@ -111,6 +114,7 @@ void QgsComposerLabel::paint( QPainter* painter, const QStyleOptionGraphicsItem*
 
   QString textToDraw = displayText();
 
+#ifdef WITH_QTWEBKIT
   if ( mHtmlState )
   {
     painter->scale( 1.0 / mHtmlUnitsToMM / 10.0, 1.0 / mHtmlUnitsToMM / 10.0 );
@@ -167,6 +171,7 @@ void QgsComposerLabel::paint( QPainter* painter, const QStyleOptionGraphicsItem*
     webPage->mainFrame()->render( painter );//DELETE WEBPAGE ?
   }
   else
+#endif
   {
     painter->setFont( mFont );
     //debug

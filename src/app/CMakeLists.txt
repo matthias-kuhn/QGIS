@@ -2,7 +2,6 @@ SET(QGIS_APP_SRCS
   qgisapp.cpp
   qgisappinterface.cpp
   qgisappstylesheet.cpp
-  qgsabout.cpp
   qgsapplayertreeviewmenuprovider.cpp
   qgssponsors.cpp
   qgsaddattrdialog.cpp
@@ -31,7 +30,6 @@ SET(QGIS_APP_SRCS
   qgsdecorationgriddialog.cpp
   qgsdxfexportdialog.cpp
   qgsformannotationdialog.cpp
-  qgshtmlannotationdialog.cpp
   qgsdelattrdialog.cpp
   qgsdiagramproperties.cpp
   qgsdisplayangle.cpp
@@ -62,7 +60,6 @@ SET(QGIS_APP_SRCS
   qgsmaptooledit.cpp
   qgsmaptoolfeatureaction.cpp
   qgsmaptoolformannotation.cpp
-  qgsmaptoolhtmlannotation.cpp
   qgsmaptoolpinlabels.cpp
   qgsmaptoolshowhidelabels.cpp
   qgsmaptoolidentifyaction.cpp
@@ -119,7 +116,6 @@ SET(QGIS_APP_SRCS
   composer/qgscomposer.cpp
   composer/qgscomposerarrowwidget.cpp
   composer/qgscomposerattributetablewidget.cpp
-  composer/qgscomposerhtmlwidget.cpp
   composer/qgscomposeritemwidget.cpp
   composer/qgscomposerlabelwidget.cpp
   composer/qgscomposerpicturewidget.cpp
@@ -157,11 +153,19 @@ SET(QGIS_APP_SRCS
   qgsnewspatialitelayerdialog.cpp
 )
 
+IF (WITH_QTWEBKIT)
+  SET(QGIS_APP_SRCS ${QGIS_APP_SRCS}
+    qgsabout.cpp
+    qgshtmlannotationdialog.cpp
+    qgsmaptoolhtmlannotation.cpp
+    composer/qgscomposerhtmlwidget.cpp
+  )
+ENDIF (WITH_QTWEBKIT)
+
 SET (QGIS_APP_MOC_HDRS
   qgisapp.h
   qgisappinterface.h
   qgisappstylesheet.h
-  qgsabout.h
   qgsaddattrdialog.h
   qgsaddjoindialog.h
   qgsaddtaborgroup.h
@@ -193,7 +197,6 @@ SET (QGIS_APP_MOC_HDRS
   qgsfieldcalculator.h
   qgsfieldsproperties.h
   qgsformannotationdialog.h
-  qgshtmlannotationdialog.h
   qgsidentifyresultsdialog.h
   qgslabeldialog.h
   qgslabelengineconfigdialog.h
@@ -261,7 +264,6 @@ SET (QGIS_APP_MOC_HDRS
   composer/qgscomposer.h
   composer/qgscomposerarrowwidget.h
   composer/qgscomposerattributetablewidget.h
-  composer/qgscomposerhtmlwidget.h
   composer/qgscomposeritemwidget.h
   composer/qgscomposerlabelwidget.h
   composer/qgscomposerlegendwidget.h
@@ -292,7 +294,15 @@ SET (QGIS_APP_MOC_HDRS
   pluginmanager/qgspluginitemdelegate.h
 
   qgsnewspatialitelayerdialog.h
+)
+
+IF (WITH_QTWEBKIT)
+  SET( QGIS_APP_MOC_HDRS ${QGIS_APP_MOC_HDRS}
+    qgsabout.h
+    qgshtmlannotationdialog.h
+    composer/qgscomposerhtmlwidget.h
   )
+ENDIF (WITH_QTWEBKIT)
 
 SET (WITH_QWTPOLAR TRUE CACHE BOOL "Determines whether QwtPolar should be built")
 

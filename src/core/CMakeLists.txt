@@ -213,7 +213,6 @@ SET(QGIS_CORE_SRCS
   composer/qgsnumericscalebarstyle.cpp
   composer/qgssingleboxscalebarstyle.cpp
   composer/qgsticksscalebarstyle.cpp
-  composer/qgscomposerhtml.cpp
   composer/qgscomposermultiframe.cpp
   composer/qgscomposermodel.cpp
   composer/qgscomposition.cpp
@@ -277,6 +276,13 @@ SET(QGIS_CORE_SRCS
   raster/qgsbrightnesscontrastfilter.cpp
   raster/qgshuesaturationfilter.cpp
 )
+
+IF (WITH_QTWEBKIT)
+  SET(QGIS_CORE_SRCS
+    ${QGIS_CORE_SRCS}
+    composer/qgscomposerhtml.cpp
+  )
+ENDIF (WITH_QTWEBKIT)
 
 IF(ENABLE_MODELTEST)
   SET(MODELTEST_SRCS
@@ -397,7 +403,6 @@ SET(QGIS_CORE_MOC_HDRS
   composer/qgscomposertable.h
   composer/qgscomposertablev2.h
   composer/qgscomposertablecolumn.h
-  composer/qgscomposerhtml.h
   composer/qgscomposermultiframe.h
   composer/qgscomposereffect.h
   composer/qgsatlascomposition.h
@@ -424,6 +429,13 @@ SET(QGIS_CORE_MOC_HDRS
   layertree/qgslayertreenode.h
   layertree/qgslayertreeregistrybridge.h
 )
+
+IF (WITH_QTWEBKIT)
+  SET(QGIS_CORE_MOC_HDRS
+    ${QGIS_CORE_MOC_HDRS}
+    composer/qgscomposerhtml.h
+  )
+ENDIF (WITH_QTWEBKIT)
 
 IF (NOT QT5_BUILD)
   SET(QGIS_CORE_MOC_HDRS ${QGIS_CORE_MOC_HDRS}
@@ -641,7 +653,20 @@ SET(QGIS_CORE_HDRS
   layertree/qgslayertreeutils.h
 )
 
-IF (QT_MOBILITY_LOCATION_FOUND)
+IF (WITH_QTWEBKIT)
+  SET(QGIS_CORE_HDRS
+    ${QGIS_CORE_HDRS}
+    composer/qgscomposerhtml.h
+  )
+ENDIF (WITH_QTWEBKIT)
+
+IF (NOT QT5_BUILD)
+  SET(QGIS_CORE_HDRS ${QGIS_CORE_HDRS}
+    qgshttptransaction.h
+  )
+ENDIF (NOT QT5_BUILD)
+
+IF (QT_MOBILITY_LOCATION_FOUND OR Qt5Positioning_FOUND)
   SET(QGIS_CORE_HDRS ${QGIS_CORE_HDRS}
     gps/qgsgpsconnectionregistry.h
   )

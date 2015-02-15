@@ -31,8 +31,10 @@
 #include "qgscomposerarrowwidget.h"
 #include "qgscomposerattributetablewidget.h"
 #include "qgscomposerframe.h"
-#include "qgscomposerhtml.h"
-#include "qgscomposerhtmlwidget.h"
+#ifdef WITH_QTWEBKIT
+  #include "qgscomposerhtml.h"
+  #include "qgscomposerhtmlwidget.h"
+#endif
 #include "qgscomposerlabel.h"
 #include "qgscomposerlabelwidget.h"
 #include "qgscomposerlegend.h"
@@ -736,7 +738,9 @@ void QgsComposer::connectCompositionSlots()
 
   connect( mComposition, SIGNAL( selectedItemChanged( QgsComposerItem* ) ), this, SLOT( showItemOptions( QgsComposerItem* ) ) );
   connect( mComposition, SIGNAL( composerArrowAdded( QgsComposerArrow* ) ), this, SLOT( addComposerArrow( QgsComposerArrow* ) ) );
+#ifdef WITH_QTWEBKIT
   connect( mComposition, SIGNAL( composerHtmlFrameAdded( QgsComposerHtml*, QgsComposerFrame* ) ), this, SLOT( addComposerHtmlFrame( QgsComposerHtml*, QgsComposerFrame* ) ) );
+#endif
   connect( mComposition, SIGNAL( composerLabelAdded( QgsComposerLabel* ) ), this, SLOT( addComposerLabel( QgsComposerLabel* ) ) );
   connect( mComposition, SIGNAL( composerMapAdded( QgsComposerMap* ) ), this, SLOT( addComposerMap( QgsComposerMap* ) ) );
   connect( mComposition, SIGNAL( composerScaleBarAdded( QgsComposerScaleBar* ) ), this, SLOT( addComposerScaleBar( QgsComposerScaleBar* ) ) );
@@ -3365,7 +3369,7 @@ void QgsComposer::addComposerTableV2( QgsComposerAttributeTableV2 *table, QgsCom
   QgsComposerAttributeTableWidget* tWidget = new QgsComposerAttributeTableWidget( table, frame );
   mItemWidgetMap.insert( frame, tWidget );
 }
-
+#ifdef WITH_QTWEBKIT
 void QgsComposer::addComposerHtmlFrame( QgsComposerHtml* html, QgsComposerFrame* frame )
 {
   if ( !html )
@@ -3376,7 +3380,7 @@ void QgsComposer::addComposerHtmlFrame( QgsComposerHtml* html, QgsComposerFrame*
   QgsComposerHtmlWidget* hWidget = new QgsComposerHtmlWidget( html, frame );
   mItemWidgetMap.insert( frame, hWidget );
 }
-
+#endif
 void QgsComposer::deleteItem( QgsComposerItem* item )
 {
   QMap<QgsComposerItem*, QWidget*>::iterator it = mItemWidgetMap.find( item );

@@ -77,9 +77,6 @@ editorwidgets/qgsfilenamewidgetwrapper.cpp
 editorwidgets/qgsfilenamewidgetfactory.cpp
 editorwidgets/qgshiddenwidgetwrapper.cpp
 editorwidgets/qgshiddenwidgetfactory.cpp
-editorwidgets/qgsphotoconfigdlg.cpp
-editorwidgets/qgsphotowidgetwrapper.cpp
-editorwidgets/qgsphotowidgetfactory.cpp
 editorwidgets/qgsrangeconfigdlg.cpp
 editorwidgets/qgsrangewidgetwrapper.cpp
 editorwidgets/qgsrangewidgetfactory.cpp
@@ -103,10 +100,6 @@ editorwidgets/qgsvaluemapwidgetfactory.cpp
 editorwidgets/qgsvaluerelationconfigdlg.cpp
 editorwidgets/qgsvaluerelationwidgetwrapper.cpp
 editorwidgets/qgsvaluerelationwidgetfactory.cpp
-editorwidgets/qgswebviewconfigdlg.cpp
-editorwidgets/qgswebviewwidgetwrapper.cpp
-editorwidgets/qgswebviewwidgetfactory.cpp
-
 
 layertree/qgscustomlayerorderwidget.cpp
 layertree/qgslayertreemapcanvasbridge.cpp
@@ -170,7 +163,6 @@ qgsformannotationitem.cpp
 qgsgenericprojectionselector.cpp
 qgshighlight.cpp
 qgsidentifymenu.cpp
-qgshtmlannotationitem.cpp
 qgslegendinterface.cpp
 qgsludialog.cpp
 qgsmanageconnectionsdialog.cpp
@@ -226,6 +218,20 @@ qgsvertexmarker.cpp
 qgsunitselectionwidget.cpp
 )
 
+IF (WITH_QTWEBKIT)
+  SET(QGIS_GUI_SRCS
+      ${QGIS_GUI_SRCS}
+      qgshtmlannotationitem.cpp
+
+      editorwidgets/qgsphotoconfigdlg.cpp
+      editorwidgets/qgsphotowidgetwrapper.cpp
+      editorwidgets/qgsphotowidgetfactory.cpp
+      editorwidgets/qgswebviewconfigdlg.cpp
+      editorwidgets/qgswebviewwidgetwrapper.cpp
+      editorwidgets/qgswebviewwidgetfactory.cpp
+  )
+ENDIF (WITH_QTWEBKIT)
+
 IF (WITH_TOUCH)
   SET(QGIS_GUI_SRCS
       ${QGIS_GUI_SRCS}
@@ -280,7 +286,6 @@ SET(QGIS_GUI_MOC_HDRS
   qgsfilterlineedit.h
   qgsformannotationitem.h
   qgsgenericprojectionselector.h
-  qgshtmlannotationitem.h
   qgsidentifymenu.h
   qgslegendinterface.h
   qgslonglongvalidator.h
@@ -395,8 +400,6 @@ SET(QGIS_GUI_MOC_HDRS
   editorwidgets/qgsenumerationwidgetwrapper.h
   editorwidgets/qgsfilenamewidgetwrapper.h
   editorwidgets/qgshiddenwidgetwrapper.h
-  editorwidgets/qgsphotoconfigdlg.h
-  editorwidgets/qgsphotowidgetwrapper.h
   editorwidgets/qgsrangeconfigdlg.h
   editorwidgets/qgsrangewidgetwrapper.h
   editorwidgets/qgsrelationreferenceconfigdlg.h
@@ -413,14 +416,25 @@ SET(QGIS_GUI_MOC_HDRS
   editorwidgets/qgsvaluemapwidgetwrapper.h
   editorwidgets/qgsvaluerelationconfigdlg.h
   editorwidgets/qgsvaluerelationwidgetwrapper.h
-  editorwidgets/qgswebviewconfigdlg.h
-  editorwidgets/qgswebviewwidgetwrapper.h
 
   layertree/qgscustomlayerorderwidget.h
   layertree/qgslayertreemapcanvasbridge.h
   layertree/qgslayertreeview.h
   layertree/qgslayertreeviewdefaultactions.h
 )
+
+IF (WITH_QTWEBKIT)
+  SET(QGIS_GUI_MOD_HDRS
+      ${QGIS_GUI_MOC_HDRS}
+      qgshtmlannotationitem.h
+
+      editorwidgets/qgsphotoconfigdlg.h
+      editorwidgets/qgsphotowidgetwrapper.h
+      editorwidgets/qgswebviewconfigdlg.h
+      editorwidgets/qgswebviewwidgetwrapper.h
+  )
+ENDIF (WITH_QTWEBKIT)
+
 
 QT4_WRAP_CPP(QGIS_GUI_MOC_SRCS ${QGIS_GUI_MOC_HDRS})
 
@@ -468,7 +482,6 @@ SET(QGIS_GUI_HDRS
   editorwidgets/qgsenumerationwidgetfactory.h
   editorwidgets/qgsfilenamewidgetfactory.h
   editorwidgets/qgshiddenwidgetfactory.h
-  editorwidgets/qgsphotowidgetfactory.h
   editorwidgets/qgsrangewidgetfactory.h
   editorwidgets/qgsrelationreferencefactory.h
   editorwidgets/qgstexteditwidgetfactory.h
@@ -476,10 +489,17 @@ SET(QGIS_GUI_HDRS
   editorwidgets/qgsuuidwidgetfactory.h
   editorwidgets/qgsvaluemapwidgetfactory.h
   editorwidgets/qgsvaluerelationwidgetfactory.h
-  editorwidgets/qgswebviewwidgetfactory.h
 
   raster/qgsrasterrendererwidget.h
 )
+
+IF (WITH_QTWEBKIT)
+  SET(QGIS_GUI_HDRS
+      ${QGIS_GUI_HDRS}
+      editorwidgets/qgsphotowidgetfactory.h
+      editorwidgets/qgswebviewwidgetfactory.h
+  )
+ENDIF (WITH_QTWEBKIT)
 
 IF (WITH_TOUCH)
   SET(QGIS_GUI_HDRS
