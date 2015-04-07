@@ -91,8 +91,8 @@ class QgsNetworkProxyFactory : public QNetworkProxyFactory
 //
 QgsNetworkAccessManager* QgsNetworkAccessManager::instance()
 {
-  QgsNetworkAccessManager sInstance;
-  return &sInstance;
+  static QgsNetworkAccessManager* sInstance( new QgsNetworkAccessManager( QApplication::instance() ) );
+  return sInstance;
 }
 
 QgsNetworkAccessManager::QgsNetworkAccessManager( QObject *parent )
