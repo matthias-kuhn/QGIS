@@ -17,6 +17,8 @@
 #define QGSMAPTOOLTOUCH_H
 
 #include "qgsmaptool.h"
+#include "qgsrectangle.h"
+
 #include <QGestureEvent>
 #include <QPinchGesture>
 
@@ -57,8 +59,8 @@ class GUI_EXPORT QgsMapToolTouch : public QgsMapTool
     bool mDragging;
     //! Flag to indicate a pinch gesture is taking place
     bool mPinching;
-    //! Needed as workaround to https://bugreports.qt-project.org/browse/QTBUG-15145
-    QPoint mPinchStartPoint;
+    QgsPoint mMouseAnchorPoint;
+    QgsPoint mPinchCenterPoint;
     void pinchTriggered( QPinchGesture *gesture );
 };
 
