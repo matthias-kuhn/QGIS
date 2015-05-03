@@ -1,9 +1,9 @@
 /***************************************************************************
-    qgsmaptoolpan.h  -  map tool for panning in map canvas
-    ---------------------
-    begin                : January 2006
-    copyright            : (C) 2006 by Martin Dobias
-    email                : wonder.sk at gmail dot com
+    qgsmaptooltouch.h  -  map tool for zooming and panning using qgestures
+    ----------------------
+    begin                : February 2012
+    copyright            : (C) 2012 by Marco Bernasocchi
+    email                : marco at bernawebdesign.ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -13,10 +13,15 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef QGSMAPTOOLPAN_H
-#define QGSMAPTOOLPAN_H
+#ifndef QGSMAPTOOLTOUCH_H
+#define QGSMAPTOOLTOUCH_H
 
 #include "qgsmaptool.h"
+#include "qgsrectangle.h"
+
+#include <QGestureEvent>
+#include <QPinchGesture>
+
 class QgsMapCanvas;
 
 
@@ -30,19 +35,33 @@ class GUI_EXPORT QgsMapToolPan : public QgsMapTool
     //! constructor
     QgsMapToolPan( QgsMapCanvas* canvas );
 
+    ~QgsMapToolPan();
+
+    void activate() override;
+    void deactivate() override;
+
     //! Overridden mouse move event
     virtual void canvasMoveEvent( QMouseEvent * e ) override;
 
     //! Overridden mouse release event
     virtual void canvasReleaseEvent( QMouseEvent * e ) override;
 
+    //! Overridden Mouse double click event.
+    virtual void canvasDoubleClickEvent( QMouseEvent * e ) override;
+
     virtual bool isTransient() override { return true; }
+
+    bool gestureEvent( QGestureEvent *event ) override;
 
   private:
 
     //! Flag to indicate a map canvas drag operation is taking place
     bool mDragging;
-
+    //! Flag to indicate a pinch gesture is taking place
+    bool mPinching;
+    QgsPoint mMouseAnchorPoint;
+    QgsPoint mPinchCenterPoint;
+    void pinchTriggered( QPinchGesture *gesture );
 };
 
 #endif

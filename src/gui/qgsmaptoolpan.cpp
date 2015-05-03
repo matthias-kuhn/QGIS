@@ -1,9 +1,9 @@
 /***************************************************************************
-    qgsmaptoolpan.h  -  map tool for panning in map canvas
-    ---------------------
-    begin                : January 2006
-    copyright            : (C) 2006 by Martin Dobias
-    email                : wonder.sk at gmail dot com
+    qgsmaptooltouch.cpp  -  map tool for zooming and panning using qgestures
+    ----------------------
+    begin                : February 2012
+    copyright            : (C) 2012 by Marco Bernasocchi
+    email                : marco at bernawebdesign.ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -20,45 +20,123 @@
 #include <QBitmap>
 #include <QCursor>
 #include <QMouseEvent>
+#include <qgslogger.h>
+#include <QApplication>
 
 
 QgsMapToolPan::QgsMapToolPan( QgsMapCanvas* canvas )
-    : QgsMapTool( canvas )
-    , mDragging( false )
+    : QgsMapTool( canvas ), mDragging( false ), mPinching( false )
 {
-  mToolName = tr( "Pan" );
   // set cursor
-  QBitmap panBmp = QBitmap::fromData( QSize( 16, 16 ), pan_bits );
-  QBitmap panBmpMask = QBitmap::fromData( QSize( 16, 16 ), pan_mask_bits );
-  mCursor = QCursor( panBmp, panBmpMask, 5, 5 );
+//  QBitmap panBmp = QBitmap::fromData( QSize( 16, 16 ), pan_bits );
+//  QBitmap panBmpMask = QBitmap::fromData( QSize( 16, 16 ), pan_mask_bits );
+//  mCursor = QCursor( panBmp, panBmpMask, 5, 5 );
 }
 
+QgsMapToolPan::~QgsMapToolPan()
+{
+  mCanvas->ungrabGesture( Qt::PinchGesture );
+}
+
+void QgsMapToolPan::activate()
+{
+  mCanvas->grabGesture( Qt::PinchGesture );
+  QgsMapTool::activate();
+}
+
+void QgsMapToolPan::deactivate()
+{
+  mCanvas->ungrabGesture( Qt::PinchGesture );
+  QgsMapTool::deactivate();
+}
 
 void QgsMapToolPan::canvasMoveEvent( QMouseEvent * e )
 {
-  if (( e->buttons() & Qt::LeftButton ) )
+  if ( !mPinching )
   {
-    mDragging = true;
-    // move map and other canvas items
-    mCanvas->panAction( e );
+    if ( e->buttons() & Qt::LeftButton )
+    {
+      QgsPoint pos = mCanvas->getCoordinateTransform()->toMapCoordinates( e->pos() );
+
+      if ( !mDragging )
+      {
+        mDragging = true;
+
+        mMouseAnchorPoint = pos;
+        mCanvas->freeze();
+      }
+      else
+      {
+        const QgsRectangle& oldExtent = mCanvas->extent();
+
+        double dx = mMouseAnchorPoint.x() - pos.x();
+        double dy = mMouseAnchorPoint.y() - pos.y();
+        QgsRectangle extent = QgsRectangle( oldExtent.xMinimum() + dx,
+                                            oldExtent.yMinimum() + dy,
+                                            oldExtent.xMaximum() + dx,
+                                            oldExtent.yMaximum() + dy );
+
+        mCanvas->setExtent( extent );
+        mCanvas->refresh();
+      }
+    }
   }
+  e->accept();
 }
 
 void QgsMapToolPan::canvasReleaseEvent( QMouseEvent * e )
 {
-  if ( e->button() == Qt::LeftButton )
+  if ( mDragging )
   {
-    if ( mDragging )
+    mCanvas->freeze( false );
+    mCanvas->refresh();
+    mDragging = false;
+  }
+  e->accept();
+}
+
+void QgsMapToolPan::canvasDoubleClickEvent( QMouseEvent *e )
+{
+  if ( !mPinching )
+  {
+    mCanvas->zoomWithCenter( e->x(), e->y(), true );
+  }
+}
+
+bool QgsMapToolPan::gestureEvent( QGestureEvent *event )
+{
+  if ( QGesture *gesture = event->gesture( Qt::PinchGesture ) )
+  {
+    mPinching = true;
+
+    event->accept();
+    pinchTriggered( static_cast<QPinchGesture *>( gesture ) );
+  }
+  return true;
+}
+
+
+void QgsMapToolPan::pinchTriggered( QPinchGesture *gesture )
+{
+  if ( gesture->state() == Qt::GestureFinished )
+  {
+    //a very small totalScaleFactor indicates a two finger tap (pinch gesture without pinching)
+    if ( 0.98 < gesture->totalScaleFactor()  && gesture->totalScaleFactor() < 1.02 )
     {
-      mCanvas->panActionEnd( e->pos() );
-      mDragging = false;
+      mCanvas->zoomOut();
     }
-    else // add pan to mouse cursor
+    else
     {
+      //Transfor global coordinates to widget coordinates
+      QPoint pos = gesture->centerPoint().toPoint();
+      pos = mCanvas->mapFromGlobal( pos );
       // transform the mouse pos to map coordinates
-      QgsPoint center = mCanvas->getCoordinateTransform()->toMapPoint( e->x(), e->y() );
-      mCanvas->setCenter( center );
+      QgsPoint center  = mCanvas->getCoordinateTransform()->toMapPoint( pos.x(), pos.y() );
+      QgsRectangle r = mCanvas->extent();
+      r.scale( 1 / gesture->totalScaleFactor(), &center );
+      mCanvas->setExtent( r );
       mCanvas->refresh();
     }
+    mPinching = false;
   }
 }
