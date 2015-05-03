@@ -22,6 +22,7 @@
 #include <QCursor>
 #include <QMouseEvent>
 #include <qgslogger.h>
+#include <QApplication>
 
 
 QgsMapToolTouch::QgsMapToolTouch( QgsMapCanvas* canvas )
@@ -55,35 +56,45 @@ void QgsMapToolTouch::canvasMoveEvent( QMouseEvent * e )
 {
   if ( !mPinching )
   {
-    if (( e->buttons() & Qt::LeftButton ) )
+    if ( e->buttons() & Qt::LeftButton )
     {
-      mDragging = true;
-      // move map and other canvas items
-      mCanvas->panAction( e );
-    }
-  }
-}
+      QgsPoint pos = mCanvas->getCoordinateTransform()->toMapCoordinates( e->pos() );
 
-void QgsMapToolTouch::canvasReleaseEvent( QMouseEvent * e )
-{
-  if ( !mPinching )
-  {
-    if ( e->button() == Qt::LeftButton )
-    {
-      if ( mDragging )
+      if ( !mDragging )
       {
-        mCanvas->panActionEnd( e->pos() );
-        mDragging = false;
+        mDragging = true;
+
+        mMouseAnchorPoint = pos;
+        mCanvas->freeze();
       }
-      else // add pan to mouse cursor
+      else
       {
-        // transform the mouse pos to map coordinates
-        QgsPoint center = mCanvas->getCoordinateTransform()->toMapPoint( e->x(), e->y() );
-        mCanvas->setExtent( QgsRectangle( center, center ) );
+        const QgsRectangle& oldExtent = mCanvas->extent();
+
+        double dx = mMouseAnchorPoint.x() - pos.x();
+        double dy = mMouseAnchorPoint.y() - pos.y();
+        QgsRectangle extent = QgsRectangle( oldExtent.xMinimum() + dx,
+                                            oldExtent.yMinimum() + dy,
+                                            oldExtent.xMaximum() + dx,
+                                            oldExtent.yMaximum() + dy );
+
+        mCanvas->setExtent( extent );
         mCanvas->refresh();
       }
     }
   }
+  e->accept();
+}
+
+void QgsMapToolTouch::canvasReleaseEvent( QMouseEvent * e )
+{
+  if ( mDragging )
+  {
+    mCanvas->freeze( false );
+    mCanvas->refresh();
+    mDragging = false;
+  }
+  e->accept();
 }
 
 void QgsMapToolTouch::canvasDoubleClickEvent( QMouseEvent *e )
@@ -96,10 +107,11 @@ void QgsMapToolTouch::canvasDoubleClickEvent( QMouseEvent *e )
 
 bool QgsMapToolTouch::gestureEvent( QGestureEvent *event )
 {
-  qDebug() << "gesture " << event;
   if ( QGesture *gesture = event->gesture( Qt::PinchGesture ) )
   {
     mPinching = true;
+
+    event->accept();
     pinchTriggered( static_cast<QPinchGesture *>( gesture ) );
   }
   return true;
@@ -109,41 +121,40 @@ bool QgsMapToolTouch::gestureEvent( QGestureEvent *event )
 void QgsMapToolTouch::pinchTriggered( QPinchGesture *gesture )
 {
   QPoint currentPos = mCanvas->mapFromGlobal( gesture->centerPoint().toPoint() );
-  QgsMapCanvasMap * map = mCanvas->map();
+
   if ( gesture->state() == Qt::GestureStarted )
   {
-        mPinchStartPoint = currentPos;
-        qDebug() << "GestureStarted" << mPinchStartPoint;
+    mCanvas->freeze( true );
+    mDragging = false;
+
+    mPinchCenterPoint = mCanvas->getCoordinateTransform()->toMapCoordinates( currentPos );
   }
   if ( gesture->state() == Qt::GestureUpdated )
   {
-      QPoint newPos = currentPos - mPinchStartPoint;
-//      mCanvas->panAction( newPos );
-      if ( ! ( 0.98 < gesture->totalScaleFactor()  && gesture->totalScaleFactor() < 1.02 ) )
-      {
-          qDebug() << "scale" << map->scale();
-          map->setTransformOriginPoint(currentPos);
-          map->setScale(gesture->totalScaleFactor());
-      }
+    if ( ! ( 0.98 < gesture->totalScaleFactor()  && gesture->totalScaleFactor() < 1.02 ) )
+    {
+      QgsPoint oldCenter = mCanvas->center();
+      QgsPoint mapPos( mCanvas->getCoordinateTransform()->toMapCoordinates( currentPos ) );
+      double dx = mPinchCenterPoint.x() - mapPos.x();
+      double dy = mPinchCenterPoint.y() - mapPos.y();
+      QgsPoint newCenter( mapPos.x() + (( oldCenter.x() - mapPos.x() ) / gesture->scaleFactor() ) + dx,
+                          mapPos.y() + (( oldCenter.y() - mapPos.y() ) / gesture->scaleFactor() ) + dy );
+
+      mCanvas->zoomByFactor( 1/gesture->scaleFactor(), &newCenter );
+      mPinchCenterPoint = mCanvas->getCoordinateTransform()->toMapCoordinates( currentPos );
+    }
   }
   if ( gesture->state() == Qt::GestureFinished )
   {
-    qDebug() << "GestureFinished";
+    mCanvas->freeze( false );
     //a very small totalScaleFactor indicates a two finger tap (pinch gesture without pinching)
     if ( 0.98 < gesture->totalScaleFactor()  && gesture->totalScaleFactor() < 1.02 )
     {
-      mCanvas->zoomOut();
+      QgsPoint currentPinchCenter = mCanvas->getCoordinateTransform()->toMapCoordinates( currentPos );
+      mCanvas->zoomByFactor( 0.5, &currentPinchCenter );
     }
     else
     {
-      qDebug() << "GestureFinished" << currentPos << mPinchStartPoint;
-//      mCanvas->panActionEnd( currentPos );
-      QgsRectangle extent = mCanvas->extent();
-      QgsPoint center  = mCanvas->getCoordinateTransform()->toMapPoint( currentPos.x(), currentPos.y() );
-      //reset the "live zooming"
-      map->setScale(1);
-      extent.scale( 1 / gesture->totalScaleFactor(), &center );
-      mCanvas->setExtent( extent );
       mCanvas->refresh();
     }
     mPinching = false;
