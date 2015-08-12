@@ -105,7 +105,7 @@ path %PF86%\CMake\bin;%PATH%;c:\cygwin\bin
 
 PROMPT qgis%VERSION%$g
 
-set BUILDCONF=RelWithDebInfo
+set BUILDCONF=Release
 
 cd ..\..
 set SRCDIR=%CD%
