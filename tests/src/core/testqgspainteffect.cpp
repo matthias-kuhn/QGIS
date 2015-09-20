@@ -254,13 +254,13 @@ void TestQgsPaintEffect::stackSaveRestore()
 
   //check if stack effect node was written
   QDomNodeList evalNodeList = effectParentElem.childNodes();
-  QCOMPARE( evalNodeList.length(), ( unsigned int )1 );
+  QCOMPARE( evalNodeList.count(), 1 );
   QDomElement effectElem = evalNodeList.at( 0 ).toElement();
   QCOMPARE( effectElem.attribute( "type" ), stack->type() );
 
   //should be two effect child nodes
   QDomNodeList childNodeList = effectElem.elementsByTagName( "effect" );
-  QCOMPARE( childNodeList.length(), ( unsigned int )2 );
+  QCOMPARE( childNodeList.count(), 2 );
   QCOMPARE( childNodeList.at( 0 ).toElement().attribute( "type" ), blur->type() );
   QCOMPARE( childNodeList.at( 1 ).toElement().attribute( "type" ), shadow->type() );
 
@@ -272,7 +272,7 @@ void TestQgsPaintEffect::stackSaveRestore()
   QCOMPARE( restoredStack->enabled(), stack->enabled() );
 
   //test that child effects were restored
-  QCOMPARE( restoredStack->effectList()->length(), 2 );
+  QCOMPARE( restoredStack->effectList()->count(), 2 );
   QCOMPARE( restoredStack->effectList()->at( 0 )->type(), blur->type() );
   QCOMPARE( restoredStack->effectList()->at( 1 )->type(), shadow->type() );
 
