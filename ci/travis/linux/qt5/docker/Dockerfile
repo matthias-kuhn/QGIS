@@ -19,7 +19,6 @@ RUN apt-get install -y --force-yes --no-install-recommends --no-install-suggests
                        qtscript5-dev libqt5xmlpatterns5-dev qttools5-dev \
                        qttools5-dev-tools
 
-RUN ln -s /usr/bin/lrelease /usr/bin/lrelease-qt5
-
 RUN mkdir -p /usr/src/build
+COPY /do-test.sh /usr/src/build/do-test.sh
 WORKDIR /usr/src/build

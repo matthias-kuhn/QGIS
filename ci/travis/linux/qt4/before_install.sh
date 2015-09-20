@@ -1,4 +1,3 @@
-export DEBIAN_FRONTEND=noninteractive
 sudo add-apt-repository ppa:ubuntugis/ppa -y
 sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable -y # For postgresql-9.1-postgis-2.1
 sudo add-apt-repository ppa:grass/grass-stable -y
