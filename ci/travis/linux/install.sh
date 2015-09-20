@@ -1,5 +1,3 @@
-export DEBIAN_FRONTEND=noninteractive
-
 if [ ${QT} == 5 ]; then
   ./ci/travis/linux/qt5/install.sh
 else
