@@ -18,6 +18,8 @@
 #ifndef QGSIDENTIFYRESULTSDIALOG_H
 #define QGSIDENTIFYRESULTSDIALOG_H
 
+#include "qgis.h"
+
 #include "ui_qgsidentifyresultsbase.h"
 #include "qgsattributeaction.h"
 #include "qgscontexthelp.h"
