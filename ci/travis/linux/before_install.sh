@@ -1,23 +1,7 @@
 export DEBIAN_FRONTEND=noninteractive
-sudo add-apt-repository ppa:ubuntugis/ppa -y
-sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable -y # For postgresql-9.1-postgis-2.1
-sudo add-apt-repository ppa:grass/grass-stable -y
-sudo add-apt-repository ppa:smspillaz/cmake-3.0.2 -y
-sudo add-apt-repository ppa:kedazo/doxygen-updates-precise -y # For doxygen 1.8.8
-sudo apt-get update -qq
-sudo apt-get install --force-yes --no-install-recommends --no-install-suggests \
-                         bison cmake cmake-data doxygen flex git graphviz \
-                         grass-dev grass7-dev libexpat1-dev libfcgi-dev \
-                         libgdal1-dev libgeos-dev libgeos++-dev libgsl0-dev libpq-dev \
-                         libproj-dev libqscintilla2-dev libqt4-dev \
-                         libqt4-opengl-dev libqt4-sql-sqlite libqtwebkit-dev \
-                         libqca2-dev libqca2-plugin-ossl \
-                         libqwt-dev libspatialindex-dev libspatialite-dev \
-                         libsqlite3-dev lighttpd pkg-config poppler-utils \
-                         pyqt4-dev-tools python python-dev python-qt4 \
-                         python-qt4-dev python-sip python-sip-dev python-qt4-sql spawn-fcgi \
-                         txt2tags xauth xfonts-100dpi xfonts-75dpi xfonts-base \
-                         xfonts-scalable xvfb \
-                         postgresql-9.1-postgis-2.1/precise # postgis one from ubuntugis-unstable, not pgdg
-cmake --version
-clang --version
+
+if [ ${QT} == 5 ]; then
+  ./ci/travis/linux/qt5/before_install.sh
+else
+  ./ci/travis/linux/qt4/before_install.sh
+fi

@@ -1,2 +1,5 @@
-xvfb-run ctest -V -E 'qgis_openstreetmaptest|qgis_wcsprovidertest' -S ./qgis-test-travis.ctest --output-on-failure
-
+if [ ${QT} == 5 ]; then
+  ./ci/travis/linux/qt5/script.sh
+else
+  ./ci/travis/linux/qt5/script.sh
+fi
