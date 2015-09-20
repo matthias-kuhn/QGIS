@@ -17,6 +17,8 @@
 #ifndef QGSRASTERHISTOGRAMWIDGET_H
 #define QGSRASTERHISTOGRAMWIDGET_H
 
+#include "qgis.h"
+
 #include "ui_qgsrasterhistogramwidgetbase.h"
 
 class QgsRasterLayer;

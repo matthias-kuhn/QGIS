@@ -17,6 +17,8 @@
 #ifndef QGSHISTOGRAMWIDGET_H
 #define QGSHISTOGRAMWIDGET_H
 
+#include "qgis.h"
+
 #include "ui_qgshistogramwidgetbase.h"
 
 #include "qgshistogram.h"
