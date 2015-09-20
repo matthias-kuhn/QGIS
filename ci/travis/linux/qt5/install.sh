@@ -1,4 +1,8 @@
-docker run --name qgis-configured -v ${TRAVIS_BUILD_DIR}:/usr/src/QGIS qgis-build \
+docker run \
+  --name qgis-configured \
+  -v ${TRAVIS_BUILD_DIR}:/usr/src/QGIS \
+  --net=host \
+  qgis-build \
   cmake -DWITH_BINDINGS=OFF \
         -DQSCINTILLA_LIBRARY=/usr/lib/libqt5scintilla2.so \
         -DQSCINTILLA_INCLUDE_DIR=/usr/include/x86_64-linux-gnu/qt5 \
