@@ -10,3 +10,4 @@ docker run \
         -DENABLE_QT5=ON \
         -DWITH_QTWEBKIT=OFF \
         ../QGIS
+docker commit qgis-configured qgis-configured
