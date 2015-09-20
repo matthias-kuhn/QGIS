@@ -10,7 +10,6 @@ RUN apt-get install -y --force-yes --no-install-recommends --no-install-suggests
                        grass-dev libexpat1-dev libfcgi-dev \
                        libgdal1-dev libgeos-dev libgsl0-dev libpq-dev \
                        libproj-dev libqscintilla2-dev \
-                       libqtwebkit-dev \
                        libspatialindex-dev libspatialite-dev \
                        libsqlite3-dev lighttpd pkg-config poppler-utils \
                        python python-dev \
@@ -18,6 +17,5 @@ RUN apt-get install -y --force-yes --no-install-recommends --no-install-suggests
                        txt2tags xauth xfonts-100dpi xfonts-75dpi xfonts-base \
                        xfonts-scalable xvfb
 
-RUN mkdir /usr/src/QGIS/build
-WORKDIR /usr/src/QGIS/build
-RUN cmake .. -DWITH_BINDINGS=OFF -DQSCINTILLA_LIBRARY=/usr/lib/libqt5scintilla2.so -DQSCINTILLA_INCLUDE_DIR=/usr/include/x86_64-linux-gnu/qt5 -DWITH_QWTPOLAR=OFF
+RUN mkdir -p /usr/src/build
+WORKDIR /usr/src/build
