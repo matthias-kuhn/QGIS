@@ -11,7 +11,7 @@ RUN apt-get install -y --force-yes --no-install-recommends --no-install-suggests
                        libgdal1-dev libgeos-dev libgsl0-dev libpq-dev \
                        libproj-dev libqscintilla2-dev \
                        libqtwebkit-dev \
-                       libqwt-dev libspatialindex-dev libspatialite-dev \
+                       libspatialindex-dev libspatialite-dev \
                        libsqlite3-dev lighttpd pkg-config poppler-utils \
                        python python-dev \
                        python-sip python-sip-dev spawn-fcgi \
