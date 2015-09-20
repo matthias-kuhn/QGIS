@@ -1,4 +1,4 @@
-FROM      docker.io/jemc/qt5
+FROM      ubuntu:15.04
 MAINTAINER Matthias Kuhn <matthias@opengis.ch>
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -7,7 +7,7 @@ RUN apt-get update
 RUN apt-get install -y --force-yes --no-install-recommends --no-install-suggests \
                        libqwt-qt5-dev libqt5scintilla2-dev clang \
                        bison cmake cmake-data doxygen flex git graphviz \
-                       grass-dev grass7-dev libexpat1-dev libfcgi-dev \
+                       grass-dev libexpat1-dev libfcgi-dev \
                        libgdal1-dev libgeos-dev libgsl0-dev libpq-dev \
                        libproj-dev libqscintilla2-dev \
                        libqtwebkit-dev \
