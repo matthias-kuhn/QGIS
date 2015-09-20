@@ -33,10 +33,10 @@ ELSE(EXISTS QSCINTILLA_VERSION_STR)
      /usr/include/x86_64-linux-gnu/qt5/
     )
 
-  SET(LIBNAMES qscintilla2 libqscintilla2 libqscintilla2.dylib)
   IF(ENABLE_QT5)
     SET(LIBNAMES ${LIBNAMES} qt5scintilla2)
   ENDIF(ENABLE_QT5)
+  SET(LIBNAMES qscintilla2 libqscintilla2 libqscintilla2.dylib)
   FIND_LIBRARY(QSCINTILLA_LIBRARY
     NAMES ${LIBNAMES}
     PATHS
