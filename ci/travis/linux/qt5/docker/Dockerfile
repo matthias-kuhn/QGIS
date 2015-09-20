@@ -9,7 +9,7 @@ RUN apt-get install -y --force-yes --no-install-recommends --no-install-suggests
                        bison cmake cmake-data doxygen flex git graphviz \
                        grass-dev libexpat1-dev libfcgi-dev \
                        libgdal1-dev libgeos-dev libgsl0-dev libpq-dev \
-                       libproj-dev libqscintilla2-dev \
+                       libproj-dev \
                        libspatialindex-dev libspatialite-dev \
                        libsqlite3-dev lighttpd pkg-config poppler-utils \
                        python python-dev \
