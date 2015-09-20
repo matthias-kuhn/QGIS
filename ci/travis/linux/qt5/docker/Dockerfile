@@ -18,6 +18,6 @@ RUN apt-get install -y --force-yes --no-install-recommends --no-install-suggests
                        txt2tags xauth xfonts-100dpi xfonts-75dpi xfonts-base \
                        xfonts-scalable xvfb
 
-mkdir /usr/src/QGIS/build
+RUN mkdir /usr/src/QGIS/build
 WORKDIR /usr/src/QGIS/build
 RUN cmake .. -DWITH_BINDINGS=OFF -DQSCINTILLA_LIBRARY=/usr/lib/libqt5scintilla2.so -DQSCINTILLA_INCLUDE_DIR=/usr/include/x86_64-linux-gnu/qt5 -DWITH_QWTPOLAR=OFF
