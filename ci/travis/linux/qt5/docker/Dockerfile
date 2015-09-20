@@ -15,7 +15,8 @@ RUN apt-get install -y --force-yes --no-install-recommends --no-install-suggests
                        python python-dev \
                        python-sip python-sip-dev spawn-fcgi \
                        txt2tags xauth xfonts-100dpi xfonts-75dpi xfonts-base \
-                       xfonts-scalable xvfb
+                       xfonts-scalable xvfb libqt5svg5-dev qtpositioning5-dev \
+                       qtscript5-dev libqt5xmlpatterns5-dev
 
 RUN mkdir -p /usr/src/build
 WORKDIR /usr/src/build
