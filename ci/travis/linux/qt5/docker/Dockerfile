@@ -16,7 +16,10 @@ RUN apt-get install -y --force-yes --no-install-recommends --no-install-suggests
                        python-sip python-sip-dev spawn-fcgi \
                        txt2tags xauth xfonts-100dpi xfonts-75dpi xfonts-base \
                        xfonts-scalable xvfb libqt5svg5-dev qtpositioning5-dev \
-                       qtscript5-dev libqt5xmlpatterns5-dev qttools5-dev
+                       qtscript5-dev libqt5xmlpatterns5-dev qttools5-dev \
+                       qttools5-dev-tools
+
+RUN ln -s /usr/bin/lrelease /usr/bin/lrelease-qt5
 
 RUN mkdir -p /usr/src/build
 WORKDIR /usr/src/build
