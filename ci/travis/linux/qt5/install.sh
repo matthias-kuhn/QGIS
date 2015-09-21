@@ -4,9 +4,11 @@ docker run \
   --net=host \
   qgis-build \
   cmake -DWITH_BINDINGS=OFF \
+        -DWITH_SERVER=OFF -DWITH_STAGED_PLUGINS=OFF -DWITH_GRASS=OFF \
         -DQSCINTILLA_LIBRARY=/usr/lib/libqt5scintilla2.so \
         -DQSCINTILLA_INCLUDE_DIR=/usr/include/x86_64-linux-gnu/qt5 \
         -DWITH_QWTPOLAR=OFF \
+        -DWITH_APIDOC=OFF \
         -DENABLE_QT5=ON \
         -WTIH_DESTKOP=OFF \
         -DWITH_QTWEBKIT=OFF \
