@@ -8,6 +8,7 @@ docker run \
         -DQSCINTILLA_INCLUDE_DIR=/usr/include/x86_64-linux-gnu/qt5 \
         -DWITH_QWTPOLAR=OFF \
         -DENABLE_QT5=ON \
+        -WTIH_DESTKOP=OFF \
         -DWITH_QTWEBKIT=OFF \
         ../QGIS
 docker commit qgis-configured qgis-configured
