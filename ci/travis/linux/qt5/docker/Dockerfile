@@ -18,7 +18,7 @@ RUN apt-get install -y --force-yes --no-install-recommends --no-install-suggests
                        txt2tags xauth xfonts-100dpi xfonts-75dpi xfonts-base \
                        xfonts-scalable xvfb libqt5svg5-dev qtpositioning5-dev \
                        qtscript5-dev libqt5xmlpatterns5-dev qttools5-dev \
-                       qttools5-dev-tools
+                       qttools5-dev-tools ccache
 
 RUN mkdir -p /usr/src/build
 COPY /do-test.sh /usr/src/build/do-test.sh
