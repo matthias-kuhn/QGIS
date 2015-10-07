@@ -16,7 +16,5 @@ docker run \
         -DENABLE_QT5=ON \
         -DWITH_DESTKOP=OFF \
         -DWITH_QTWEBKIT=OFF \
-        -DCMAKE_CXX_COMPILER:FILEPATH=/usr/lib/ccache/c++ \
-        -DCMAKE_C_COMPILER:FILEPATH=/usr/lib/ccache/cc \
         ../QGIS
 docker commit qgis-configured qgis-configured
