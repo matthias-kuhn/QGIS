@@ -14,7 +14,7 @@ docker run \
         -DWITH_QWTPOLAR=OFF \
         -DWITH_APIDOC=OFF \
         -DENABLE_QT5=ON \
-        -WTIH_DESTKOP=OFF \
+        -DWITH_DESTKOP=OFF \
         -DWITH_QTWEBKIT=OFF \
         -DCMAKE_CXX_COMPILER:FILEPATH=/usr/lib/ccache/c++ \
         -DCMAKE_C_COMPILER:FILEPATH=/usr/lib/ccache/cc \
