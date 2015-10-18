@@ -3,7 +3,7 @@
                           ---------------------------
     begin                : May 27, 2014
     copyright            : (C) 2014 by Matthias Kuhn
-    email                : matthias dot kuhn at gmx dot ch
+    email                : matthias at opengis dot ch
  ***************************************************************************/
 
 /***************************************************************************
@@ -69,7 +69,7 @@ void QgsExpressionFieldBuffer::readXml( const QDomNode& layerNode )
   {
     QDomNodeList fields = expressionFieldsElem.elementsByTagName( "field" );
 
-    for ( unsigned int i = 0; i < fields.length(); ++i )
+    for ( int i = 0; i < fields.size(); ++i )
     {
       QDomElement field = fields.at( i ).toElement();
       QString exp = field.attribute( "expression" );

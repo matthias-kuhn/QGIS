@@ -49,8 +49,7 @@ class QgsMssqlProvider : public QgsVectorDataProvider
     Q_OBJECT
 
   public:
-
-    QgsMssqlProvider( QString uri = QString() );
+    explicit QgsMssqlProvider( QString uri = QString() );
 
     virtual ~QgsMssqlProvider();
 
@@ -123,7 +122,7 @@ class QgsMssqlProvider : public QgsVectorDataProvider
      */
     virtual long featureCount() const override;
 
-    /** update the extent, feature count, wkb type and srid for this layer */
+    /** Update the extent, feature count, wkb type and srid for this layer */
     void UpdateStatistics( bool estimate );
 
     /**
@@ -135,7 +134,7 @@ class QgsMssqlProvider : public QgsVectorDataProvider
     /** Accessor for sql where clause used to limit dataset */
     QString subsetString() override;
 
-    /** mutator for sql where clause used to limit dataset size */
+    /** Mutator for sql where clause used to limit dataset size */
     bool setSubsetString( QString theSQL, bool updateFeatureCount = true ) override;
 
     virtual bool supportsSubsetString() override { return true; }
@@ -150,7 +149,7 @@ class QgsMssqlProvider : public QgsVectorDataProvider
 
     /* Implementation of functions from QgsDataProvider */
 
-    /** return a provider name
+    /** Return a provider name
 
         Essentially just returns the provider key.  Should be used to build file
         dialogs so that providers can be shown with their supported types. Thus
@@ -165,7 +164,7 @@ class QgsMssqlProvider : public QgsVectorDataProvider
      */
     QString name() const override;
 
-    /** return description
+    /** Return description
 
         Return a terse string describing what the provider is.
 
@@ -187,10 +186,10 @@ class QgsMssqlProvider : public QgsVectorDataProvider
      */
     bool isValid() override;
 
-    /**Writes a list of features to the database*/
+    /** Writes a list of features to the database*/
     virtual bool addFeatures( QgsFeatureList & flist ) override;
 
-    /**Deletes a feature*/
+    /** Deletes a feature*/
     virtual bool deleteFeatures( const QgsFeatureIds & id ) override;
 
     /**
@@ -207,10 +206,10 @@ class QgsMssqlProvider : public QgsVectorDataProvider
      */
     virtual bool deleteAttributes( const QgsAttributeIds &attributes ) override;
 
-    /**Changes attribute values of existing features */
+    /** Changes attribute values of existing features */
     virtual bool changeAttributeValues( const QgsChangedAttributesMap & attr_map ) override;
 
-    /**Changes existing geometries*/
+    /** Changes existing geometries*/
     virtual bool changeGeometryValues( QgsGeometryMap & geometry_map ) override;
 
     /**
@@ -218,13 +217,13 @@ class QgsMssqlProvider : public QgsVectorDataProvider
      */
     virtual bool createSpatialIndex() override;
 
-    /**Create an attribute index on the datasource*/
+    /** Create an attribute index on the datasource*/
     virtual bool createAttributeIndex( int field ) override;
 
-    /** convert a QgsField to work with MSSQL */
+    /** Convert a QgsField to work with MSSQL */
     static bool convertField( QgsField &field );
 
-    /**Returns the default value for field specified by @c fieldId */
+    /** Returns the default value for field specified by @c fieldId */
     QVariant defaultValue( int fieldId ) override;
 
     /** Import a vector layer into the database */
@@ -242,7 +241,7 @@ class QgsMssqlProvider : public QgsVectorDataProvider
     virtual QgsCoordinateReferenceSystem crs() override;
 
   protected:
-    /** loads fields from input file to member attributeFields */
+    /** Loads fields from input file to member attributeFields */
     QVariant::Type DecodeSqlType( QString sqlTypeName );
     void loadFields();
     void loadMetadata();

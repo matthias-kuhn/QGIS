@@ -224,7 +224,7 @@ QgsDataItem::QgsDataItem( QgsDataItem::Type type, QgsDataItem* parent, QString n
 QgsDataItem::~QgsDataItem()
 {
   QgsDebugMsgLevel( QString( "mName = %1 mPath = %2 mChildren.size() = %3" ).arg( mName ).arg( mPath ).arg( mChildren.size() ), 2 );
-  foreach ( QgsDataItem *child, mChildren )
+  Q_FOREACH ( QgsDataItem *child, mChildren )
   {
     if ( !child ) // should not happen
       continue;
@@ -239,6 +239,8 @@ QgsDataItem::~QgsDataItem()
     mDeferredDelete = true;
     mFutureWatcher->waitForFinished();
   }
+
+  delete mFutureWatcher;
 }
 
 QString QgsDataItem::pathComponent( const QString &string )
@@ -250,7 +252,7 @@ void QgsDataItem::deleteLater()
 {
   QgsDebugMsg( "path = " + path() );
   setParent( 0 ); // also disconnects parent
-  foreach ( QgsDataItem *child, mChildren )
+  Q_FOREACH ( QgsDataItem *child, mChildren )
   {
     if ( !child ) // should not happen
       continue;
@@ -271,7 +273,7 @@ void QgsDataItem::deleteLater()
 
 void QgsDataItem::deleteLater( QVector<QgsDataItem*> &items )
 {
-  foreach ( QgsDataItem *item, items )
+  Q_FOREACH ( QgsDataItem *item, items )
   {
     if ( !item ) // should not happen
       continue;
@@ -283,7 +285,7 @@ void QgsDataItem::deleteLater( QVector<QgsDataItem*> &items )
 void QgsDataItem::moveToThread( QThread * targetThread )
 {
   // QObject::moveToThread() cannot move objects with parent, but QgsDataItem is not using paren/children from QObject
-  foreach ( QgsDataItem* child, mChildren )
+  Q_FOREACH ( QgsDataItem* child, mChildren )
   {
     if ( !child ) // should not happen
       continue;
@@ -383,12 +385,13 @@ QVector<QgsDataItem*> QgsDataItem::runCreateChildren( QgsDataItem* item )
   QVector <QgsDataItem*> children = item->createChildren();
   QgsDebugMsg( QString( "%1 children created in %2 ms" ).arg( children.size() ).arg( time.elapsed() ) );
   // Children objects must be pushed to main thread.
-  foreach ( QgsDataItem* child, children )
+  Q_FOREACH ( QgsDataItem* child, children )
   {
     if ( !child ) // should not happen
       continue;
     QgsDebugMsg( "moveToThread child " + child->path() );
-    child->moveToThread( QApplication::instance()->thread() ); // moves also children
+    if ( qApp )
+      child->moveToThread( qApp->thread() ); // moves also children
   }
   QgsDebugMsg( QString( "finished path %1: %2 children" ).arg( item->path() ).arg( children.size() ) );
   return children;
@@ -421,7 +424,7 @@ void QgsDataItem::populate( QVector<QgsDataItem*> children )
 {
   QgsDebugMsg( "mPath = " + mPath );
 
-  foreach ( QgsDataItem *child, children )
+  Q_FOREACH ( QgsDataItem *child, children )
   {
     if ( !child ) // should not happen
       continue;
@@ -435,7 +438,7 @@ void QgsDataItem::depopulate()
 {
   QgsDebugMsg( "mPath = " + mPath );
 
-  foreach ( QgsDataItem *child, mChildren )
+  Q_FOREACH ( QgsDataItem *child, mChildren )
   {
     QgsDebugMsg( "remove " + child->path() );
     child->depopulate(); // recursive
@@ -473,7 +476,7 @@ void QgsDataItem::refresh( QVector<QgsDataItem*> children )
 
   // Remove no more present children
   QVector<QgsDataItem*> remove;
-  foreach ( QgsDataItem *child, mChildren )
+  Q_FOREACH ( QgsDataItem *child, mChildren )
   {
     if ( !child ) // should not happen
       continue;
@@ -481,14 +484,14 @@ void QgsDataItem::refresh( QVector<QgsDataItem*> children )
       continue;
     remove.append( child );
   }
-  foreach ( QgsDataItem *child, remove )
+  Q_FOREACH ( QgsDataItem *child, remove )
   {
     QgsDebugMsg( "remove " + child->path() );
     deleteChildItem( child );
   }
 
   // Add new children
-  foreach ( QgsDataItem *child, children )
+  Q_FOREACH ( QgsDataItem *child, children )
   {
     if ( !child ) // should not happen
       continue;
@@ -721,7 +724,7 @@ QgsDataCollectionItem::~QgsDataCollectionItem()
 
 // Do not delete children, children are deleted by QObject parent
 #if 0
-  foreach ( QgsDataItem* i, mChildren )
+  Q_FOREACH ( QgsDataItem* i, mChildren )
   {
     QgsDebugMsgLevel( QString( "delete child = 0x%0" ).arg(( qlonglong )i, 8, 16, QLatin1Char( '0' ) ), 2 );
     delete i;
@@ -775,10 +778,9 @@ QVector<QgsDataItem*> QgsDirectoryItem::createChildren()
 {
   QVector<QgsDataItem*> children;
   QDir dir( mDirPath );
-  QSettings settings;
 
   QStringList entries = dir.entryList( QDir::AllDirs | QDir::NoDotAndDotDot, QDir::Name | QDir::IgnoreCase );
-  foreach ( QString subdir, entries )
+  Q_FOREACH ( const QString& subdir, entries )
   {
     if ( mRefreshLater )
     {
@@ -796,7 +798,7 @@ QVector<QgsDataItem*> QgsDirectoryItem::createChildren()
   }
 
   QStringList fileEntries = dir.entryList( QDir::Dirs | QDir::NoDotAndDotDot | QDir::Files, QDir::Name );
-  foreach ( QString name, fileEntries )
+  Q_FOREACH ( const QString& name, fileEntries )
   {
     if ( mRefreshLater )
     {
@@ -818,7 +820,7 @@ QVector<QgsDataItem*> QgsDirectoryItem::createChildren()
       }
     }
 
-    foreach ( QgsDataItemProvider* provider, QgsDataItemProviderRegistry::instance()->providers() )
+    Q_FOREACH ( QgsDataItemProvider* provider, QgsDataItemProviderRegistry::instance()->providers() )
     {
       int capabilities = provider->capabilities();
 
@@ -931,7 +933,7 @@ QgsDirectoryParamWidget::QgsDirectoryParamWidget( QString path, QWidget* parent 
 
   QDir dir( path );
   QStringList entries = dir.entryList( QDir::AllEntries | QDir::NoDotAndDotDot, QDir::Name | QDir::IgnoreCase );
-  foreach ( QString name, entries )
+  Q_FOREACH ( const QString& name, entries )
   {
     QFileInfo fi( dir.absoluteFilePath( name ) );
     QStringList texts;
@@ -1002,7 +1004,7 @@ QgsDirectoryParamWidget::QgsDirectoryParamWidget( QString path, QWidget* parent 
   // hide columns that are not requested
   QSettings settings;
   QList<QVariant> lst = settings.value( "/dataitem/directoryHiddenColumns" ).toList();
-  foreach ( QVariant colVariant, lst )
+  Q_FOREACH ( const QVariant& colVariant, lst )
   {
     setColumnHidden( colVariant.toInt(), true );
   }
@@ -1083,7 +1085,7 @@ QVector<QgsDataItem*> QgsFavouritesItem::createChildren()
   QSettings settings;
   QStringList favDirs = settings.value( "/browser/favourites", QVariant() ).toStringList();
 
-  foreach ( QString favDir, favDirs )
+  Q_FOREACH ( const QString& favDir, favDirs )
   {
     QString pathName = pathComponent( favDir );
     QgsDataItem *item = new QgsDirectoryItem( this, favDir, favDir, mPath + "/" + pathName );
@@ -1303,13 +1305,13 @@ QVector<QgsDataItem*> QgsZipItem::createChildren()
   getZipFileList();
 
   // loop over files inside zip
-  foreach ( QString fileName, mZipFileList )
+  Q_FOREACH ( const QString& fileName, mZipFileList )
   {
     QFileInfo info( fileName );
     tmpPath = mVsiPrefix + mFilePath + "/" + fileName;
     QgsDebugMsgLevel( "tmpPath = " + tmpPath, 3 );
 
-    // foreach( dataItem_t *dataItem, mDataItemPtr )
+    // Q_FOREACH( dataItem_t *dataItem, mDataItemPtr )
     for ( int i = 0; i < mProviderNames.size(); i++ )
     {
       // ugly hack to remove .dbf file if there is a .shp file

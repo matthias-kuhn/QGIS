@@ -10,6 +10,8 @@ class QgsGeometryCollectionV2: public QgsAbstractGeometryV2
     //QgsGeometryCollectionV2& operator=( const QgsGeometryCollectionV2& c );
     virtual ~QgsGeometryCollectionV2();
 
+    virtual QgsGeometryCollectionV2* clone() const;
+
     int numGeometries() const;
     //const QgsAbstractGeometryV2* geometryN( int n ) const;
     QgsAbstractGeometryV2* geometryN( int n );
@@ -19,11 +21,18 @@ class QgsGeometryCollectionV2: public QgsAbstractGeometryV2
     virtual QString geometryType() const;
     virtual void clear();
 
-    /**Adds a geometry and takes ownership. Returns true in case of success*/
+    /** Adds a geometry and takes ownership. Returns true in case of success*/
     virtual bool addGeometry( QgsAbstractGeometryV2* g /Transfer/ );
+
+    /** Inserts a geometry before a specified index and takes ownership. Returns true in case of success.
+     * @param g geometry to insert. Ownership is transferred to the collection.
+     * @param index position to insert geometry before
+    */
+    virtual bool insertGeometry( QgsAbstractGeometryV2* g /Transfer/, int index );
+
     virtual bool removeGeometry( int nr );
 
-    virtual void transform( const QgsCoordinateTransform& ct );
+    virtual void transform( const QgsCoordinateTransform& ct, QgsCoordinateTransform::TransformDirection d = QgsCoordinateTransform::ForwardTransform );
     void transform( const QTransform& t );
     //virtual void clip( const QgsRectangle& rect );
     virtual void draw( QPainter& p ) const;
@@ -51,4 +60,14 @@ class QgsGeometryCollectionV2: public QgsAbstractGeometryV2
     virtual double area() const;
 
     bool hasCurvedSegments() const;
+
+    /** Returns approximate rotation angle for a vertex. Usually average angle between adjacent segments.
+        @param vertex the vertex id
+        @return rotation in radians, clockwise from north*/
+    double vertexAngle( const QgsVertexId& vertex ) const;
+
+    virtual int vertexCount(int part = 0, int ring = 0) const;
+    virtual int ringCount(int part = 0) const;
+    virtual int partCount() const;
+    virtual QgsPointV2 vertexAt( const QgsVertexId& id ) const;
 };

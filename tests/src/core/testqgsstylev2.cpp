@@ -160,6 +160,7 @@ void TestStyleV2::cleanupTestCase()
   // don't save
   // mStyle->save();
   delete mStyle;
+  QgsCptCityArchive::clearArchives();
   QgsApplication::exitQgis();
 
   QString myReportFile = QDir::tempPath() + "/qgistest.html";
@@ -306,7 +307,7 @@ void TestStyleV2::testLoadColorRamps()
 
   QgsDebugMsg( "loaded colorRamps: " + colorRamps.join( " " ) );
 
-  foreach ( QString name, colorRampsTest )
+  Q_FOREACH ( const QString& name, colorRampsTest )
   {
     QgsDebugMsg( "colorRamp " + name );
     QVERIFY( colorRamps.contains( name ) );
@@ -339,7 +340,7 @@ void TestStyleV2::testSaveLoad()
 
   QStringList colorRampsTest = QStringList() << "test_gradient";
 
-  foreach ( QString name, colorRampsTest )
+  Q_FOREACH ( const QString& name, colorRampsTest )
   {
     QgsDebugMsg( "colorRamp " + name );
     QVERIFY( colorRamps.contains( name ) );

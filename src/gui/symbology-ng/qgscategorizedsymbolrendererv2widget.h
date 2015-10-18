@@ -64,7 +64,7 @@ class GUI_EXPORT QgsCategorizedSymbolRendererV2Model : public QAbstractItemModel
 class QgsCategorizedSymbolRendererV2ViewStyle: public QProxyStyle
 {
   public:
-    QgsCategorizedSymbolRendererV2ViewStyle( QStyle* style = 0 );
+    explicit QgsCategorizedSymbolRendererV2ViewStyle( QStyle* style = 0 );
 
     void drawPrimitive( PrimitiveElement element, const QStyleOption * option, QPainter * painter, const QWidget * widget = 0 ) const override;
 };
@@ -100,7 +100,6 @@ class GUI_EXPORT QgsCategorizedSymbolRendererV2Widget : public QgsRendererV2Widg
     void deleteCategories();
     void deleteAllCategories();
 
-    void rotationFieldChanged( QString fldName );
     void sizeScaleFieldChanged( QString fldName );
     void scaleMethodChanged( QgsSymbolV2::ScaleMethod scaleMethod );
 
@@ -155,8 +154,6 @@ class GUI_EXPORT QgsCategorizedSymbolRendererV2Widget : public QgsRendererV2Widg
     QgsCategorizedSymbolRendererV2* mRenderer;
 
     QgsSymbolV2* mCategorizedSymbol;
-
-    QgsRendererV2DataDefinedMenus* mDataDefinedMenus;
 
     QgsCategorizedSymbolRendererV2Model* mModel;
 

@@ -229,7 +229,7 @@ class QgsGPSData
     static void releaseData( const QString& fileName );
 
 
-    /** operator<< is our friend. For debugging, not for file I/O. */
+    /** Operator<< is our friend. For debugging, not for file I/O. */
     //friend std::ostream& operator<<(std::ostream& os, const GPSData& d);
 
   protected:
@@ -256,8 +256,7 @@ class QgsGPSData
 class QgsGPXHandler
 {
   public:
-
-    QgsGPXHandler( QgsGPSData& data ) : mData( data ), mObj( NULL ), mString( NULL ), mDouble( NULL ), mInt( NULL ) { }
+    explicit QgsGPXHandler( QgsGPSData& data ) : mData( data ), mObj( NULL ), mString( NULL ), mDouble( NULL ), mInt( NULL ) { }
 
     /** This function is called when expat encounters a new start element in
         the XML stream. */

@@ -24,7 +24,12 @@ ifeq (,$(DISTRIBUTION))
 	DISTRIBUTION := $(shell dpkg-parsechangelog --format rfc822 | sed -ne "s/^Distribution: //p")
 endif
 
-ifneq ($(DISTRIBUTION),$(findstring $(DISTRIBUTION),"wheezy jessie stretch precise trusty utopic vivid sid-oracle"))
+ifneq (,$(findstring -oracle,$(DISTRIBUTION)))
+	DISTRIBUTION := $(subst -oracle,,$(DISTRIBUTION))
+	WITH_ORACLE=1
+endif
+
+ifneq ($(DISTRIBUTION),$(findstring $(DISTRIBUTION),"wheezy jessie stretch precise trusty utopic vivid wily"))
 	DISTRIBUTION := sid
 endif
 
@@ -47,13 +52,11 @@ CMAKE_OPTS := \
 	-DBUILDNAME=$(DEB_BUILD_NAME) \
 	-DCMAKE_VERBOSE_MAKEFILE=1 \
 	-DCMAKE_INSTALL_PREFIX=/usr \
-	-DGRASS_PREFIX=/usr/lib/$(GRASS) \
 	-DBINDINGS_GLOBAL_INSTALL=TRUE \
 	-DPEDANTIC=TRUE \
 	-DWITH_QSPATIALITE=TRUE \
 	-DWITH_SERVER=TRUE \
 	-DWITH_SERVER_PLUGINS=TRUE \
-	-DWITH_GRASS7=FALSE \
 	-DSERVER_SKIP_ECW=TRUE \
 	-DQGIS_CGIBIN_SUBDIR=/usr/lib/cgi-bin \
 	-DWITH_APIDOC=TRUE \
@@ -69,6 +72,18 @@ CMAKE_OPTS := \
 	-DQT_TAG_FILE=/usr/share/qt4/doc/html/qt.tags \
 	-DQT_DOC_URL=/usr/share/qt4/doc/html/
 
+ifeq ($(GRASSVER),7)
+	CMAKE_OPTS += \
+		-DWITH_GRASS=TRUE \
+		-DWITH_GRASS7=TRUE \
+		-DGRASS_PREFIX7=/usr/lib/$(GRASS)
+else
+	CMAKE_OPTS += \
+		-DWITH_GRASS=TRUE \
+		-DWITH_GRASS6=TRUE \
+		-DGRASS_PREFIX=/usr/lib/$(GRASS)
+endif
+
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 	NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 	MAKEFLAGS += -j$(NUMJOBS)
@@ -78,15 +93,20 @@ ifneq (,$(findstring $(DISTRIBUTION),"wheezy precise"))
 	CMAKE_OPTS += -DWITH_PYSPATIALITE=TRUE
 endif
 
-ifneq (,$(findstring $(DISTRIBUTION),"sid sid-oracle stretch"))
+ifneq (,$(findstring $(DISTRIBUTION),"sid stretch"))
 	CMAKE_OPTS += -DPOSTGRES_LIBRARY=/usr/lib/$(DEB_BUILD_MULTIARCH)/libpq.so
 endif
 
-ifneq (,$(findstring $(DISTRIBUTION),"jessie stretch trusty utopic vivid sid sid-oracle"))
+ifneq (,$(findstring $(DISTRIBUTION),"sid"))
+	CMAKE_OPTS += -DGEOS_LIBRARY=/usr/lib/$(DEB_BUILD_MULTIARCH)/libgeos_c.so \
+		      -DGEOS_CPP_LIBRARY=/usr/lib/$(DEB_BUILD_MULTIARCH)/libgeos.so
+endif
+
+ifneq (,$(findstring $(DISTRIBUTION),"jessie stretch trusty utopic vivid wily sid"))
 	CMAKE_OPTS += -DPYTHON_LIBRARY=/usr/lib/$(DEB_BUILD_MULTIARCH)/libpython2.7.so
 endif
 
-ifneq (,$(findstring -oracle,$(DISTRIBUTION)))
+ifneq (,$(WITH_ORACLE))
 	CMAKE_OPTS += -DWITH_ORACLE=TRUE
 endif
 
@@ -96,9 +116,6 @@ endif
 
 ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
 	CMAKE_OPTS += -DCMAKE_BUILD_TYPE=Debug
-ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-	CMAKE_OPTS += -DENABLE_COVERAGE=TRUE
-endif
 endif
 
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -107,7 +124,7 @@ else
 	CMAKE_OPTS += -DENABLE_TESTS=TRUE
 endif
 
-ifneq (,$(findstring $(DISTRIBUTION),"wheezy jessie stretch trusty sid sid-oracle"))
+ifneq (,$(findstring $(DISTRIBUTION),"wheezy jessie stretch trusty sid"))
 CPPFLAGS := $(shell dpkg-buildflags --get CPPFLAGS)
 CFLAGS   := $(shell dpkg-buildflags --get CFLAGS) $(CPPFLAGS)
 CXXFLAGS := $(shell dpkg-buildflags --get CXXFLAGS) $(CPPFLAGS)
@@ -132,11 +149,25 @@ ifneq (,$(findstring profile,$(DEB_BUILD_OPTIONS)))
 	LDFLAGS += -pg
 endif
 
+# multi distribution support:
+# - remove lines with applicable excludes
+# - remove prefixes with applicable includes
+# - remove prefixes with not applicable excludes
+# - remove remaining comments
+
+CONTROL_EXPRESSIONS = $(DISTRIBUTION) grass$(GRASSVER)
+
+ifneq (,$(WITH_ORACLE))
+	CONTROL_EXPRESSIONS += oracle
+endif
+
 define gentemplate
 $(2): $(1)
 	sed -r \
-		-e 's/^#(.* |)$(DISTRIBUTION)( .*|)#//' \
-		-e '/^#($|[^!])/d' \
+		-e '/#(.+ |)!($(subst $(eval) ,|,$(CONTROL_EXPRESSIONS)))( .+|)#/d' \
+		-e 's/#([^#]+ |)($(subst $(eval) ,|,$(CONTROL_EXPRESSIONS)))( [^#]+|)#//g' \
+		-e 's/#([^#]+ |)![^#]+( [^#]*|)#//g' \
+		-e '/^#/d' \
 		-e "s/\{DEB_BUILD_GNU_TYPE\}/$(DEB_BUILD_GNU_TYPE)/g" \
 		-e "s#\{QT_PLUGIN_DIR\}#$(QT_PLUGIN_DIR)#g" \
 		-e "s/\{QGIS_ABI\}/$(QGIS_ABI)/g" \

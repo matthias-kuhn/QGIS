@@ -85,7 +85,16 @@ class CORE_EXPORT QgsFeatureRendererV2
      * @param feature feature
      * @return returns pointer to symbol or 0 if symbol was not found
      */
-    virtual QgsSymbolV2* symbolForFeature( QgsFeature& feature ) = 0;
+    Q_DECL_DEPRECATED virtual QgsSymbolV2* symbolForFeature( QgsFeature& feature );
+
+    /** To be overridden
+     * @param feature feature
+     * @param context render context
+     * @return returns pointer to symbol or 0 if symbol was not found
+     * @note added in QGIS 2.12
+     */
+    //TODO - make pure virtual when above method is removed
+    virtual QgsSymbolV2* symbolForFeature( QgsFeature& feature, QgsRenderContext& context );
 
     /**
      * Return symbol for feature. The difference compared to symbolForFeature() is that it returns original
@@ -93,14 +102,42 @@ class CORE_EXPORT QgsFeatureRendererV2
      * of a symbol for use in rendering.
      * @note added in 2.6
      */
-    virtual QgsSymbolV2* originalSymbolForFeature( QgsFeature& feature ) { return symbolForFeature( feature ); }
+    Q_DECL_DEPRECATED virtual QgsSymbolV2* originalSymbolForFeature( QgsFeature& feature );
 
+    /**
+     * Return symbol for feature. The difference compared to symbolForFeature() is that it returns original
+     * symbol which can be used as an identifier for renderer's rule - the former may return a temporary replacement
+     * of a symbol for use in rendering.
+     * @note added in 2.12
+     */
+    virtual QgsSymbolV2* originalSymbolForFeature( QgsFeature& feature, QgsRenderContext& context );
+
+    /**
+     * Needs to be called when a new render cycle is started
+     *
+     * @param context  Additional information passed to the renderer about the job which will be rendered
+     * @param fields   The fields available for rendering
+     * @return         Information passed back from the renderer that can e.g. be used to reduce the amount of requested features
+     */
     virtual void startRender( QgsRenderContext& context, const QgsFields& fields ) = 0;
 
     //! @deprecated since 2.4 - not using QgsVectorLayer directly anymore
     Q_DECL_DEPRECATED virtual void startRender( QgsRenderContext& context, const QgsVectorLayer* vlayer );
 
     virtual void stopRender( QgsRenderContext& context ) = 0;
+
+    /**
+     * If a renderer does not require all the features this method may be overridden
+     * and return an expression used as where clause.
+     * This will be called once after {@link startRender()} and before the first call
+     * to {@link renderFeature()}.
+     * By default this returns a null string and all features will be requested.
+     * You do not need to specify the extent in here, this is taken care of separately and
+     * will be combined with a filter returned from this method.
+     *
+     * @return An expresion used as where clause
+     */
+    virtual QString filter() { return QString::null; }
 
     virtual QList<QString> usedAttributes() = 0;
 
@@ -126,7 +163,13 @@ class CORE_EXPORT QgsFeatureRendererV2
     virtual int capabilities() { return 0; }
 
     //! for symbol levels
-    virtual QgsSymbolV2List symbols() = 0;
+    Q_DECL_DEPRECATED virtual QgsSymbolV2List symbols();
+
+    /** Returns list of symbols used by the renderer.
+     * @param context render context
+     * @note added in QGIS 2.12
+     */
+    virtual QgsSymbolV2List symbols( QgsRenderContext& context );
 
     bool usingSymbolLevels() const { return mUsingSymbolLevels; }
     void setUsingSymbolLevels( bool usingSymbolLevels ) { mUsingSymbolLevels = usingSymbolLevels; }
@@ -192,24 +235,44 @@ class CORE_EXPORT QgsFeatureRendererV2
     void setVertexMarkerAppearance( int type, int size );
 
     //! return rotation field name (or empty string if not set or not supported by renderer)
-    virtual QString rotationField() const { return ""; }
+    //! @deprecated use the symbol's methods instead
+    Q_DECL_DEPRECATED virtual QString rotationField() const { return QString(); }
+
     //! sets rotation field of renderer (if supported by the renderer)
-    virtual void setRotationField( QString fieldName ) { Q_UNUSED( fieldName ); }
+    //! @deprecated use the symbol's methods instead
+    Q_DECL_DEPRECATED virtual void setRotationField( QString fieldName ) { Q_UNUSED( fieldName ); }
 
     //! return whether the renderer will render a feature or not.
     //! Must be called between startRender() and stopRender() calls.
     //! Default implementation uses symbolForFeature().
-    virtual bool willRenderFeature( QgsFeature& feat ) { return symbolForFeature( feat ) != NULL; }
+    Q_DECL_DEPRECATED virtual bool willRenderFeature( QgsFeature& feat );
+
+    /** Returns whether the renderer will render a feature or not.
+     * Must be called between startRender() and stopRender() calls.
+     * Default implementation uses symbolForFeature().
+     * @note added in QGIS 2.12
+     */
+    virtual bool willRenderFeature( QgsFeature& feat, QgsRenderContext& context );
 
     //! return list of symbols used for rendering the feature.
     //! For renderers that do not support MoreSymbolsPerFeature it is more efficient
     //! to use symbolForFeature()
-    virtual QgsSymbolV2List symbolsForFeature( QgsFeature& feat );
+    Q_DECL_DEPRECATED virtual QgsSymbolV2List symbolsForFeature( QgsFeature& feat );
+
+    //! return list of symbols used for rendering the feature.
+    //! For renderers that do not support MoreSymbolsPerFeature it is more efficient
+    //! to use symbolForFeature()
+    virtual QgsSymbolV2List symbolsForFeature( QgsFeature& feat, QgsRenderContext& context );
 
     //! Equivalent of originalSymbolsForFeature() call
     //! extended to support renderers that may use more symbols per feature - similar to symbolsForFeature()
     //! @note added in 2.6
-    virtual QgsSymbolV2List originalSymbolsForFeature( QgsFeature& feat );
+    Q_DECL_DEPRECATED virtual QgsSymbolV2List originalSymbolsForFeature( QgsFeature& feat );
+
+    //! Equivalent of originalSymbolsForFeature() call
+    //! extended to support renderers that may use more symbols per feature - similar to symbolsForFeature()
+    //! @note added in 2.6
+    virtual QgsSymbolV2List originalSymbolsForFeature( QgsFeature& feat, QgsRenderContext& context );
 
     /** Allows for a renderer to modify the extent of a feature request prior to rendering
      * @param extent reference to request's filter extent. Modify extent to change the

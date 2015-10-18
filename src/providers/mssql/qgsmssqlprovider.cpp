@@ -438,7 +438,7 @@ void QgsMssqlProvider::loadFields()
         mFidColName = query.value( 3 ).toString();
         return;
       }
-      foreach ( QString pk, pkCandidates )
+      Q_FOREACH ( const QString& pk, pkCandidates )
       {
         query.clear();
         query.setForwardOnly( true );
@@ -959,6 +959,9 @@ bool QgsMssqlProvider::addFeatures( QgsFeatureList & flist )
 bool QgsMssqlProvider::addAttributes( const QList<QgsField> &attributes )
 {
   QString statement;
+
+  if ( attributes.count() == 0 )
+    return true;
 
   for ( QList<QgsField>::const_iterator it = attributes.begin(); it != attributes.end(); ++it )
   {

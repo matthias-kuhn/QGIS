@@ -18,7 +18,7 @@ email                : marco.hugentobler at sourcepole dot com
 
 #include "qgsgeometrycollectionv2.h"
 
-/**\ingroup core
+/** \ingroup core
  * \class QgsMultiPointV2
  * \brief Multi point geometry collection.
  * \note added in QGIS 2.10
@@ -28,7 +28,7 @@ class CORE_EXPORT QgsMultiPointV2: public QgsGeometryCollectionV2
 {
   public:
     virtual QString geometryType() const override { return "MultiPoint"; }
-    QgsAbstractGeometryV2* clone() const override;
+    QgsMultiPointV2* clone() const override;
 
     bool fromWkt( const QString& wkt ) override;
 
@@ -40,7 +40,7 @@ class CORE_EXPORT QgsMultiPointV2: public QgsGeometryCollectionV2
     QString asJSON( int precision = 17 ) const override;
 
 
-    /**Adds a geometry and takes ownership. Returns true in case of success*/
+    /** Adds a geometry and takes ownership. Returns true in case of success*/
     virtual bool addGeometry( QgsAbstractGeometryV2* g ) override;
 };
 

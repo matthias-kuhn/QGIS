@@ -33,13 +33,14 @@ from processing.tools.system import userFolder
 from processing.core.ProcessingConfig import ProcessingConfig
 from qgis.core import *
 
+
 class ProcessingLog:
 
     LOG_ERROR = 'ERROR'
     LOG_INFO = 'INFO'
     LOG_WARNING = 'WARNING'
     LOG_ALGORITHM = 'ALGORITHM'
-    DATE_FORMAT = u'%a %b %d %Y %H:%M:%S'.encode('utf-8')
+    DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
     recentAlgs = []
 
     @staticmethod
@@ -52,7 +53,7 @@ class ProcessingLog:
                                   encoding='utf-8')
         logfile.write('Started logging at ' +
                       datetime.datetime.now().strftime(
-                          ProcessingLog.DATE_FORMAT).decode('utf-8') + '\n')
+                          ProcessingLog.DATE_FORMAT) + '\n')
         logfile.close()
 
     @staticmethod
@@ -69,8 +70,8 @@ class ProcessingLog:
             # to miss some log info that breaking the algorithm.
             if msgtype == ProcessingLog.LOG_ALGORITHM:
                 line = msgtype + '|' + datetime.datetime.now().strftime(
-                        ProcessingLog.DATE_FORMAT).decode('utf-8') + '|' \
-                        + msg + '\n'
+                    ProcessingLog.DATE_FORMAT) + '|' \
+                    + msg + '\n'
                 logfile = codecs.open(ProcessingLog.logFilename(), 'a',
                                       encoding='utf-8')
                 logfile.write(line)
@@ -88,7 +89,7 @@ class ProcessingLog:
                     msg = '\n'.join([m for m in msg])
                 msgtypes = {ProcessingLog.LOG_ERROR: QgsMessageLog.CRITICAL,
                             ProcessingLog.LOG_INFO: QgsMessageLog.INFO,
-                            ProcessingLog.LOG_WARNING: QgsMessageLog.WARNING,}
+                            ProcessingLog.LOG_WARNING: QgsMessageLog.WARNING, }
                 QgsMessageLog.logMessage(msg, "Processing", msgtypes[msgtype])
         except:
             pass
@@ -178,6 +179,7 @@ class LogEntry:
 
 
 class Tailer(object):
+
     """Implements tailing and heading functionality like GNU tail and
     head commands.
     """

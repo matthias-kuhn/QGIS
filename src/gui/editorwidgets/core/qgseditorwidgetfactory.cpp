@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 21.4.2013
     Copyright            : (C) 2013 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -30,8 +30,9 @@ QgsEditorWidgetFactory::~QgsEditorWidgetFactory()
 {
 }
 
-/** Override in own factory to get something different than the default (a simple QgsFilterLineEdit)
- *
+/**
+ * By default a simple QgsFilterLineEdit is returned as search widget.
+ * Override in own factory to get something different than the default.
  */
 QgsSearchWidgetWrapper* QgsEditorWidgetFactory::createSearchWidget( QgsVectorLayer* vl, int fieldIdx, QWidget* parent ) const
 {
@@ -65,8 +66,7 @@ QString QgsEditorWidgetFactory::representValue( QgsVectorLayer* vl, int fieldIdx
   Q_UNUSED( cache )
   Q_UNUSED( value )
 
-  const QgsField &fld = vl->pendingFields().at( fieldIdx );
-  return fld.displayString( value );
+  return vl->fields().at( fieldIdx ).displayString( value );
 }
 
 QVariant QgsEditorWidgetFactory::createCache( QgsVectorLayer* vl, int fieldIdx, const QgsEditorWidgetConfig& config )

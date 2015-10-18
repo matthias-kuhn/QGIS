@@ -41,16 +41,18 @@ class ExportGeometryInfo(GeoAlgorithm):
     METHOD = 'CALC_METHOD'
     OUTPUT = 'OUTPUT'
 
-    CALC_METHODS = ['Layer CRS', 'Project CRS', 'Ellipsoidal']
-
     def defineCharacteristics(self):
-        self.name = 'Export/Add geometry columns'
-        self.group = 'Vector table tools'
+        self.name, self.i18n_name = self.trAlgorithm('Export/Add geometry columns')
+        self.group, self.i18n_group = self.trAlgorithm('Vector table tools')
+
+        self.calc_methods = [self.tr('Layer CRS'),
+                             self.tr('Project CRS'),
+                             self.tr('Ellipsoidal')]
 
         self.addParameter(ParameterVector(self.INPUT,
-            self.tr('Input layer'), [ParameterVector.VECTOR_TYPE_ANY]))
+                                          self.tr('Input layer'), [ParameterVector.VECTOR_TYPE_ANY]))
         self.addParameter(ParameterSelection(self.METHOD,
-            self.tr('Calculate using'), self.CALC_METHODS, 0))
+                                             self.tr('Calculate using'), self.calc_methods, 0))
 
         self.addOutput(OutputVector(self.OUTPUT, self.tr('Added geom info')))
 
@@ -77,7 +79,7 @@ class ExportGeometryInfo(GeoAlgorithm):
             fields.append(QgsField(yName, QVariant.Double))
 
         writer = self.getOutputFromName(self.OUTPUT).getVectorWriter(
-                    fields.toList(), layer.dataProvider().geometryType(), layer.crs())
+            fields.toList(), layer.dataProvider().geometryType(), layer.crs())
 
         ellips = None
         crs = None
@@ -90,7 +92,7 @@ class ExportGeometryInfo(GeoAlgorithm):
 
         if method == 2:
             ellips = QgsProject.instance().readEntry('Measure', '/Ellipsoid',
-                    'NONE')[0]
+                                                     'NONE')[0]
             crs = layer.crs().srsid()
         elif method == 1:
             mapCRS = iface.mapCanvas().mapRenderer().destinationCrs()

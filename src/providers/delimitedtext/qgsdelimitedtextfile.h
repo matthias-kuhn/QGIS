@@ -21,6 +21,7 @@
 #include <QStringList>
 #include <QRegExp>
 #include <QUrl>
+#include <QObject>
 
 class QgsFeature;
 class QgsField;
@@ -93,7 +94,7 @@ class QgsDelimitedTextFile : public QObject
       DelimTypeRegexp
     };
 
-    QgsDelimitedTextFile( QString url = QString() );
+    explicit QgsDelimitedTextFile( QString url = QString() );
 
     virtual ~QgsDelimitedTextFile();
 
@@ -381,7 +382,6 @@ class QgsDelimitedTextFile : public QObject
     int mMaxFieldCount;
 
     QString mDefaultFieldName;
-    QRegExp mInvalidFieldRegexp;
     QRegExp mDefaultFieldRegexp;
 };
 

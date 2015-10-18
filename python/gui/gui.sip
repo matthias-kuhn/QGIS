@@ -18,6 +18,7 @@
 
 %Include qgisinterface.sip
 %Include qgsannotationitem.sip
+%Include qgsadvanceddigitizingdockwidget.sip
 %Include qgsattributeeditor.sip
 %Include qgsattributeeditorcontext.sip
 %Include qgsattributedialog.sip
@@ -63,6 +64,7 @@
 %Include qgsfilterlineedit.sip
 %Include qgsformannotationitem.sip
 %Include qgsgenericprojectionselector.sip
+%Include qgsgeometryrubberband.sip
 %Include qgshighlight.sip
 %Include qgshistogramwidget.sip
 %Include qgshtmlannotationitem.sip
@@ -79,9 +81,13 @@
 %Include qgsmaplayercombobox.sip
 %Include qgsmaplayermodel.sip
 %Include qgsmaplayerproxymodel.sip
+%Include qgsmapmouseevent.sip
 %Include qgsmapoverviewcanvas.sip
 %Include qgsmaptip.sip
 %Include qgsmaptool.sip
+%Include qgsmaptooladvanceddigitizing.sip
+%Include qgsmaptoolcapture.sip
+%Include qgsmaptooledit.sip
 %Include qgsmaptoolemitpoint.sip
 %Include qgsmaptoolidentify.sip
 %Include qgsmaptoolidentifyfeature.sip
@@ -94,6 +100,7 @@
 %Include qgsmessageviewer.sip
 %Include qgsnewhttpconnection.sip
 %Include qgsnewmemorylayerdialog.sip
+%Include qgsnewnamedialog.sip
 %Include qgsnewvectorlayerdialog.sip
 %Include qgsnumericsortlistviewitem.sip
 %Include qgsoptionsdialogbase.sip
@@ -117,6 +124,7 @@
 %Include qgssvgannotationitem.sip
 %Include qgstextannotationitem.sip
 %Include qgsuserinputdockwidget.sip
+%Include qgsvariableeditorwidget.sip
 %Include qgsvectorlayertools.sip
 %Include qgsvertexmarker.sip
 
@@ -130,7 +138,25 @@
 %Include attributetable/qgsfeaturelistviewdelegate.sip
 %Include attributetable/qgsfeaturemodel.sip
 %Include attributetable/qgsfeatureselectionmodel.sip
+%Include attributetable/qgsfieldconditionalformatwidget.sip
 %Include attributetable/qgsifeatureselectionmanager.sip
+
+%Include auth/qgsauthauthoritieseditor.sip
+%Include auth/qgsauthcertificateinfo.sip
+%Include auth/qgsauthcertificatemanager.sip
+%Include auth/qgsauthcerttrustpolicycombobox.sip
+%Include auth/qgsauthconfigeditor.sip
+%Include auth/qgsauthconfigselect.sip
+%Include auth/qgsautheditorwidgets.sip
+%Include auth/qgsauthidentitieseditor.sip
+%Include auth/qgsauthimportcertdialog.sip
+%Include auth/qgsauthimportidentitydialog.sip
+%Include auth/qgsauthmethodedit.sip
+%Include auth/qgsauthserverseditor.sip
+%Include auth/qgsauthsslconfigwidget.sip
+%Include auth/qgsauthsslerrorsdialog.sip
+%Include auth/qgsauthsslimportdialog.sip
+%Include auth/qgsauthtrustedcasdialog.sip
 
 %Include layertree/qgscustomlayerorderwidget.sip
 %Include layertree/qgslayertreemapcanvasbridge.sip

@@ -20,7 +20,7 @@
 
 #include "qgsabstractgeometryv2.h"
 
-/**\ingroup core
+/** \ingroup core
  * \class QgsPointV2
  * \brief Point geometry type.
  * \note added in QGIS 2.10
@@ -30,12 +30,13 @@ class CORE_EXPORT QgsPointV2: public QgsAbstractGeometryV2
 {
   public:
     QgsPointV2( double x = 0.0, double y = 0.0 );
+    QgsPointV2( const QgsPoint& p );
     QgsPointV2( QgsWKBTypes::Type type, double x = 0.0, double y = 0.0, double z = 0.0, double m = 0.0 );
 
     bool operator==( const QgsPointV2& pt ) const;
     bool operator!=( const QgsPointV2& pt ) const;
 
-    virtual QgsAbstractGeometryV2* clone() const override;
+    virtual QgsPointV2* clone() const override;
     void clear() override;
 
     double x() const { return mX; }
@@ -67,7 +68,12 @@ class CORE_EXPORT QgsPointV2: public QgsAbstractGeometryV2
     virtual QgsRectangle calculateBoundingBox() const override { return QgsRectangle( mX, mY, mX, mY );}
 
     void draw( QPainter& p ) const override;
-    void transform( const QgsCoordinateTransform& ct ) override;
+
+    /** Transforms the geometry using a coordinate transform
+     * @param ct coordinate transform
+       @param d transformation direction
+     */
+    void transform( const QgsCoordinateTransform& ct, QgsCoordinateTransform::TransformDirection d = QgsCoordinateTransform::ForwardTransform ) override;
     void transform( const QTransform& t ) override;
 
     virtual void coordinateSequence( QList< QList< QList< QgsPointV2 > > >& coord ) const override;
@@ -79,6 +85,16 @@ class CORE_EXPORT QgsPointV2: public QgsAbstractGeometryV2
 
     double closestSegment( const QgsPointV2& pt, QgsPointV2& segmentPt,  QgsVertexId& vertexAfter, bool* leftOf, double epsilon ) const override;
     bool nextVertex( QgsVertexId& id, QgsPointV2& vertex ) const override;
+
+    /** Angle undefined. Always returns 0.0
+        @param vertex the vertex id
+        @return 0.0*/
+    double vertexAngle( const QgsVertexId& vertex ) const override { Q_UNUSED( vertex ); return 0.0; }
+
+    virtual int vertexCount( int /*part*/ = 0, int /*ring*/ = 0 ) const override { return 1; }
+    virtual int ringCount( int /*part*/ = 0 ) const override { return 1; }
+    virtual int partCount() const override { return 1; }
+    virtual QgsPointV2 vertexAt( const QgsVertexId& /*id*/ ) const override { return *this; }
 
   private:
     double mX;

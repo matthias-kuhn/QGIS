@@ -23,7 +23,6 @@
 #include <qgsmaplayerregistry.h>
 
 #include "qgsdatadefinedbutton.h"
-#include "qgslabelengineconfigdialog.h"
 #include "qgsexpressionbuilderdialog.h"
 #include "qgsexpression.h"
 #include "qgsfontutils.h"
@@ -34,15 +33,36 @@
 #include "qgssymbollayerv2utils.h"
 #include "qgscharacterselectdialog.h"
 #include "qgssvgselectorwidget.h"
+#include "qgsvectorlayerlabeling.h"
 
 #include <QCheckBox>
 #include <QSettings>
 
+static QgsExpressionContext _getExpressionContext( const void* context )
+{
+  QgsExpressionContext expContext;
+  expContext << QgsExpressionContextUtils::globalScope()
+  << QgsExpressionContextUtils::projectScope()
+  << QgsExpressionContextUtils::atlasScope( 0 )
+  << QgsExpressionContextUtils::mapSettingsScope( QgisApp::instance()->mapCanvas()->mapSettings() );
 
-QgsLabelingGui::QgsLabelingGui( QgsVectorLayer* layer, QgsMapCanvas* mapCanvas, QWidget* parent )
+  const QgsVectorLayer* layer = ( const QgsVectorLayer* ) context;
+  if ( layer )
+    expContext << QgsExpressionContextUtils::layerScope( layer );
+
+  //TODO - show actual value
+  expContext.setOriginalValueVariable( QVariant() );
+  expContext.setHighlightedVariables( QStringList() << QgsExpressionContext::EXPR_ORIGINAL_VALUE );
+
+  return expContext;
+}
+
+QgsLabelingGui::QgsLabelingGui( QgsVectorLayer* layer, QgsMapCanvas* mapCanvas, const QgsPalLayerSettings* layerSettings, QWidget* parent )
     : QWidget( parent )
     , mLayer( layer )
     , mMapCanvas( mapCanvas )
+    , mSettings( layerSettings )
+    , mMode( NoLabels )
     , mCharDlg( 0 )
     , mQuadrantBtnGrp( 0 )
     , mDirectSymbBtnGrp( 0 )
@@ -58,6 +78,13 @@ QgsLabelingGui::QgsLabelingGui( QgsVectorLayer* layer, QgsMapCanvas* mapCanvas, 
     return;
 
   setupUi( this );
+
+  mFieldExpressionWidget->registerGetExpressionContextCallback( &_getExpressionContext, mLayer );
+
+  Q_FOREACH ( QgsUnitSelectionWidget* unitWidget, findChildren<QgsUnitSelectionWidget*>() )
+  {
+    unitWidget->setMapCanvas( mMapCanvas );
+  }
   mFontSizeUnitWidget->setUnits( QStringList() << tr( "Points" ) << tr( "Map unit" ), 1 );
   mBufferUnitWidget->setUnits( QgsSymbolV2::OutputUnitList() << QgsSymbolV2::MM << QgsSymbolV2::MapUnit );
   mShapeSizeUnitWidget->setUnits( QgsSymbolV2::OutputUnitList() << QgsSymbolV2::MM << QgsSymbolV2::MapUnit );
@@ -80,13 +107,12 @@ QgsLabelingGui::QgsLabelingGui( QgsVectorLayer* layer, QgsMapCanvas* mapCanvas, 
   mFontLetterSpacingSpinBox->setClearValue( 0.0 );
   mFontWordSpacingSpinBox->setClearValue( 0.0 );
 
+  mObstacleTypeComboBox->addItem( tr( "Over the feature's interior" ), QgsPalLayerSettings::PolygonInterior );
+  mObstacleTypeComboBox->addItem( tr( "Over the feature's boundary" ), QgsPalLayerSettings::PolygonBoundary );
+
   mCharDlg = new QgsCharacterSelectorDialog( this );
 
   mRefFont = lblFontPreview->font();
-
-  // main layer label-enabling connections
-  connect( chkEnableLabeling, SIGNAL( toggled( bool ) ), mFieldExpressionWidget, SLOT( setEnabled( bool ) ) );
-  connect( chkEnableLabeling, SIGNAL( toggled( bool ) ), mLabelingFrame, SLOT( setEnabled( bool ) ) );
 
   // connections for groupboxes with separate activation checkboxes (that need to honor data defined setting)
   connect( mBufferDrawChkBx, SIGNAL( toggled( bool ) ), this, SLOT( updateUi() ) );
@@ -121,7 +147,10 @@ QgsLabelingGui::QgsLabelingGui( QgsVectorLayer* layer, QgsMapCanvas* mapCanvas, 
   connect( mShadowTranspSpnBx, SIGNAL( valueChanged( int ) ), mShadowTranspSlider, SLOT( setValue( int ) ) );
   connect( mLimitLabelChkBox, SIGNAL( toggled( bool ) ), mLimitLabelSpinBox, SLOT( setEnabled( bool ) ) );
 
-  connect( btnEngineSettings, SIGNAL( clicked() ), this, SLOT( showEngineConfigDialog() ) );
+  //connections to prevent users removing all line placement positions
+  connect( chkLineAbove, SIGNAL( toggled( bool ) ), this, SLOT( updateLinePlacementOptions() ) );
+  connect( chkLineBelow, SIGNAL( toggled( bool ) ), this, SLOT( updateLinePlacementOptions() ) );
+  connect( chkLineOn, SIGNAL( toggled( bool ) ), this, SLOT( updateLinePlacementOptions() ) );
 
   // set placement methods page based on geometry type
   switch ( layer->geometryType() )
@@ -151,6 +180,8 @@ QgsLabelingGui::QgsLabelingGui( QgsVectorLayer* layer, QgsMapCanvas* mapCanvas, 
   chkMergeLines->setVisible( layer->geometryType() == QGis::Line );
   mDirectSymbolsFrame->setVisible( layer->geometryType() == QGis::Line );
   mMinSizeFrame->setVisible( layer->geometryType() != QGis::Point );
+  mPolygonObstacleTypeFrame->setVisible( layer->geometryType() == QGis::Polygon );
+  mPolygonFeatureOptionsFrame->setVisible( layer->geometryType() == QGis::Polygon );
 
   // field combo and expression button
   mFieldExpressionWidget->setLayer( mLayer );
@@ -242,7 +273,7 @@ QgsLabelingGui::QgsLabelingGui( QgsVectorLayer* layer, QgsMapCanvas* mapCanvas, 
 
   // Global settings group for groupboxes' saved/retored collapsed state
   // maintains state across different dialogs
-  foreach ( QgsCollapsibleGroupBox *grpbox, findChildren<QgsCollapsibleGroupBox*>() )
+  Q_FOREACH ( QgsCollapsibleGroupBox *grpbox, findChildren<QgsCollapsibleGroupBox*>() )
   {
     grpbox->setSettingGroup( QString( "mAdvLabelingDlg" ) );
   }
@@ -283,14 +314,15 @@ void QgsLabelingGui::init()
 {
   // load labeling settings from layer
   QgsPalLayerSettings lyr;
-  lyr.readFromLayer( mLayer );
+  if ( mSettings )
+    lyr = *mSettings;
+  else
+    lyr.readFromLayer( mLayer );
 
   blockInitSignals( true );
 
-  // enable/disable main options based upon whether layer is being labeled
-  chkEnableLabeling->setChecked( lyr.enabled );
-  mFieldExpressionWidget->setEnabled( chkEnableLabeling->isChecked() );
-  mLabelingFrame->setEnabled( chkEnableLabeling->isChecked() );
+  mFieldExpressionWidget->setEnabled( mMode == Labels );
+  mLabelingFrame->setEnabled( mMode == Labels );
 
   // set the current field or add the current expression to the bottom of the list
   mFieldExpressionWidget->setField( lyr.fieldName );
@@ -298,6 +330,7 @@ void QgsLabelingGui::init()
   // populate placement options
   mCentroidRadioWhole->setChecked( lyr.centroidWhole );
   mCentroidInsideCheckBox->setChecked( lyr.centroidInside );
+  mFitInsidePolygonCheckBox->setChecked( lyr.fitInPolygonOnly );
   mLineDistanceSpnBx->setValue( lyr.dist );
   mLineDistanceUnitWidget->setUnit( lyr.distInMapUnits ? QgsSymbolV2::MapUnit : QgsSymbolV2::MM );
   mLineDistanceUnitWidget->setMapUnitScale( lyr.distMapUnitScale );
@@ -346,7 +379,11 @@ void QgsLabelingGui::init()
   mRepeatDistanceUnitWidget->setMapUnitScale( lyr.repeatDistanceMapUnitScale );
 
   mPrioritySlider->setValue( lyr.priority );
-  chkNoObstacle->setChecked( lyr.obstacle );
+  mChkNoObstacle->setChecked( lyr.obstacle );
+  mObstacleFactorSlider->setValue( lyr.obstacleFactor * 50 );
+  mObstacleTypeComboBox->setCurrentIndex( mObstacleTypeComboBox->findData( lyr.obstacleType ) );
+  mPolygonObstacleTypeFrame->setEnabled( lyr.obstacle );
+  mObstaclePriorityFrame->setEnabled( lyr.obstacle );
   chkLabelPerFeaturePart->setChecked( lyr.labelPerPart );
   mPalShowAllLabelsForLayerChkBx->setChecked( lyr.displayAll );
   chkMergeLines->setChecked( lyr.mergeLines );
@@ -491,6 +528,7 @@ void QgsLabelingGui::init()
   mShadowBlendCmbBx->setBlendMode( lyr.shadowBlendMode );
 
   updatePlacementWidgets();
+  updateLinePlacementOptions();
 
   // needs to come before data defined setup, so connections work
   blockInitSignals( false );
@@ -558,15 +596,27 @@ void QgsLabelingGui::apply()
 
 void QgsLabelingGui::writeSettingsToLayer()
 {
+  mLayer->setLabeling( new QgsVectorLayerSimpleLabeling );
+
+  // all configuration is still in layer's custom properties
   QgsPalLayerSettings settings = layerSettings();
   settings.writeToLayer( mLayer );
+}
+
+void QgsLabelingGui::setLabelMode( LabelMode mode )
+{
+  mMode = mode;
+
+  mFieldExpressionWidget->setEnabled( mMode == Labels );
+  mLabelingFrame->setEnabled( mMode == Labels );
 }
 
 QgsPalLayerSettings QgsLabelingGui::layerSettings()
 {
   QgsPalLayerSettings lyr;
 
-  lyr.enabled = chkEnableLabeling->isChecked();
+  lyr.enabled = ( mMode == Labels || mMode == ObstaclesOnly );
+  lyr.drawLabels = ( mMode == Labels );
 
   bool isExpression;
   lyr.fieldName = mFieldExpressionWidget->currentField( &isExpression );
@@ -578,6 +628,7 @@ QgsPalLayerSettings QgsLabelingGui::layerSettings()
   QWidget* curPlacementWdgt = stackedPlacement->currentWidget();
   lyr.centroidWhole = mCentroidRadioWhole->isChecked();
   lyr.centroidInside = mCentroidInsideCheckBox->isChecked();
+  lyr.fitInPolygonOnly = mFitInsidePolygonCheckBox->isChecked();
   lyr.dist = mLineDistanceSpnBx->value();
   lyr.distInMapUnits = ( mLineDistanceUnitWidget->unit() == QgsSymbolV2::MapUnit );
   lyr.distMapUnitScale = mLineDistanceUnitWidget->getMapUnitScale();
@@ -638,7 +689,9 @@ QgsPalLayerSettings QgsLabelingGui::layerSettings()
   lyr.previewBkgrdColor = mPreviewBackgroundBtn->color();
 
   lyr.priority = mPrioritySlider->value();
-  lyr.obstacle = chkNoObstacle->isChecked();
+  lyr.obstacle = mChkNoObstacle->isChecked() || mMode == ObstaclesOnly;
+  lyr.obstacleFactor = mObstacleFactorSlider->value() / 50.0;
+  lyr.obstacleType = ( QgsPalLayerSettings::ObstacleType )mObstacleTypeComboBox->itemData( mObstacleTypeComboBox->currentIndex() ).toInt();
   lyr.labelPerPart = chkLabelPerFeaturePart->isChecked();
   lyr.displayAll = mPalShowAllLabelsForLayerChkBx->isChecked();
   lyr.mergeLines = chkMergeLines->isChecked();
@@ -837,6 +890,8 @@ QgsPalLayerSettings QgsLabelingGui::layerSettings()
   setDataDefinedProperty( mFontMaxPixelDDBtn, QgsPalLayerSettings::FontMaxPixel, lyr );
   setDataDefinedProperty( mShowLabelDDBtn, QgsPalLayerSettings::Show, lyr );
   setDataDefinedProperty( mAlwaysShowDDBtn, QgsPalLayerSettings::AlwaysShow, lyr );
+  setDataDefinedProperty( mIsObstacleDDBtn, QgsPalLayerSettings::IsObstacle, lyr );
+  setDataDefinedProperty( mObstacleFactorDDBtn, QgsPalLayerSettings::ObstacleFactor, lyr );
 
   return lyr;
 }
@@ -849,12 +904,18 @@ void QgsLabelingGui::setDataDefinedProperty( const QgsDataDefinedButton* ddBtn, 
 
 void QgsLabelingGui::populateDataDefinedButtons( QgsPalLayerSettings& s )
 {
+  Q_FOREACH ( QgsDataDefinedButton* button, findChildren< QgsDataDefinedButton* >() )
+  {
+    button->registerGetExpressionContextCallback( &_getExpressionContext, mLayer );
+  }
+
   // don't register enable/disable siblings, since visual feedback from data defined buttons should be enough,
   // and ability to edit layer-level setting should remain enabled regardless
 
   QString trString = tr( "string " );
 
   // text style
+
   mFontDDBtn->init( mLayer, s.dataDefinedProperty( QgsPalLayerSettings::Family ),
                     QgsDataDefinedButton::String,
                     trString + tr( "[<b>family</b>|<b>family[foundry]</b>],<br>"
@@ -1102,6 +1163,11 @@ void QgsLabelingGui::populateDataDefinedButtons( QgsPalLayerSettings& s )
 
   mAlwaysShowDDBtn->init( mLayer, s.dataDefinedProperty( QgsPalLayerSettings::AlwaysShow ),
                           QgsDataDefinedButton::AnyType, QgsDataDefinedButton::boolDesc() );
+
+  mIsObstacleDDBtn->init( mLayer, s.dataDefinedProperty( QgsPalLayerSettings::IsObstacle ),
+                          QgsDataDefinedButton::AnyType, QgsDataDefinedButton::boolDesc() );
+  mObstacleFactorDDBtn->init( mLayer, s.dataDefinedProperty( QgsPalLayerSettings::ObstacleFactor ),
+                              QgsDataDefinedButton::AnyType, tr( "double [0.0-10.0]" ) );
 }
 
 void QgsLabelingGui::changeTextColor( const QColor &color )
@@ -1239,12 +1305,6 @@ void QgsLabelingGui::setPreviewBackground( QColor color )
       QString::number( color.blue() ) ) );
 }
 
-void QgsLabelingGui::showEngineConfigDialog()
-{
-  QgsLabelEngineConfigDialog dlg( this );
-  dlg.exec();
-}
-
 void QgsLabelingGui::syncDefinedCheckboxFrame( QgsDataDefinedButton* ddBtn, QCheckBox* chkBx, QFrame* f )
 {
   if ( ddBtn->isActive() && !chkBx->isChecked() )
@@ -1353,7 +1413,7 @@ void QgsLabelingGui::populateFontCapitalsComboBox()
 void QgsLabelingGui::populateFontStyleComboBox()
 {
   mFontStyleComboBox->clear();
-  foreach ( const QString &style, mFontDB.styles( mRefFont.family() ) )
+  Q_FOREACH ( const QString &style, mFontDB.styles( mRefFont.family() ) )
   {
     mFontStyleComboBox->addItem( style );
   }
@@ -1541,6 +1601,27 @@ void QgsLabelingGui::on_mShapeSVGPathLineEdit_textChanged( const QString& text )
   updateSvgWidgets( text );
 }
 
+void QgsLabelingGui::updateLinePlacementOptions()
+{
+  int numOptionsChecked = ( chkLineAbove->isChecked() ? 1 : 0 ) +
+                          ( chkLineBelow->isChecked() ? 1 : 0 ) +
+                          ( chkLineOn->isChecked() ? 1 : 0 );
+
+  if ( numOptionsChecked == 1 )
+  {
+    //prevent unchecking last option
+    chkLineAbove->setEnabled( !chkLineAbove->isChecked() );
+    chkLineBelow->setEnabled( !chkLineBelow->isChecked() );
+    chkLineOn->setEnabled( !chkLineOn->isChecked() );
+  }
+  else
+  {
+    chkLineAbove->setEnabled( true );
+    chkLineBelow->setEnabled( true );
+    chkLineOn->setEnabled( true );
+  }
+}
+
 void QgsLabelingGui::updateSvgWidgets( const QString& svgPath )
 {
   if ( mShapeSVGPathLineEdit->text() != svgPath )
@@ -1658,6 +1739,12 @@ void QgsLabelingGui::on_mDirectSymbRightToolBtn_clicked()
 
   if ( !dirSymb.isNull() )
     mDirectSymbRightLineEdit->setText( QString( dirSymb ) );
+}
+
+void QgsLabelingGui::on_mChkNoObstacle_toggled( bool active )
+{
+  mPolygonObstacleTypeFrame->setEnabled( active );
+  mObstaclePriorityFrame->setEnabled( active );
 }
 
 void QgsLabelingGui::showBackgroundRadius( bool show )

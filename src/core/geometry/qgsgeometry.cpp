@@ -109,7 +109,7 @@ void QgsGeometry::detach( bool cloneGeom )
 
   if ( d->ref > 1 )
   {
-    d->ref.deref();
+    ( void )d->ref.deref();
     QgsAbstractGeometryV2* cGeom = 0;
 
     if ( d->geometry && cloneGeom )
@@ -134,7 +134,7 @@ void QgsGeometry::removeWkbGeos()
   }
 }
 
-const QgsAbstractGeometryV2* QgsGeometry::geometry() const
+QgsAbstractGeometryV2* QgsGeometry::geometry() const
 {
   if ( !d )
   {
@@ -146,6 +146,13 @@ const QgsAbstractGeometryV2* QgsGeometry::geometry() const
 void QgsGeometry::setGeometry( QgsAbstractGeometryV2* geometry )
 {
   detach( false );
+  if ( d->geometry )
+  {
+    delete d->geometry;
+    d->geometry = 0;
+  }
+  removeWkbGeos();
+
   d->geometry = geometry;
 }
 
@@ -431,6 +438,25 @@ bool QgsGeometry::deleteVertex( int atVertex )
     return false;
   }
 
+  //maintain compatibility with < 2.10 API
+  if ( d->geometry->geometryType() == "MultiPoint" )
+  {
+    detach( true );
+    removeWkbGeos();
+    //delete geometry instead of point
+    return static_cast< QgsGeometryCollectionV2* >( d->geometry )->removeGeometry( atVertex );
+  }
+
+  //if it is a point, set the geometry to NULL
+  if ( QgsWKBTypes::flatType( d->geometry->wkbType() ) == QgsWKBTypes::Point )
+  {
+    detach( false );
+    delete d->geometry;
+    removeWkbGeos();
+    d->geometry = 0;
+    return true;
+  }
+
   QgsVertexId id;
   if ( !vertexIdFromVertexNr( atVertex, id ) )
   {
@@ -450,7 +476,14 @@ bool QgsGeometry::insertVertex( double x, double y, int beforeVertex )
     return false;
   }
 
-  detach( true );
+  //maintain compatibility with < 2.10 API
+  if ( d->geometry->geometryType() == "MultiPoint" )
+  {
+    detach( true );
+    removeWkbGeos();
+    //insert geometry instead of point
+    return static_cast< QgsGeometryCollectionV2* >( d->geometry )->insertGeometry( new QgsPointV2( x, y ), beforeVertex );
+  }
 
   QgsVertexId id;
   if ( !vertexIdFromVertexNr( beforeVertex, id ) )
@@ -458,7 +491,10 @@ bool QgsGeometry::insertVertex( double x, double y, int beforeVertex )
     return false;
   }
 
+  detach( true );
+
   removeWkbGeos();
+
   return d->geometry->insertVertex( id, QgsPointV2( x, y ) );
 }
 
@@ -543,6 +579,7 @@ int QgsGeometry::addRing( QgsCurveV2* ring )
 {
   if ( !d || !d->geometry )
   {
+    delete ring;
     return 1;
   }
 
@@ -692,7 +729,7 @@ int QgsGeometry::splitGeometry( const QList<QgsPoint>& splitLine, QList<QgsGeome
   return result;
 }
 
-/**Replaces a part of this geometry with another line*/
+/** Replaces a part of this geometry with another line*/
 int QgsGeometry::reshapeGeometry( const QList<QgsPoint>& reshapeWithLine )
 {
   if ( !d || !d->geometry )
@@ -2246,6 +2283,12 @@ QDataStream& operator>>( QDataStream& in, QgsGeometry& geometry )
 {
   QByteArray byteArray;
   in >> byteArray;
+  if ( byteArray.isEmpty() )
+  {
+    geometry.setGeometry( 0 );
+    return in;
+  }
+
   char *data = new char[byteArray.size()];
   memcpy( data, byteArray.data(), byteArray.size() );
   geometry.fromWkb(( unsigned char* )data, byteArray.size() );

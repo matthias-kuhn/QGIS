@@ -57,8 +57,8 @@ class GeoAlgorithm:
         self.outputs = list()
 
         # Name and group for normal toolbox display
-        self.name = ''
-        self.group = ''
+        self.name, self.i18n_name = '', ''
+        self.group, self.i18n_group = '', ''
 
         # The crs taken from input layers (if possible), and used when
         # loading output layers
@@ -141,8 +141,7 @@ class GeoAlgorithm:
         helpUrl = 'http://docs.qgis.org/{}/en/docs/user_manual/processing_algs/{}/{}/{}.html'.format(qgsVersion, providerName, safeGroupName, safeAlgName)
         return False, helpUrl
 
-
-    def processAlgorithm(self):
+    def processAlgorithm(self, progress):
         """Here goes the algorithm itself.
 
         There is no return value from this method.
@@ -162,7 +161,7 @@ class GeoAlgorithm:
         """
         return None
 
-    def getCustomModelerParametersDialog(self, modelAlg, algIndex=None):
+    def getCustomModelerParametersDialog(self, modelAlg, algName=None):
         """If the algorithm has a custom parameters dialog when called
         from the modeler, it should be returned here, ready to be
         executed.
@@ -229,10 +228,10 @@ class GeoAlgorithm:
             progress.setPercentage(100)
             self.convertUnsupportedFormats(progress)
             self.runPostExecutionScript(progress)
-        except GeoAlgorithmExecutionException, gaee:
+        except GeoAlgorithmExecutionException as gaee:
             ProcessingLog.addToLog(ProcessingLog.LOG_ERROR, gaee.msg)
             raise gaee
-        except Exception, e:
+        except Exception as e:
             # If something goes wrong and is not caught in the
             # algorithm, we catch it here and wrap it
             lines = [self.tr('Uncaught error while executing algorithm')]
@@ -245,7 +244,7 @@ class GeoAlgorithm:
             lines.append(errstring.replace('\n', '|'))
             ProcessingLog.addToLog(ProcessingLog.LOG_ERROR, lines)
             raise GeoAlgorithmExecutionException(
-                str(e) + self.tr('\nSee log for more details'))
+                unicode(e) + self.tr('\nSee log for more details'))
 
     def _checkParameterValuesBeforeExecuting(self):
         for param in self.parameters:
@@ -284,7 +283,7 @@ class GeoAlgorithm:
             lines = f.readlines()
             for line in lines:
                 script += line
-            exec script in ns
+            exec(script, ns)
         except:
             # A wrong script should not cause problems, so we swallow
             # all exceptions
@@ -334,9 +333,8 @@ class GeoAlgorithm:
                         stdin=subprocess.PIPE,
                         stderr=subprocess.STDOUT,
                         universal_newlines=False,
-                        )
+                    )
                     proc.communicate()
-
 
             elif isinstance(out, OutputTable):
                 if out.compatible is not None:
@@ -437,8 +435,7 @@ class GeoAlgorithm:
                             if layer.name() == inputlayer:
                                 inputlayers[i] = layer.source()
                                 break
-                    param.setValue(",".join(inputlayers))
-
+                    param.setValue(";".join(inputlayers))
 
     def checkInputCRS(self):
         """It checks that all input layers use the same CRS. If so,
@@ -515,9 +512,9 @@ class GeoAlgorithm:
     def __str__(self):
         s = 'ALGORITHM: ' + self.name + '\n'
         for param in self.parameters:
-            s += '\t' + str(param) + '\n'
+            s += '\t' + unicode(param) + '\n'
         for out in self.outputs:
-            s += '\t' + str(out) + '\n'
+            s += '\t' + unicode(out) + '\n'
         s += '\n'
         return s
 
@@ -576,3 +573,8 @@ class GeoAlgorithm:
         if context == '':
             context = self.__class__.__name__
         return QCoreApplication.translate(context, string)
+
+    def trAlgorithm(self, string, context=''):
+        if context == '':
+            context = self.__class__.__name__
+        return string, QCoreApplication.translate(context, string)

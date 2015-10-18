@@ -103,7 +103,6 @@ void TestQgsRasterSubLayer::initTestCase()
                                         myRasterFileInfo.completeBaseName() );
     qDebug() << "raster metadata: " << mpRasterLayer->dataProvider()->metadata();
     mReport += "raster metadata: " + mpRasterLayer->dataProvider()->metadata();
-
   }
   else
   {
@@ -114,6 +113,7 @@ void TestQgsRasterSubLayer::initTestCase()
 //runs after all tests
 void TestQgsRasterSubLayer::cleanupTestCase()
 {
+  delete mpRasterLayer;
   QgsApplication::exitQgis();
   QString myReportFile = QDir::tempPath() + "/qgistest.html";
   QFile myFile( myReportFile );
@@ -140,7 +140,7 @@ void TestQgsRasterSubLayer::subLayersList()
     expected << "Band2";
 
     QStringList sublayers;
-    foreach ( QString s, mpRasterLayer->subLayers() )
+    Q_FOREACH ( const QString& s, mpRasterLayer->subLayers() )
     {
       qDebug() << "sublayer: " << s;
       sublayers << s.split( ':' ).last();

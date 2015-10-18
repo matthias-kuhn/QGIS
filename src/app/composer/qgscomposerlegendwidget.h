@@ -34,10 +34,10 @@ class QgsComposerLegendWidget: public QgsComposerItemBaseWidget, private Ui::Qgs
     Q_OBJECT
 
   public:
-    QgsComposerLegendWidget( QgsComposerLegend* legend );
+    explicit QgsComposerLegendWidget( QgsComposerLegend* legend );
     ~QgsComposerLegendWidget();
 
-    /**Updates the legend layers and groups*/
+    /** Updates the legend layers and groups*/
     void updateLegend();
 
     QgsComposerLegend* legend() { return mLegend; }
@@ -89,7 +89,7 @@ class QgsComposerLegendWidget: public QgsComposerItemBaseWidget, private Ui::Qgs
     void showEvent( QShowEvent * event ) override;
 
   private slots:
-    /**Sets GUI according to state of mLegend*/
+    /** Sets GUI according to state of mLegend*/
     void setGuiElements();
 
   private:

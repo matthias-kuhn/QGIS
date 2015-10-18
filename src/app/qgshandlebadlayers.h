@@ -29,7 +29,7 @@ class APP_EXPORT QgsHandleBadLayersHandler
   public:
     QgsHandleBadLayersHandler();
 
-    /** implementation of the handler */
+    /** Implementation of the handler */
     virtual void handleBadLayers( QList<QDomNode> layers, QDomDocument projectDom ) override;
 };
 
@@ -51,6 +51,7 @@ class APP_EXPORT QgsHandleBadLayers
   private slots:
     void selectionChanged();
     void browseClicked();
+    void editAuthCfg();
     void apply();
     void accept() override;
     void rejected();

@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 20.4.2013
     Copyright            : (C) 2013 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -33,8 +33,8 @@ int QgsEditorWidgetWrapper::fieldIdx()
 
 QgsField QgsEditorWidgetWrapper::field()
 {
-  if ( mFieldIdx < layer()->pendingFields().count() )
-    return layer()->pendingFields()[mFieldIdx];
+  if ( mFieldIdx < layer()->fields().count() )
+    return layer()->fields()[mFieldIdx];
   else
     return QgsField();
 }

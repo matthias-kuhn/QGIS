@@ -24,13 +24,13 @@
 #include <QPlainTextDocumentLayout>
 #include <QSortFilterProxyModel>
 
+#include "qgisapp.h"
 #include "qgsbrowsermodel.h"
 #include "qgsbrowsertreeview.h"
 #include "qgslogger.h"
 #include "qgsmaplayerregistry.h"
 #include "qgsrasterlayer.h"
 #include "qgsvectorlayer.h"
-#include "qgisapp.h"
 #include "qgsproject.h"
 
 // browser layer properties dialog
@@ -49,7 +49,7 @@ items on the tree view although the drop is actually managed by qgis app.
 class QgsDockBrowserTreeView : public QgsBrowserTreeView
 {
   public:
-    QgsDockBrowserTreeView( QWidget* parent ) : QgsBrowserTreeView( parent )
+    explicit QgsDockBrowserTreeView( QWidget* parent ) : QgsBrowserTreeView( parent )
     {
       setDragDropMode( QTreeView::DragDrop ); // sets also acceptDrops + dragEnabled
       setSelectionMode( QAbstractItemView::ExtendedSelection );
@@ -91,8 +91,7 @@ Utility class for filtering browser items
 class QgsBrowserTreeFilterProxyModel : public QSortFilterProxyModel
 {
   public:
-
-    QgsBrowserTreeFilterProxyModel( QObject *parent )
+    explicit QgsBrowserTreeFilterProxyModel( QObject *parent )
         : QSortFilterProxyModel( parent ), mModel( 0 )
         , mFilter( "" ), mPatternSyntax( "normal" ), mCaseSensitivity( Qt::CaseInsensitive )
     {
@@ -135,7 +134,7 @@ class QgsBrowserTreeFilterProxyModel : public QSortFilterProxyModel
       mREList.clear();
       if ( mPatternSyntax == "normal" )
       {
-        foreach ( QString f, mFilter.split( "|" ) )
+        Q_FOREACH ( const QString& f, mFilter.split( "|" ) )
         {
           QRegExp rx( QString( "*%1*" ).arg( f.trimmed() ) );
           rx.setPatternSyntax( QRegExp::Wildcard );
@@ -145,7 +144,7 @@ class QgsBrowserTreeFilterProxyModel : public QSortFilterProxyModel
       }
       else if ( mPatternSyntax == "wildcard" )
       {
-        foreach ( QString f, mFilter.split( "|" ) )
+        Q_FOREACH ( const QString& f, mFilter.split( "|" ) )
         {
           QRegExp rx( f.trimmed() );
           rx.setPatternSyntax( QRegExp::Wildcard );
@@ -175,7 +174,7 @@ class QgsBrowserTreeFilterProxyModel : public QSortFilterProxyModel
     {
       if ( mPatternSyntax == "normal" || mPatternSyntax == "wildcard" )
       {
-        foreach ( QRegExp rx, mREList )
+        Q_FOREACH ( const QRegExp& rx, mREList )
         {
           QgsDebugMsg( QString( "value: [%1] rx: [%2] match: %3" ).arg( value ).arg( rx.pattern() ).arg( rx.exactMatch( value ) ) );
           if ( rx.exactMatch( value ) )
@@ -184,7 +183,7 @@ class QgsBrowserTreeFilterProxyModel : public QSortFilterProxyModel
       }
       else
       {
-        foreach ( QRegExp rx, mREList )
+        Q_FOREACH ( const QRegExp& rx, mREList )
         {
           QgsDebugMsg( QString( "value: [%1] rx: [%2] match: %3" ).arg( value ).arg( rx.pattern() ).arg( rx.indexIn( value ) ) );
           if ( rx.indexIn( value ) != -1 )
@@ -200,7 +199,10 @@ class QgsBrowserTreeFilterProxyModel : public QSortFilterProxyModel
       if ( mFilter == "" || !mModel ) return true;
 
       QModelIndex sourceIndex = mModel->index( sourceRow, 0, sourceParent );
-      return filterAcceptsItem( sourceIndex ) || filterAcceptsAncestor( sourceIndex ) || filterAcceptsDescendant( sourceIndex );
+      // also look into the comment column
+      QModelIndex commentIndex = mModel->index( sourceRow, 1, sourceParent );
+      return filterAcceptsItem( sourceIndex ) || filterAcceptsAncestor( sourceIndex ) || filterAcceptsDescendant( sourceIndex ) ||
+             filterAcceptsItem( commentIndex ) || filterAcceptsAncestor( commentIndex ) || filterAcceptsDescendant( commentIndex );
     }
 
     // returns true if at least one ancestor is accepted by filter
@@ -228,6 +230,11 @@ class QgsBrowserTreeFilterProxyModel : public QSortFilterProxyModel
       {
         QgsDebugMsg( QString( "i = %1" ).arg( i ) );
         QModelIndex sourceChildIndex = mModel->index( i, 0, sourceIndex );
+        if ( filterAcceptsItem( sourceChildIndex ) )
+          return true;
+        if ( filterAcceptsDescendant( sourceChildIndex ) )
+          return true;
+        sourceChildIndex = mModel->index( i, 1, sourceIndex );
         if ( filterAcceptsItem( sourceChildIndex ) )
           return true;
         if ( filterAcceptsDescendant( sourceChildIndex ) )
@@ -273,18 +280,37 @@ QgsBrowserPropertiesWidget::QgsBrowserPropertiesWidget( QWidget* parent ) :
 {
 }
 
+void QgsBrowserPropertiesWidget::setWidget( QWidget* paramWidget )
+{
+  QVBoxLayout *layout = new QVBoxLayout( this );
+  paramWidget->setParent( this );
+  layout->addWidget( paramWidget );
+}
+
 QgsBrowserPropertiesWidget* QgsBrowserPropertiesWidget::createWidget( QgsDataItem* item, QWidget* parent )
 {
   QgsBrowserPropertiesWidget* propertiesWidget = 0;
-  if ( item->type() == QgsDataItem::Layer )
-  {
-    propertiesWidget = new QgsBrowserLayerProperties( parent );
-    propertiesWidget->setItem( item );
-  }
-  else if ( item->type() == QgsDataItem::Directory )
+  // In general, we would like to show all items' paramWidget, but top level items like
+  // WMS etc. have currently too large widgets which do not fit well to browser properties widget
+  if ( item->type() == QgsDataItem::Directory )
   {
     propertiesWidget = new QgsBrowserDirectoryProperties( parent );
     propertiesWidget->setItem( item );
+  }
+  else if ( item->type() == QgsDataItem::Layer )
+  {
+    // prefer item's widget over standard layer widget
+    QWidget *paramWidget = item->paramWidget();
+    if ( paramWidget )
+    {
+      propertiesWidget = new QgsBrowserPropertiesWidget( parent );
+      propertiesWidget->setWidget( paramWidget );
+    }
+    else
+    {
+      propertiesWidget = new QgsBrowserLayerProperties( parent );
+      propertiesWidget->setItem( item );
+    }
   }
   return propertiesWidget;
 }
@@ -532,6 +558,7 @@ void QgsBrowserDockWidget::showEvent( QShowEvent * e )
     // provide a horizontal scroll bar instead of using ellipse (...) for longer items
     mBrowserView->setTextElideMode( Qt::ElideNone );
     mBrowserView->header()->setResizeMode( 0, QHeaderView::ResizeToContents );
+    mBrowserView->header()->setResizeMode( 1, QHeaderView::ResizeToContents );
     mBrowserView->header()->setStretchLastSection( false );
 
     // selectionModel is created when model is set on tree

@@ -369,7 +369,7 @@ QgsOgrProvider::QgsOgrProvider( QString const & uri )
   QgsDebugMsg( "mSubsetString: " + mSubsetString );
   CPLSetConfigOption( "OGR_ORGANIZE_POLYGONS", "ONLY_CCW" );  // "SKIP" returns MULTIPOLYGONs for multiringed POLYGONs
 
-  if ( mFilePath.startsWith( "MySQL:" ) && !mLayerName.isEmpty() )
+  if ( mFilePath.startsWith( "MySQL:" ) && !mLayerName.isEmpty() && !mFilePath.endsWith( ",tables=" + mLayerName ) )
   {
     mFilePath += ",tables=" + mLayerName;
   }
@@ -450,6 +450,8 @@ QgsOgrProvider::QgsOgrProvider( QString const & uri )
     mNativeTypes
     << QgsVectorDataProvider::NativeType( tr( "Date & Time" ), "datetime", QVariant::DateTime );
   }
+
+  QgsOgrConnPool::refS( mFilePath );
 }
 
 QgsOgrProvider::~QgsOgrProvider()
@@ -470,6 +472,8 @@ QgsOgrProvider::~QgsOgrProvider()
     free( extent_ );
     extent_ = 0;
   }
+
+  QgsOgrConnPool::unrefS( mFilePath );
 }
 
 QgsAbstractFeatureSource* QgsOgrProvider::featureSource() const
@@ -672,7 +676,7 @@ QStringList QgsOgrProvider::subLayers() const
         fCount[wkbUnknown] = 0;
       }
       bool bIs25D = (( layerGeomType & wkb25DBit ) != 0 );
-      foreach ( OGRwkbGeometryType gType, fCount.keys() )
+      Q_FOREACH ( OGRwkbGeometryType gType, fCount.keys() )
       {
         QString geom = ogrWkbGeometryTypeName(( bIs25D ) ? ( OGRwkbGeometryType )( gType | wkb25DBit ) : gType );
 
@@ -1168,7 +1172,7 @@ bool QgsOgrProvider::deleteAttributes( const QgsAttributeIds &attributes )
   QList<int> attrsLst = attributes.toList();
   // sort in descending order
   qSort( attrsLst.begin(), attrsLst.end(), qGreater<int>() );
-  foreach ( int attr, attrsLst )
+  Q_FOREACH ( int attr, attrsLst )
   {
     if ( OGR_L_DeleteField( ogrLayer, attr ) != OGRERR_NONE )
     {
@@ -2433,6 +2437,11 @@ QVariant QgsOgrProvider::maximumValue( int index )
 QByteArray QgsOgrProvider::quotedIdentifier( QByteArray field )
 {
   return QgsOgrUtils::quotedIdentifier( field, ogrDriverName );
+}
+
+void QgsOgrProvider::forceReload()
+{
+  QgsOgrConnPool::instance()->invalidateConnections( filePath() );
 }
 
 QByteArray QgsOgrUtils::quotedIdentifier( QByteArray field, const QString& ogrDriverName )

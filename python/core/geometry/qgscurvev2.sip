@@ -24,6 +24,11 @@ class QgsCurveV2: public QgsAbstractGeometryV2
     virtual bool nextVertex( QgsVertexId& id, QgsPointV2& vertex ) const;
     virtual bool pointAt( int i, QgsPointV2& vertex, QgsVertexId::VertexType& type ) const = 0;
 
-    /**Returns a geometry without curves. Caller takes ownership*/
+    /** Returns a geometry without curves. Caller takes ownership*/
     QgsAbstractGeometryV2* segmentize() const /Factory/;
+
+    virtual int vertexCount(int part = 0, int ring = 0) const;
+    virtual int ringCount(int part = 0) const;
+    virtual int partCount() const;
+    virtual QgsPointV2 vertexAt( const QgsVertexId& id ) const;
 };

@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 3.5.2014
     Copyright            : (C) 2014 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -45,14 +45,22 @@ QgsAttributeForm::QgsAttributeForm( QgsVectorLayer* vl, const QgsFeature &featur
     , mFormNr( sFormCounter++ )
     , mIsSaving( false )
     , mIsAddDialog( false )
+    , mPreventFeatureRefresh( false )
     , mEditCommandMessage( tr( "Attributes changed" ) )
 {
   init();
   initPython();
   setFeature( feature );
 
+  // Using attributeAdded() attributeDeleted() are not emited on all fields changes (e.g. layer fields changed,
+  // joined fields changed) -> use updatedFields() instead
+#if 0
   connect( vl, SIGNAL( attributeAdded( int ) ), this, SLOT( onAttributeAdded( int ) ) );
   connect( vl, SIGNAL( attributeDeleted( int ) ), this, SLOT( onAttributeDeleted( int ) ) );
+#endif
+  connect( vl, SIGNAL( updatedFields() ), this, SLOT( onUpdatedFields() ) );
+  connect( vl, SIGNAL( beforeAddingExpressionField( QString ) ), this, SLOT( preventFeatureRefresh() ) );
+  connect( vl, SIGNAL( beforeRemovingExpressionField( int ) ), this, SLOT( preventFeatureRefresh() ) );
 }
 
 QgsAttributeForm::~QgsAttributeForm()
@@ -196,6 +204,7 @@ bool QgsAttributeForm::save()
         {
           mFeature.setAttributes( updatedFeature.attributes() );
           mLayer->endEditCommand();
+          mIsAddDialog = false;
           changedLayer = true;
         }
         else
@@ -273,12 +282,12 @@ void QgsAttributeForm::onAttributeChanged( const QVariant& value )
 
 void QgsAttributeForm::onAttributeAdded( int idx )
 {
-  Q_UNUSED( idx ) // only used for Q_ASSERT
+  mPreventFeatureRefresh = false;
   if ( mFeature.isValid() )
   {
     QgsAttributes attrs = mFeature.attributes();
-    attrs.insert( idx, QVariant( layer()->pendingFields()[idx].type() ) );
-    mFeature.setFields( layer()->pendingFields() );
+    attrs.insert( idx, QVariant( layer()->fields()[idx].type() ) );
+    mFeature.setFields( layer()->fields() );
     mFeature.setAttributes( attrs );
   }
   init();
@@ -287,20 +296,55 @@ void QgsAttributeForm::onAttributeAdded( int idx )
 
 void QgsAttributeForm::onAttributeDeleted( int idx )
 {
+  mPreventFeatureRefresh = false;
   if ( mFeature.isValid() )
   {
     QgsAttributes attrs = mFeature.attributes();
     attrs.remove( idx );
-    mFeature.setFields( layer()->pendingFields() );
+    mFeature.setFields( layer()->fields() );
     mFeature.setAttributes( attrs );
   }
   init();
   setFeature( mFeature );
 }
 
+void QgsAttributeForm::onUpdatedFields()
+{
+  mPreventFeatureRefresh = false;
+  if ( mFeature.isValid() )
+  {
+    QgsAttributes attrs( layer()->fields().size() );
+    for ( int i = 0; i < layer()->fields().size(); i++ )
+    {
+      int idx = mFeature.fields()->indexFromName( layer()->fields()[i].name() );
+      if ( idx != -1 )
+      {
+        attrs[i] = mFeature.attributes()[idx];
+        if ( mFeature.attributes()[idx].type() != layer()->fields()[i].type() )
+        {
+          attrs[i].convert( layer()->fields()[i].type() );
+        }
+      }
+      else
+      {
+        attrs[i] = QVariant( layer()->fields()[i].type() );
+      }
+    }
+    mFeature.setFields( layer()->fields() );
+    mFeature.setAttributes( attrs );
+  }
+  init();
+  setFeature( mFeature );
+}
+
+void QgsAttributeForm::preventFeatureRefresh()
+{
+  mPreventFeatureRefresh = true;
+}
+
 void QgsAttributeForm::refreshFeature()
 {
-  if ( mLayer->isEditable() || !mFeature.isValid() )
+  if ( mPreventFeatureRefresh || mLayer->isEditable() || !mFeature.isValid() )
     return;
 
   // reload feature if layer changed although not editable
@@ -435,7 +479,7 @@ void QgsAttributeForm::init()
     layout()->addWidget( scrollArea );
 
     int row = 0;
-    Q_FOREACH ( const QgsField& field, mLayer->pendingFields().toList() )
+    Q_FOREACH ( const QgsField& field, mLayer->fields().toList() )
     {
       int idx = mLayer->fieldNameIndex( field.name() );
       if ( idx < 0 )
@@ -481,6 +525,12 @@ void QgsAttributeForm::init()
       rww->setContext( mContext );
       gridLayout->addWidget( rww->widget(), row++, 0, 1, 2 );
       mWidgets.append( rww );
+    }
+
+    if ( QgsProject::instance()->relationManager()->referencedRelations( mLayer ).size() == 0 )
+    {
+      QSpacerItem *spacerItem = new QSpacerItem( 20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding );
+      gridLayout->addItem( spacerItem, row++, 0 );
     }
   }
 
@@ -587,7 +637,7 @@ QWidget* QgsAttributeForm::createWidgetFromDef( const QgsAttributeEditorElement 
         break;
 
       int fldIdx = vl->fieldNameIndex( fieldDef->name() );
-      if ( fldIdx < vl->pendingFields().count() && fldIdx >= 0 )
+      if ( fldIdx < vl->fields().count() && fldIdx >= 0 )
       {
         const QString widgetType = mLayer->editorWidgetV2( fldIdx );
         const QgsEditorWidgetConfig widgetConfig = mLayer->editorWidgetV2Config( fldIdx );
@@ -596,7 +646,7 @@ QWidget* QgsAttributeForm::createWidgetFromDef( const QgsAttributeEditorElement 
         newWidget = eww->widget();
         addWidgetWrapper( eww );
 
-        newWidget->setObjectName( mLayer->pendingFields()[ fldIdx ].name() );
+        newWidget->setObjectName( mLayer->fields()[ fldIdx ].name() );
       }
 
       labelOnTop = mLayer->labelOnTop( fieldDef->idx() );
@@ -719,7 +769,7 @@ void QgsAttributeForm::addWidgetWrapper( QgsEditorWidgetWrapper* eww )
 void QgsAttributeForm::createWrappers()
 {
   QList<QWidget*> myWidgets = findChildren<QWidget*>();
-  const QList<QgsField> fields = mLayer->pendingFields().toList();
+  const QList<QgsField> fields = mLayer->fields().toList();
 
   Q_FOREACH ( QWidget* myWidget, myWidgets )
   {

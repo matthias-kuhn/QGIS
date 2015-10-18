@@ -29,14 +29,6 @@
 
 #define _CRT_SECURE_NO_DEPRECATE
 
-#include <stddef.h>
-#include <geos_c.h>
-
-#include <iostream>
-#include <cstring>
-#include <cmath>
-#include <vector>
-
 #include "pal.h"
 #include "layer.h"
 #include "palexception.h"
@@ -44,187 +36,75 @@
 #include "feature.h"
 #include "geomfunction.h"
 #include "util.h"
+#include <iostream>
+#include <cmath>
+#include <vector>
+
+#include "qgslabelingenginev2.h"
 
 namespace pal
 {
 
-  Layer::Layer( const QString &lyrName, double min_scale, double max_scale, Arrangement arrangement, Units label_unit, double defaultPriority, bool obstacle, bool active, bool toLabel, Pal *pal, bool displayAll )
-      : name( lyrName )
+  Layer::Layer( QgsAbstractLabelProvider* provider, const QString& name, Arrangement arrangement, double defaultPriority, bool active, bool toLabel, Pal *pal, bool displayAll )
+      : mProvider( provider )
+      , mName( name )
       , pal( pal )
-      , obstacle( obstacle )
-      , active( active )
-      , toLabel( toLabel )
-      , displayAll( displayAll )
-      , centroidInside( false )
-      , label_unit( label_unit )
-      , min_scale( min_scale )
-      , max_scale( max_scale )
-      , arrangement( arrangement )
-      , arrangementFlags( 0 )
-      , mode( LabelPerFeature )
-      , mergeLines( false )
-      , upsidedownLabels( Upright )
+      , mObstacleType( PolygonInterior )
+      , mActive( active )
+      , mLabelLayer( toLabel )
+      , mDisplayAll( displayAll )
+      , mCentroidInside( false )
+      , mFitInPolygon( false )
+      , mArrangement( arrangement )
+      , mArrangementFlags( 0 )
+      , mMode( LabelPerFeature )
+      , mMergeLines( false )
+      , mUpsidedownLabels( Upright )
   {
     rtree = new RTree<FeaturePart*, double, 2, double>();
-    hashtable = new QHash< QString, Feature*>;
-
-    connectedHashtable = new QHash< QString, QLinkedList<FeaturePart*>* >;
-    connectedTexts = new QLinkedList< QString >;
 
     if ( defaultPriority < 0.0001 )
-      this->defaultPriority = 0.0001;
+      mDefaultPriority = 0.0001;
     else if ( defaultPriority > 1.0 )
-      this->defaultPriority = 1.0;
+      mDefaultPriority = 1.0;
     else
-      this->defaultPriority = defaultPriority;
-
-    featureParts = new QLinkedList<FeaturePart*>;
-    features = new QLinkedList<Feature*>;
+      mDefaultPriority = defaultPriority;
   }
 
   Layer::~Layer()
   {
     mMutex.lock();
 
-    if ( featureParts )
-    {
-      qDeleteAll( *featureParts );
-      delete featureParts;
-    }
+    qDeleteAll( mFeatureParts );
+    mFeatureParts.clear();
 
-    // this hashtable and list should be empty if they still exist
-    delete connectedHashtable;
-
-    // features in the hashtable
-    if ( features )
-    {
-      qDeleteAll( *features );
-      delete features;
-    }
+    //should already be empty
+    qDeleteAll( mConnectedHashtable );
+    mConnectedHashtable.clear();
 
     delete rtree;
 
-    delete hashtable;
     mMutex.unlock();
-    delete connectedTexts;
-  }
-
-  Feature* Layer::getFeature( const QString& geom_id )
-  {
-    QHash< QString, Feature*>::const_iterator i = hashtable->find( geom_id );
-    if ( i != hashtable->constEnd() )
-      return *i;
-    else
-      return 0;
-  }
-
-
-  bool Layer::isScaleValid( double scale )
-  {
-    return ( scale >= min_scale || min_scale == -1 )
-           && ( scale <= max_scale || max_scale == -1 );
-  }
-
-
-  int Layer::getNbFeatures()
-  {
-    return features->size();
-  }
-
-  QString Layer::getName()
-  {
-    return name;
-  }
-
-  Arrangement Layer::getArrangement()
-  {
-    return arrangement;
-  }
-
-  void Layer::setArrangement( Arrangement arrangement )
-  {
-    this->arrangement = arrangement;
-  }
-
-
-  bool Layer::isObstacle()
-  {
-    return obstacle;
-  }
-
-  bool Layer::isToLabel()
-  {
-    return toLabel;
-  }
-
-  bool Layer::isActive()
-  {
-    return active;
-  }
-
-
-  double Layer::getMinScale()
-  {
-    return min_scale;
-  }
-
-  double Layer::getMaxScale()
-  {
-    return max_scale;
-  }
-
-  double Layer::getPriority()
-  {
-    return defaultPriority;
-  }
-
-  void Layer::setObstacle( bool obstacle )
-  {
-    this->obstacle = obstacle;
-  }
-
-  void Layer::setActive( bool active )
-  {
-    this->active = active;
-  }
-
-  void Layer::setToLabel( bool toLabel )
-  {
-    this->toLabel = toLabel;
-  }
-
-  void Layer::setMinScale( double min_scale )
-  {
-    this->min_scale = min_scale;
-  }
-
-  void Layer::setMaxScale( double max_scale )
-  {
-    this->max_scale = max_scale;
   }
 
   void Layer::setPriority( double priority )
   {
     if ( priority >= 1.0 ) // low priority
-      defaultPriority = 1.0;
+      mDefaultPriority = 1.0;
     else if ( priority <= 0.0001 )
-      defaultPriority = 0.0001; // high priority
+      mDefaultPriority = 0.0001; // high priority
     else
-      defaultPriority = priority;
+      mDefaultPriority = priority;
   }
 
-
-
-  bool Layer::registerFeature( const QString& geom_id, PalGeometry *userGeom, double label_x, double label_y, const QString &labelText,
-                               double labelPosX, double labelPosY, bool fixedPos, double angle, bool fixedAngle,
-                               int xQuadOffset, int yQuadOffset, double xOffset, double yOffset, bool alwaysShow, double repeatDistance )
+  bool Layer::registerFeature( QgsLabelFeature* lf )
   {
-    if ( geom_id.isEmpty() || label_x < 0 || label_y < 0 )
+    if ( lf->size().width() < 0 || lf->size().height() < 0 )
       return false;
 
     mMutex.lock();
 
-    if ( hashtable->contains( geom_id ) )
+    if ( mHashtable.contains( lf->id() ) )
     {
       mMutex.unlock();
       //A feature with this id already exists. Don't throw an exception as sometimes,
@@ -232,42 +112,18 @@ namespace pal
       return false;
     }
 
+    // assign label feature to this PAL layer
+    lf->setLayer( this );
+
     // Split MULTI GEOM and Collection in simple geometries
-    const GEOSGeometry *the_geom = userGeom->getGeosGeometry();
 
-    Feature* f = new Feature( this, geom_id, userGeom, label_x, label_y );
-    if ( fixedPos )
-    {
-      f->setFixedPosition( labelPosX, labelPosY );
-    }
-    if ( xQuadOffset != 0 || yQuadOffset != 0 )
-    {
-      f->setQuadOffset( xQuadOffset, yQuadOffset );
-    }
-    if ( xOffset != 0.0 || yOffset != 0.0 )
-    {
-      f->setPosOffset( xOffset, yOffset );
-    }
-    if ( fixedAngle )
-    {
-      f->setFixedAngle( angle );
-    }
-    // use layer-level defined rotation, but not if position fixed
-    if ( !fixedPos && angle != 0.0 )
-    {
-      f->setFixedAngle( angle );
-    }
-    f->setRepeatDistance( repeatDistance );
-
-    f->setAlwaysShow( alwaysShow );
-
-    bool first_feat = true;
+    bool addedFeature = false;
 
     double geom_size = -1, biggest_size = -1;
     FeaturePart* biggest_part = NULL;
 
     // break the (possibly multi-part) geometry into simple geometries
-    QLinkedList<const GEOSGeometry*>* simpleGeometries = unmulti( the_geom );
+    QLinkedList<const GEOSGeometry*>* simpleGeometries = unmulti( lf->geometry() );
     if ( simpleGeometries == NULL ) // unmulti() failed?
     {
       mMutex.unlock();
@@ -295,7 +151,7 @@ namespace pal
         throw InternalException::UnknownGeometry();
       }
 
-      FeaturePart* fpart = new FeaturePart( f, geom );
+      FeaturePart* fpart = new FeaturePart( lf, geom );
 
       // ignore invalid geometries
       if (( type == GEOS_LINESTRING && fpart->nbPoints < 2 ) ||
@@ -312,7 +168,7 @@ namespace pal
         continue;
       }
 
-      if ( mode == LabelPerFeature && ( type == GEOS_POLYGON || type == GEOS_LINESTRING ) )
+      if ( mMode == LabelPerFeature && ( type == GEOS_POLYGON || type == GEOS_LINESTRING ) )
       {
         if ( type == GEOS_LINESTRING )
           GEOSLength_r( geosctxt, geom, &geom_size );
@@ -325,41 +181,38 @@ namespace pal
           delete biggest_part; // safe with NULL part
           biggest_part = fpart;
         }
+        else
+        {
+          delete fpart;
+        }
         continue; // don't add the feature part now, do it later
         // TODO: we should probably add also other parts to act just as obstacles
       }
 
       // feature part is ready!
-      addFeaturePart( fpart, labelText );
-
-      first_feat = false;
+      addFeaturePart( fpart, lf->labelText() );
+      addedFeature = true;
     }
     delete simpleGeometries;
-
-    userGeom->releaseGeosGeometry( the_geom );
 
     mMutex.unlock();
 
     // if using only biggest parts...
-    if (( mode == LabelPerFeature || f->fixedPosition() ) && biggest_part != NULL )
+    if (( mMode == LabelPerFeature || lf->hasFixedPosition() ) && biggest_part != NULL )
     {
-      addFeaturePart( biggest_part, labelText );
-      first_feat = false;
+      addFeaturePart( biggest_part, lf->labelText() );
+      addedFeature = true;
     }
 
     // add feature to layer if we have added something
-    if ( !first_feat )
+    if ( addedFeature )
     {
-      features->append( f );
-      hashtable->insert( geom_id, f );
-    }
-    else
-    {
-      delete f;
+      mHashtable.insert( lf->id(), lf );
     }
 
-    return !first_feat; // true if we've added something
+    return addedFeature; // true if we've added something
   }
+
 
   void Layer::addFeaturePart( FeaturePart* fpart, const QString& labelText )
   {
@@ -368,43 +221,29 @@ namespace pal
     fpart->getBoundingBox( bmin, bmax );
 
     // add to list of layer's feature parts
-    featureParts->append( fpart );
+    mFeatureParts << fpart;
 
     // add to r-tree for fast spatial access
     rtree->Insert( bmin, bmax, fpart );
 
     // add to hashtable with equally named feature parts
-    if ( mergeLines && !labelText.isEmpty() )
+    if ( mMergeLines && !labelText.isEmpty() )
     {
-      QHash< QString, QLinkedList<FeaturePart*>* >::const_iterator lstPtr = connectedHashtable->find( labelText );
       QLinkedList< FeaturePart*>* lst;
-      if ( lstPtr == connectedHashtable->constEnd() )
+      if ( !mConnectedHashtable.contains( labelText ) )
       {
         // entry doesn't exist yet
         lst = new QLinkedList<FeaturePart*>;
-        connectedHashtable->insert( labelText, lst );
-        connectedTexts->append( labelText );
+        mConnectedHashtable.insert( labelText, lst );
+        mConnectedTexts << labelText;
       }
       else
       {
-        lst = *lstPtr;
+        lst = mConnectedHashtable.value( labelText );
       }
       lst->append( fpart ); // add to the list
     }
   }
-
-
-  void Layer::setLabelUnit( Units label_unit )
-  {
-    if ( label_unit == PIXEL || label_unit == METER )
-      this->label_unit = label_unit;
-  }
-
-  Units Layer::getLabelUnit()
-  {
-    return label_unit;
-  }
-
 
   static FeaturePart* _findConnectedPart( FeaturePart* partCheck, QLinkedList<FeaturePart*>* otherParts )
   {
@@ -417,7 +256,7 @@ namespace pal
         // stop checking for other connected parts
         return *p;
       }
-      p++;
+      ++p;
     }
 
     return NULL; // no connected part found...
@@ -426,16 +265,12 @@ namespace pal
   void Layer::joinConnectedFeatures()
   {
     // go through all label texts
-    QString labelText;
-    while ( !connectedTexts->isEmpty() )
+    Q_FOREACH ( const QString& labelText, mConnectedTexts )
     {
-      labelText = connectedTexts->takeFirst();
-
-      //std::cerr << "JOIN: " << labelText << std::endl;
-      QHash< QString, QLinkedList<FeaturePart*>* >::const_iterator partsPtr = connectedHashtable->find( labelText );
-      if ( partsPtr == connectedHashtable->constEnd() )
+      if ( !mConnectedHashtable.contains( labelText ) )
         continue; // shouldn't happen
-      QLinkedList<FeaturePart*>* parts = *partsPtr;
+
+      QLinkedList<FeaturePart*>* parts = mConnectedHashtable.value( labelText );
 
       // go one-by-one part, try to merge
       while ( !parts->isEmpty() )
@@ -452,7 +287,7 @@ namespace pal
           double bmin[2], bmax[2];
           partCheck->getBoundingBox( bmin, bmax );
           rtree->Remove( bmin, bmax, partCheck );
-          featureParts->removeOne( partCheck );
+          mFeatureParts.removeOne( partCheck );
 
           otherPart->getBoundingBox( bmin, bmax );
 
@@ -464,29 +299,33 @@ namespace pal
             otherPart->getBoundingBox( bmin, bmax );
             rtree->Insert( bmin, bmax, otherPart );
           }
+          delete partCheck;
         }
       }
 
       // we're done processing feature parts with this particular label text
       delete parts;
+      mConnectedHashtable.remove( labelText );
     }
 
-    // we're done processing connected fetures
-    delete connectedHashtable;
-    connectedHashtable = NULL;
-    delete connectedTexts;
-    connectedTexts = NULL;
+    // we're done processing connected features
+
+    //should be empty, but clear to be safe
+    qDeleteAll( mConnectedHashtable );
+    mConnectedHashtable.clear();
+
+    mConnectedTexts.clear();
   }
 
   void Layer::chopFeaturesAtRepeatDistance()
   {
     GEOSContextHandle_t geosctxt = geosContext();
-    QLinkedList<FeaturePart*> * newFeatureParts = new QLinkedList<FeaturePart*>;
-    while ( !featureParts->isEmpty() )
+    QLinkedList<FeaturePart*> newFeatureParts;
+    while ( !mFeatureParts.isEmpty() )
     {
-      FeaturePart* fpart = featureParts->takeFirst();
-      const GEOSGeometry* geom = fpart->getGeometry();
-      double chopInterval = fpart->getFeature()->repeatDistance();
+      FeaturePart* fpart = mFeatureParts.takeFirst();
+      const GEOSGeometry* geom = fpart->geos();
+      double chopInterval = fpart->repeatDistance();
       if ( chopInterval != 0. && GEOSGeomTypeId_r( geosctxt, geom ) == GEOS_LINESTRING )
       {
 
@@ -545,8 +384,8 @@ namespace pal
           }
 
           GEOSGeometry* newgeom = GEOSGeom_createLineString_r( geosctxt, cooSeq );
-          FeaturePart* newfpart = new FeaturePart( fpart->getFeature(), newgeom );
-          newFeatureParts->append( newfpart );
+          FeaturePart* newfpart = new FeaturePart( fpart->feature(), newgeom );
+          newFeatureParts.append( newfpart );
           newfpart->getBoundingBox( bmin, bmax );
           rtree->Insert( bmin, bmax, newfpart );
           part.clear();
@@ -562,19 +401,19 @@ namespace pal
         }
 
         GEOSGeometry* newgeom = GEOSGeom_createLineString_r( geosctxt, cooSeq );
-        FeaturePart* newfpart = new FeaturePart( fpart->getFeature(), newgeom );
-        newFeatureParts->append( newfpart );
+        FeaturePart* newfpart = new FeaturePart( fpart->feature(), newgeom );
+        newFeatureParts.append( newfpart );
         newfpart->getBoundingBox( bmin, bmax );
         rtree->Insert( bmin, bmax, newfpart );
+        delete fpart;
       }
       else
       {
-        newFeatureParts->append( fpart );
+        newFeatureParts.append( fpart );
       }
     }
 
-    delete featureParts;
-    featureParts = newFeatureParts;
+    mFeatureParts = newFeatureParts;
   }
 
 

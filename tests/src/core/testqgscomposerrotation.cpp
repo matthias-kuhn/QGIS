@@ -115,6 +115,9 @@ void TestQgsComposerRotation::cleanupTestCase()
     mComposition->removeItem( mComposerMap );
     delete mComposerMap;
   }
+
+  delete mComposerLabel;
+  delete mComposerRect;
   delete mComposition;
   delete mMapSettings;
 
@@ -147,6 +150,7 @@ void TestQgsComposerRotation::shapeRotation()
   mComposerRect->setItemRotation( 45, true );
 
   QgsCompositionChecker checker( "composerrotation_shape", mComposition );
+  checker.setControlPathPrefix( "composer_items" );
   QVERIFY( checker.testComposition( mReport ) );
 
   mComposition->removeItem( mComposerRect );
@@ -162,6 +166,7 @@ void TestQgsComposerRotation::oldShapeRotationApi()
   mComposerRect->setRotation( 45 );
 
   QgsCompositionChecker checker( "composerrotation_shape_oldapi", mComposition );
+  checker.setControlPathPrefix( "composer_items" );
   QVERIFY( checker.testComposition( mReport ) );
 
   mComposition->removeItem( mComposerRect );
@@ -174,6 +179,7 @@ void TestQgsComposerRotation::labelRotation()
   mComposerLabel->setItemRotation( 135, true );
 
   QgsCompositionChecker checker( "composerrotation_label", mComposition );
+  checker.setControlPathPrefix( "composer_items" );
   QVERIFY( checker.testComposition( mReport, 0, 0 ) );
 }
 
@@ -186,6 +192,7 @@ void TestQgsComposerRotation::oldLabelRotationApi()
   mComposerLabel->setRotation( 135 );
 
   QgsCompositionChecker checker( "composerrotation_label_oldapi", mComposition );
+  checker.setControlPathPrefix( "composer_items" );
   QVERIFY( checker.testComposition( mReport ) );
 
   mComposition->removeItem( mComposerLabel );
@@ -206,6 +213,7 @@ void TestQgsComposerRotation::mapRotation()
   mComposerMap->setMapRotation( 90 );
 
   QgsCompositionChecker checker( "composerrotation_maprotation", mComposition );
+  checker.setControlPathPrefix( "composer_items" );
   QVERIFY( checker.testComposition( mReport, 0, 200 ) );
 }
 
@@ -223,6 +231,7 @@ void TestQgsComposerRotation::mapItemRotation()
   mComposerMap->setItemRotation( 90, true );
 
   QgsCompositionChecker checker( "composerrotation_mapitemrotation", mComposition );
+  checker.setControlPathPrefix( "composer_items" );
   QVERIFY( checker.testComposition( mReport ) );
 }
 

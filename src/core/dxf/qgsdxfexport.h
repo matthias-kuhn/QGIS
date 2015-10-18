@@ -121,9 +121,9 @@ class CORE_EXPORT QgsDxfExport
   private:
     QList< QPair<QgsVectorLayer*, int> > mLayers;
 
-    /**Extent for export, only intersecting features are exported. If the extent is an empty rectangle, all features are exported*/
+    /** Extent for export, only intersecting features are exported. If the extent is an empty rectangle, all features are exported*/
     QgsRectangle mExtent;
-    /**Scale for symbology export (used if symbols units are mm)*/
+    /** Scale for symbology export (used if symbols units are mm)*/
     double mSymbologyScaleDenominator;
     SymbologyExport mSymbologyExport;
     QGis::UnitType mMapUnits;
@@ -159,10 +159,10 @@ class CORE_EXPORT QgsDxfExport
 
     QgsRectangle dxfExtent() const;
 
-    void addFeature( const QgsSymbolV2RenderContext &ctx, const QString &layer, const QgsSymbolLayerV2 *symbolLayer, const QgsSymbolV2 *symbol );
+    void addFeature( QgsSymbolV2RenderContext &ctx, const QString &layer, const QgsSymbolLayerV2 *symbolLayer, const QgsSymbolV2 *symbol );
 
     //returns dxf palette index from symbol layer color
-    static QColor colorFromSymbolLayer( const QgsSymbolLayerV2 *symbolLayer, const QgsSymbolV2RenderContext &ctx );
+    static QColor colorFromSymbolLayer( const QgsSymbolLayerV2 *symbolLayer, QgsSymbolV2RenderContext &ctx );
     QString lineStyleFromSymbolLayer( const QgsSymbolLayerV2 *symbolLayer );
 
     //functions for dxf palette
@@ -172,7 +172,7 @@ class CORE_EXPORT QgsDxfExport
     //helper functions for symbology export
     QgsRenderContext renderContext() const;
 
-    QList< QPair< QgsSymbolLayerV2 *, QgsSymbolV2 * > > symbolLayers();
+    QList< QPair< QgsSymbolLayerV2 *, QgsSymbolV2 * > > symbolLayers( QgsRenderContext& context );
     static int nLineTypes( const QList< QPair< QgsSymbolLayerV2*, QgsSymbolV2*> > &symbolLayers );
     static bool hasDataDefinedProperties( const QgsSymbolLayerV2 *sl, const QgsSymbolV2 *symbol );
     double dashSize() const;

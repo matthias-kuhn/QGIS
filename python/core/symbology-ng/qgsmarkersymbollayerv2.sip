@@ -67,7 +67,7 @@ class QgsSimpleMarkerSymbolLayerV2 : QgsMarkerSymbolLayerV2
     void setOutlineWidthMapUnitScale( const QgsMapUnitScale& scale);
     const QgsMapUnitScale& outlineWidthMapUnitScale() const;
 
-    bool writeDxf( QgsDxfExport& e, double mmMapUnitScaleFactor, const QString& layerName, const QgsSymbolV2RenderContext* context, const QgsFeature* f, const QPointF& shift = QPointF( 0.0, 0.0 ) ) const;
+    bool writeDxf( QgsDxfExport& e, double mmMapUnitScaleFactor, const QString& layerName, QgsSymbolV2RenderContext* context, const QgsFeature* f, const QPointF& shift = QPointF( 0.0, 0.0 ) ) const;
 
     void setOutputUnit( QgsSymbolV2::OutputUnit unit );
     QgsSymbolV2::OutputUnit outputUnit() const;
@@ -82,7 +82,7 @@ class QgsSimpleMarkerSymbolLayerV2 : QgsMarkerSymbolLayerV2
     bool prepareShape( QString name, QPolygonF &polygon ) const;
     bool preparePath( QString name = QString() );
 
-    /**Prepares cache image
+    /** Prepares cache image
     @return true in case of success, false if cache image size too large*/
     bool prepareCache( QgsSymbolV2RenderContext& context );
 };
@@ -144,7 +144,7 @@ class QgsSvgMarkerSymbolLayerV2 : QgsMarkerSymbolLayerV2
     void setMapUnitScale( const QgsMapUnitScale& scale );
     QgsMapUnitScale mapUnitScale() const;
 
-    bool writeDxf( QgsDxfExport& e, double mmMapUnitScaleFactor, const QString& layerName, const QgsSymbolV2RenderContext* context, const QgsFeature* f, const QPointF& shift = QPointF( 0.0, 0.0 ) ) const;
+    bool writeDxf( QgsDxfExport& e, double mmMapUnitScaleFactor, const QString& layerName, QgsSymbolV2RenderContext* context, const QgsFeature* f, const QPointF& shift = QPointF( 0.0, 0.0 ) ) const;
 };
 
 class QgsFontMarkerSymbolLayerV2 : QgsMarkerSymbolLayerV2

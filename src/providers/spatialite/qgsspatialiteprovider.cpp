@@ -175,17 +175,20 @@ QgsSpatiaLiteProvider::createEmptyLayer(
       }
     }
 
-    // if the field doesn't not exist yet, create it as a int field
+    // if the pk field doesn't exist yet, create an integer pk field
+    // as it's autoincremental
     if ( primaryKeyType.isEmpty() )
     {
       primaryKeyType = "INTEGER";
-#if 0 // TODO
-      // check the feature count to choose if create a bigint pk field
-      if ( layer->featureCount() > 0xFFFFFF )
+    }
+    else
+    {
+      // if the pk field's type is bigint, use the autoincremental
+      // integer type instead
+      if ( primaryKeyType == "BIGINT" )
       {
-        primaryKeyType = "BIGINT";
+        primaryKeyType = "INTEGER";
       }
-#endif
     }
 
     try
@@ -3796,6 +3799,9 @@ bool QgsSpatiaLiteProvider::addAttributes( const QList<QgsField> &attributes )
   char *errMsg = NULL;
   bool toCommit = false;
   QString sql;
+
+  if ( attributes.count() == 0 )
+    return true;
 
   int ret = sqlite3_exec( sqliteHandle, "BEGIN", NULL, NULL, &errMsg );
   if ( ret != SQLITE_OK )

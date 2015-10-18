@@ -118,6 +118,19 @@ class QgsMapSettings
     //! Return the calculated scale of the map
     double scale() const;
 
+    /** Sets the expression context. This context is used for all expression evaluation
+     * associated with this map settings.
+     * @see expressionContext()
+     * @note added in QGIS 2.12
+     */
+    void setExpressionContext( const QgsExpressionContext& context );
+
+    /** Gets the expression context. This context should be used for all expression evaluation
+     * associated with this map settings.
+     * @see setExpressionContext()
+     * @note added in QGIS 2.12
+     */
+    const QgsExpressionContext& expressionContext() const;
 
     // -- utility functions --
 
@@ -125,6 +138,13 @@ class QgsMapSettings
     QgsDatumTransformStore& datumTransformStore();
 
     const QgsMapToPixel& mapToPixel() const;
+
+    /** Computes an *estimated* conversion factor between layer and map units: layerUnits * layerToMapUnits = mapUnits
+     * @param theLayer The layer
+     * @param referenceExtent A reference extent based on which to perform the computation. If not specified, the layer extent is used
+     * @note added in QGIS 2.12
+     */
+    double layerToMapUnits( QgsMapLayer* theLayer, const QgsRectangle& referenceExtent = QgsRectangle() ) const;
 
     /**
      * @brief transform bounding box from layer's CRS to output CRS

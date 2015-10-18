@@ -44,39 +44,39 @@ class SpatialJoin(GeoAlgorithm):
     KEEP = "KEEP"
     OUTPUT = "OUTPUT"
 
-    SUMMARYS = [
-        'Take attributes of the first located feature',
-        'Take summary of intersecting features'
-    ]
-
-    KEEPS = [
-        'Only keep matching records',
-        'Keep all records (including non-matching target records)'
-    ]
-
     def defineCharacteristics(self):
-        self.name = "Join attributes by location"
-        self.group = "Vector general tools"
+        self.name, self.i18n_name = self.trAlgorithm('Join attributes by location')
+        self.group, self.i18n_group = self.trAlgorithm('Vector general tools')
+
+        self.summarys = [
+            self.tr('Take attributes of the first located feature'),
+            self.tr('Take summary of intersecting features')
+        ]
+
+        self.keeps = [
+            self.tr('Only keep matching records'),
+            self.tr('Keep all records (including non-matching target records)')
+        ]
 
         self.addParameter(ParameterVector(self.TARGET,
-            self.tr('Target vector layer'),
-            [ParameterVector.VECTOR_TYPE_ANY]))
+                                          self.tr('Target vector layer'),
+                                          [ParameterVector.VECTOR_TYPE_ANY]))
         self.addParameter(ParameterVector(self.JOIN,
-            self.tr('Join vector layer'),
-            [ParameterVector.VECTOR_TYPE_ANY]))
+                                          self.tr('Join vector layer'),
+                                          [ParameterVector.VECTOR_TYPE_ANY]))
         predicates = list(ParameterGeometryPredicate.predicates)
         predicates.remove('disjoint')
         self.addParameter(ParameterGeometryPredicate(self.PREDICATE,
-            self.tr('Geometric predicate'),
-            left=self.TARGET, right=self.JOIN,
-            enabledPredicates=predicates))
+                                                     self.tr('Geometric predicate'),
+                                                     left=self.TARGET, right=self.JOIN,
+                                                     enabledPredicates=predicates))
         self.addParameter(ParameterSelection(self.SUMMARY,
-            self.tr('Attribute summary'), self.SUMMARYS))
+                                             self.tr('Attribute summary'), self.summarys))
         self.addParameter(ParameterString(self.STATS,
-            self.tr('Statistics for summary (comma separated)'),
-            'sum,mean,min,max,median', optional=True))
+                                          self.tr('Statistics for summary (comma separated)'),
+                                          'sum,mean,min,max,median', optional=True))
         self.addParameter(ParameterSelection(self.KEEP,
-            self.tr('Joined table'), self.KEEPS))
+                                             self.tr('Joined table'), self.keeps))
         self.addOutput(OutputVector(self.OUTPUT, self.tr('Joined layer')))
 
     def processAlgorithm(self, progress):
@@ -238,7 +238,6 @@ class SpatialJoin(GeoAlgorithm):
 
             progress.setPercentage(int(c * total))
         del writer
-
 
     def _filterNull(self, values):
         """Takes an iterator of values and returns a new iterator

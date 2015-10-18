@@ -273,7 +273,7 @@ enum WKBType
 class QOCISpatialRowId: public QSharedData
 {
   public:
-    QOCISpatialRowId( OCIEnv *env );
+    explicit QOCISpatialRowId( OCIEnv *env );
     ~QOCISpatialRowId();
 
     OCIRowid *id;
@@ -1759,7 +1759,7 @@ struct QOCISpatialBatchColumn
 
 struct QOCISpatialBatchCleanupHandler
 {
-  inline QOCISpatialBatchCleanupHandler( QVector<QOCISpatialBatchColumn> &columns )
+  explicit inline QOCISpatialBatchCleanupHandler( QVector<QOCISpatialBatchColumn> &columns )
       : col( columns ) {}
 
   ~QOCISpatialBatchCleanupHandler()
@@ -3602,7 +3602,7 @@ QStringList QOCISpatialDriver::tables( QSql::TableType type ) const
     user = user.toUpper();
 
   if ( sysUsers.contains( user ) )
-    sysUsers.removeAll( user );;
+    sysUsers.removeAll( user );
 
   if ( !isOpen() )
     return tl;

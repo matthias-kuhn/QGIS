@@ -80,6 +80,8 @@ void TestQgsComposerMultiFrame::cleanupTestCase()
     myQTextStream << mReport;
     myFile.close();
   }
+
+  QgsApplication::exitQgis();
 }
 
 void TestQgsComposerMultiFrame::init()
@@ -96,6 +98,7 @@ void TestQgsComposerMultiFrame::addFrame()
 {
   QgsComposerHtml* htmlItem = new QgsComposerHtml( mComposition, false );
   QgsComposerFrame* frame1 = new QgsComposerFrame( mComposition, htmlItem, 0, 0, 100, 200 );
+  htmlItem->addFrame( frame1 );
 
   //should not be inherited
   frame1->setHidePageIfEmpty( true );

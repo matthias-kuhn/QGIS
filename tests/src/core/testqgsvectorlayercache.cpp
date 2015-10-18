@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 20.2.2013
     Copyright            : (C) 2013 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -76,7 +76,7 @@ void TestVectorLayerCache::initTestCase()
   QString myDataDir( TEST_DATA_DIR ); //defined in CmakeLists.txt
   QString myTestDataDir = myDataDir + "/";
 
-  foreach ( QString f, backupFiles )
+  Q_FOREACH ( const QString& f, backupFiles )
   {
     QString origFileName = myTestDataDir + f;
     QFileInfo origFileInfo( origFileName );
@@ -161,7 +161,7 @@ void TestVectorLayerCache::testCacheAttrActions()
   QVERIFY( mVectorLayerCache->featureAtId( 15, f ) );
   QVERIFY( f.attribute( "newAttr" ).isValid() );
 
-  QgsFields allFields = mPointsLayer->pendingFields();
+  QgsFields allFields = mPointsLayer->fields();
   int idx = allFields.indexFromName( "newAttr" );
 
   mPointsLayer->startEditing();
@@ -203,7 +203,7 @@ void TestVectorLayerCache::testSubsetRequest()
 {
   QgsFeature f;
 
-  QgsFields fields = mPointsLayer->pendingFields();
+  QgsFields fields = mPointsLayer->fields();
   QStringList requiredFields;
   requiredFields << "Class" << "Cabin Crew";
 

@@ -481,3 +481,6 @@ typedef unsigned long long qgssize;
 #endif
 #endif
 #endif
+
+// Legacy compatibility fix to get some qwt includes through the compiler
+#define QT_STATIC_CONST static const

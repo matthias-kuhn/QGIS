@@ -48,6 +48,7 @@ SET(QGIS_GUI_SRCS
 
   attributetable/qgsattributetabledelegate.cpp
   attributetable/qgsattributetablefiltermodel.cpp
+  attributetable/qgsfieldconditionalformatwidget.cpp
   attributetable/qgsattributetablemodel.cpp
   attributetable/qgsattributetableview.cpp
   attributetable/qgsdualview.cpp
@@ -57,6 +58,26 @@ SET(QGIS_GUI_SRCS
   attributetable/qgsfeatureselectionmodel.cpp
   attributetable/qgsgenericfeatureselectionmanager.cpp
   attributetable/qgsvectorlayerselectionmanager.cpp
+
+  auth/qgsauthauthoritieseditor.cpp
+  auth/qgsauthcertificateinfo.cpp
+  auth/qgsauthcertificatemanager.cpp
+  auth/qgsauthcerttrustpolicycombobox.cpp
+  auth/qgsauthconfigedit.cpp
+  auth/qgsauthconfigeditor.cpp
+  auth/qgsauthconfigidedit.cpp
+  auth/qgsauthconfigselect.cpp
+  auth/qgsautheditorwidgets.cpp
+  auth/qgsauthguiutils.cpp
+  auth/qgsauthidentitieseditor.cpp
+  auth/qgsauthimportcertdialog.cpp
+  auth/qgsauthimportidentitydialog.cpp
+  auth/qgsauthmasterpassresetdialog.cpp
+  auth/qgsauthserverseditor.cpp
+  auth/qgsauthsslconfigwidget.cpp
+  auth/qgsauthsslerrorsdialog.cpp
+  auth/qgsauthsslimportdialog.cpp
+  auth/qgsauthtrustedcasdialog.cpp
 
   editorwidgets/core/qgseditorconfigwidget.cpp
   editorwidgets/core/qgseditorwidgetfactory.cpp
@@ -124,6 +145,8 @@ SET(QGIS_GUI_SRCS
   qgisinterface.cpp
   qgsannotationitem.cpp
   qgsactionmenu.cpp
+  qgsadvanceddigitizingcanvasitem.cpp
+  qgsadvanceddigitizingdockwidget.cpp
   qgsattributedialog.cpp
   qgsattributeeditor.cpp
   qgsattributeform.cpp
@@ -175,6 +198,7 @@ SET(QGIS_GUI_SRCS
   qgsfilterlineedit.cpp
   qgsformannotationitem.cpp
   qgsgenericprojectionselector.cpp
+  qgsgeometryrubberband.cpp
   qgshighlight.cpp
   qgshistogramwidget.cpp
   qgsidentifymenu.cpp
@@ -191,9 +215,13 @@ SET(QGIS_GUI_SRCS
   qgsmaplayercombobox.cpp
   qgsmaplayermodel.cpp
   qgsmaplayerproxymodel.cpp
+  qgsmapmouseevent.cpp
   qgsmapoverviewcanvas.cpp
   qgsmaptip.cpp
   qgsmaptool.cpp
+  qgsmaptooladvanceddigitizing.cpp
+  qgsmaptoolcapture.cpp
+  qgsmaptooledit.cpp
   qgsmaptoolemitpoint.cpp
   qgsmaptoolidentify.cpp
   qgsmaptoolidentifyfeature.cpp
@@ -210,6 +238,7 @@ SET(QGIS_GUI_SRCS
   qgsnumericsortlistviewitem.cpp
   qgsoptionsdialogbase.cpp
   qgsowssourceselect.cpp
+  qgspixmaplabel.cpp
   qgspluginmanagerinterface.cpp
   qgsprojectbadlayerguihandler.cpp
   qgsprojectionselectionwidget.cpp
@@ -232,6 +261,7 @@ SET(QGIS_GUI_SRCS
   qgssvgannotationitem.cpp
   qgstextannotationitem.cpp
   qgsuserinputdockwidget.cpp
+  qgsvariableeditorwidget.cpp
   qgsvertexmarker.cpp
   qgsunitselectionwidget.cpp
 )
@@ -256,16 +286,17 @@ ENDIF (WITH_TOUCH)
 SET(QGIS_GUI_MOC_HDRS
   qgisinterface.h
   qgsactionmenu.h
+  qgsadvanceddigitizingdockwidget.h
   qgsattributedialog.h
   qgsattributeeditor.h
   qgsattributeform.h
   qgsattributetypeloaddialog.h
   qgsblendmodecombobox.h
+  qgsbrowsertreeview.h
   qgsbusyindicatordialog.h
   qgscharacterselectdialog.h
-  qgsbrowsertreeview.h
-  qgscodeeditor.h
   qgscodeeditorcss.h
+  qgscodeeditor.h
   qgscodeeditorhtml.h
   qgscodeeditorpython.h
   qgscodeeditorsql.h
@@ -315,9 +346,16 @@ SET(QGIS_GUI_MOC_HDRS
   qgsmaplayerproxymodel.h
   qgsmapoverviewcanvas.h
   qgsmaptool.h
+  qgsmaptooladvanceddigitizing.h
+  qgsmaptoolcapture.h
+  qgsmaptooledit.h
   qgsmaptoolemitpoint.h
   qgsmaptoolidentify.h
   qgsmaptoolidentifyfeature.h
+  qgsmaptoolpan.h
+  qgsmaptoolpan.h
+  qgsmaptoolzoom.h
+  qgsmaptoolzoom.h
   qgsmessagebar.h
   qgsmessagebaritem.h
   qgsmessagelogviewer.h
@@ -328,6 +366,7 @@ SET(QGIS_GUI_MOC_HDRS
   qgsnewvectorlayerdialog.h
   qgsoptionsdialogbase.h
   qgsowssourceselect.h
+  qgspixmaplabel.h
   qgspluginmanagerinterface.h
   qgsprevieweffect.h
   qgsprojectbadlayerguihandler.h
@@ -347,6 +386,7 @@ SET(QGIS_GUI_MOC_HDRS
   qgssearchquerybuilder.h
   qgsslider.h
   qgssublayersdialog.h
+  qgsvariableeditorwidget.h
   qgsunitselectionwidget.h
   qgsuserinputdockwidget.h
 
@@ -356,6 +396,7 @@ SET(QGIS_GUI_MOC_HDRS
   raster/qgssinglebandgrayrendererwidget.h
   raster/qgssinglebandpseudocolorrendererwidget.h
   raster/qgsrasterhistogramwidget.h
+  raster/qgsrasterrendererwidget.h
 
   symbology-ng/characterwidget.h
   symbology-ng/qgsbrushstylecombobox.h
@@ -395,6 +436,7 @@ SET(QGIS_GUI_MOC_HDRS
   attributetable/qgsattributetablemodel.h
   attributetable/qgsattributetableview.h
   attributetable/qgsdualview.h
+  attributetable/qgsfieldconditionalformatwidget.h
   attributetable/qgsfeaturelistmodel.h
   attributetable/qgsfeaturelistview.h
   attributetable/qgsfeaturelistviewdelegate.h
@@ -402,6 +444,26 @@ SET(QGIS_GUI_MOC_HDRS
   attributetable/qgsgenericfeatureselectionmanager.h
   attributetable/qgsifeatureselectionmanager.h
   attributetable/qgsvectorlayerselectionmanager.h
+
+  auth/qgsauthauthoritieseditor.h
+  auth/qgsauthcertificateinfo.h
+  auth/qgsauthcertificatemanager.h
+  auth/qgsauthcerttrustpolicycombobox.h
+  auth/qgsauthconfigedit.h
+  auth/qgsauthconfigeditor.h
+  auth/qgsauthconfigidedit.h
+  auth/qgsauthconfigselect.h
+  auth/qgsautheditorwidgets.h
+  auth/qgsauthidentitieseditor.h
+  auth/qgsauthimportcertdialog.h
+  auth/qgsauthimportidentitydialog.h
+  auth/qgsauthmasterpassresetdialog.h
+  auth/qgsauthmethodedit.h
+  auth/qgsauthserverseditor.h
+  auth/qgsauthsslconfigwidget.h
+  auth/qgsauthsslerrorsdialog.h
+  auth/qgsauthsslimportdialog.h
+  auth/qgsauthtrustedcasdialog.h
 
   effects/qgseffectdrawmodecombobox.h
   effects/qgspainteffectpropertieswidget.h
@@ -467,7 +529,7 @@ ENDIF (WITH_QTWEBKIT)
 QT4_WRAP_CPP(QGIS_GUI_MOC_SRCS ${QGIS_GUI_MOC_HDRS})
 
 IF(MSVC)
-  SET_SOURCE_FILES_PROPERTIES(${QGIS_GUI_MOC_SRCS} PROPERTIES COMPILE_FLAGS "/wd4996" )
+  SET_SOURCE_FILES_PROPERTIES(${QGIS_GUI_MOC_SRCS} PROPERTIES COMPILE_FLAGS "/wd4512 /wd4996" )
 ELSE(MSVC)
   SET_SOURCE_FILES_PROPERTIES(${QGIS_GUI_MOC_SRCS} PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations" )
 ENDIF(MSVC)
@@ -490,8 +552,7 @@ SET(QGIS_GUI_HDRS
   qgsmapcanvassnapper.h
   qgsmapcanvassnappingutils.h
   qgsmaptip.h
-  qgsmaptoolpan.h
-  qgsmaptoolzoom.h
+  qgsmapmouseevent.h
   qgsnumericsortlistviewitem.h
   qgsrubberband.h
   qgssvgannotationitem.h
@@ -501,6 +562,27 @@ SET(QGIS_GUI_HDRS
   qgsvertexmarker.h
 
   attributetable/qgsfeaturemodel.h
+
+  auth/qgsauthauthoritieseditor.h
+  auth/qgsauthcertificateinfo.h
+  auth/qgsauthcertificatemanager.h
+  auth/qgsauthcerttrustpolicycombobox.h
+  auth/qgsauthconfigedit.h
+  auth/qgsauthconfigeditor.h
+  auth/qgsauthconfigidedit.h
+  auth/qgsauthconfigselect.h
+  auth/qgsautheditorwidgets.h
+  auth/qgsauthguiutils.h
+  auth/qgsauthmethodedit.h
+  auth/qgsauthidentitieseditor.h
+  auth/qgsauthimportcertdialog.h
+  auth/qgsauthimportidentitydialog.h
+  auth/qgsauthmasterpassresetdialog.h
+  auth/qgsauthserverseditor.h
+  auth/qgsauthsslconfigwidget.h
+  auth/qgsauthsslerrorsdialog.h
+  auth/qgsauthsslimportdialog.h
+  auth/qgsauthtrustedcasdialog.h
 
   editorwidgets/core/qgseditorwidgetfactory.h
 
@@ -561,11 +643,13 @@ INCLUDE_DIRECTORIES(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/symbology-ng
   ${CMAKE_CURRENT_SOURCE_DIR}/attributetable
+  ${CMAKE_CURRENT_SOURCE_DIR}/auth
   ${CMAKE_CURRENT_SOURCE_DIR}/editorwidgets
   ${CMAKE_CURRENT_SOURCE_DIR}/editorwidgets/core
   ${CMAKE_CURRENT_SOURCE_DIR}/layertree
   ${CMAKE_CURRENT_SOURCE_DIR}/effects
   ../core
+  ../core/auth
   ../core/composer
   ../core/geometry
   ../core/layertree
@@ -574,6 +658,7 @@ INCLUDE_DIRECTORIES(
   ../core/effects
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}/../ui
+  ${QCA_INCLUDE_DIR}
   ${QWT_INCLUDE_DIR}
   ${SQLITE3_INCLUDE_DIR}
 )
@@ -596,7 +681,7 @@ IF(MSVC)
     ${CMAKE_BINARY_DIR}/src/gui/moc_qgisinterface.cxx
     ${CMAKE_BINARY_DIR}/src/gui/moc_qgsgenericprojectionselector.cxx
     ${CMAKE_BINARY_DIR}/src/gui/moc_qgsprojectionselector.cxx
-    PROPERTIES COMPILE_FLAGS "-wd4996")
+    PROPERTIES COMPILE_FLAGS "/wd4996")
 ELSE(MSVC)
   SET_SOURCE_FILES_PROPERTIES(
     ${CMAKE_BINARY_DIR}/src/gui/moc_qgisinterface.cxx

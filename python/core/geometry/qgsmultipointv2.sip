@@ -5,7 +5,7 @@ class QgsMultiPointV2: public QgsGeometryCollectionV2
 %End
 public:
   virtual QString geometryType() const;
-  QgsAbstractGeometryV2* clone() const;
+  virtual QgsMultiPointV2* clone() const;
 
   bool fromWkt( const QString& wkt );
 
@@ -17,6 +17,6 @@ public:
   QString asJSON( int precision = 17 ) const;
 
 
-  /**Adds a geometry and takes ownership. Returns true in case of success*/
+  /** Adds a geometry and takes ownership. Returns true in case of success*/
   virtual bool addGeometry( QgsAbstractGeometryV2* g );
 };

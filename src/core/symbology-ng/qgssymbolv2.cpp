@@ -42,9 +42,9 @@ inline
 QgsDataDefined* rotateWholeSymbol( double additionalRotation, const QgsDataDefined& dd )
 {
   QgsDataDefined* rotatedDD = new QgsDataDefined( dd );
-  rotatedDD->setUseExpression( true );
   QString exprString = dd.useExpression() ? dd.expressionString() : dd.field();
   rotatedDD->setExpressionString( QString::number( additionalRotation ) + " + (" + exprString + ")" );
+  rotatedDD->setUseExpression( true );
   return rotatedDD;
 }
 
@@ -52,9 +52,9 @@ inline
 QgsDataDefined* scaleWholeSymbol( double scaleFactor, const QgsDataDefined& dd )
 {
   QgsDataDefined* scaledDD = new QgsDataDefined( dd );
-  scaledDD->setUseExpression( true );
   QString exprString = dd.useExpression() ? dd.expressionString() : dd.field();
   scaledDD->setExpressionString( QString::number( scaleFactor ) + "*(" + exprString + ")" );
+  scaledDD->setUseExpression( true );
   return scaledDD;
 }
 
@@ -62,12 +62,12 @@ inline
 QgsDataDefined* scaleWholeSymbol( double scaleFactorX, double scaleFactorY, const QgsDataDefined& dd )
 {
   QgsDataDefined* scaledDD = new QgsDataDefined( dd );
-  scaledDD->setUseExpression( true );
   QString exprString = dd.useExpression() ? dd.expressionString() : dd.field();
   scaledDD->setExpressionString(
     ( scaleFactorX ? "tostring(" + QString::number( scaleFactorX ) + "*(" + exprString + "))" : "'0'" ) +
     "|| ',' || " +
     ( scaleFactorY ? "tostring(" + QString::number( scaleFactorY ) + "*(" + exprString + "))" : "'0'" ) );
+  scaledDD->setUseExpression( true );
   return scaledDD;
 }
 
@@ -387,7 +387,7 @@ QImage QgsSymbolV2::asImage( QSize size, QgsRenderContext* customContext )
 }
 
 
-QImage QgsSymbolV2::bigSymbolPreviewImage()
+QImage QgsSymbolV2::bigSymbolPreviewImage( QgsExpressionContext* expressionContext )
 {
   QImage preview( QSize( 100, 100 ), QImage::Format_ARGB32_Premultiplied );
   preview.fill( 0 );
@@ -404,6 +404,9 @@ QImage QgsSymbolV2::bigSymbolPreviewImage()
   }
 
   QgsRenderContext context = QgsSymbolLayerV2Utils::createRenderContext( &p );
+  if ( expressionContext )
+    context.setExpressionContext( *expressionContext );
+
   startRender( context );
 
   if ( mType == QgsSymbolV2::Line )
@@ -501,10 +504,14 @@ QgsSymbolV2RenderContext::~QgsSymbolV2RenderContext()
 
 }
 
+void QgsSymbolV2RenderContext::setOriginalValueVariable( const QVariant& value )
+{
+  mRenderContext.expressionContext().setOriginalValueVariable( value );
+}
 
 double QgsSymbolV2RenderContext::outputLineWidth( double width ) const
 {
-  return width * QgsSymbolLayerV2Utils::lineWidthScaleFactor( mRenderContext, mOutputUnit, mMapUnitScale );
+  return QgsSymbolLayerV2Utils::convertToPainterUnits( mRenderContext, width, mOutputUnit, mMapUnitScale );
 }
 
 double QgsSymbolV2RenderContext::outputPixelSize( double size ) const

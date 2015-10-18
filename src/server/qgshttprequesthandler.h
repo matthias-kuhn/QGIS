@@ -32,7 +32,7 @@ It provides a method to set data to the client*/
 class QgsHttpRequestHandler: public QgsRequestHandler
 {
   public:
-    QgsHttpRequestHandler( const bool captureOutput /*= FALSE*/ );
+    explicit QgsHttpRequestHandler( const bool captureOutput /*= FALSE*/ );
     ~QgsHttpRequestHandler();
 
     virtual void setGetMapResponse( const QString& service, QImage* img, int imageQuality ) override;
@@ -63,12 +63,8 @@ class QgsHttpRequestHandler: public QgsRequestHandler
 #ifdef HAVE_SERVER_PYTHON_PLUGINS
     virtual void setPluginFilters( QgsServerFiltersMap pluginFilters ) override;
 #endif
-    // TODO: if HAVE_SERVER_PYTHON
-    QByteArray getResponseHeader( ) override { return mResponseHeader; }
-    QByteArray getResponseBody( ) override { return mResponseBody; }
     /** Return the response if capture output is activated */
-    QByteArray getResponse( const bool returnHeaders = TRUE,
-                            const bool returnBody = TRUE ) override;
+    QPair<QByteArray, QByteArray> getResponse( ) override;
 
   protected:
     virtual void sendHeaders( ) override;

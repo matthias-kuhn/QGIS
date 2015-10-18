@@ -18,13 +18,14 @@
 #include <QList>
 #include "qgsfeatureiterator.h"
 #include "qgsfeature.h"
+#include "qgsexpressioncontext.h"
 
 #include "qgsdelimitedtextprovider.h"
 
 class QgsDelimitedTextFeatureSource : public QgsAbstractFeatureSource
 {
   public:
-    QgsDelimitedTextFeatureSource( const QgsDelimitedTextProvider* p );
+    explicit QgsDelimitedTextFeatureSource( const QgsDelimitedTextProvider* p );
     ~QgsDelimitedTextFeatureSource();
 
     virtual QgsFeatureIterator getFeatures( const QgsFeatureRequest& request ) override;
@@ -32,6 +33,7 @@ class QgsDelimitedTextFeatureSource : public QgsAbstractFeatureSource
   protected:
     QgsDelimitedTextProvider::GeomRepresentationType mGeomRep;
     QgsExpression *mSubsetExpression;
+    QgsExpressionContext mExpressionContext;
     QgsRectangle mExtent;
     bool mUseSpatialIndex;
     QgsSpatialIndex *mSpatialIndex;

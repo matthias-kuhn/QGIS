@@ -24,6 +24,7 @@
 #include "qgssymbollayerv2utils.h"
 #include "qgsscaleexpression.h"
 #include "qgsdatadefined.h"
+#include "qgsmapcanvas.h"
 
 #include <QMenu>
 #include <QAction>
@@ -35,7 +36,7 @@
 class ItemDelegate : public QItemDelegate
 {
   public:
-    ItemDelegate( QStandardItemModel* model ): mModel( model ) {}
+    explicit ItemDelegate( QStandardItemModel* model ) : mModel( model ) {}
 
     QSize sizeHint( const QStyleOptionViewItem& /*option*/, const QModelIndex & index ) const override
     {
@@ -78,14 +79,42 @@ void QgsSizeScaleWidget::setFromSymbol()
   updatePreview();
 }
 
+static QgsExpressionContext _getExpressionContext( const void* context )
+{
+  const QgsSizeScaleWidget* widget = ( const QgsSizeScaleWidget* ) context;
+
+  QgsExpressionContext expContext;
+  expContext << QgsExpressionContextUtils::globalScope()
+  << QgsExpressionContextUtils::projectScope()
+  << QgsExpressionContextUtils::atlasScope( 0 );
+
+  if ( widget->mapCanvas() )
+  {
+    expContext << QgsExpressionContextUtils::mapSettingsScope( widget->mapCanvas()->mapSettings() )
+    << new QgsExpressionContextScope( widget->mapCanvas()->expressionContextScope() );
+  }
+  else
+  {
+    expContext << QgsExpressionContextUtils::mapSettingsScope( QgsMapSettings() );
+  }
+
+  if ( widget->layer() )
+    expContext << QgsExpressionContextUtils::layerScope( widget->layer() );
+
+  return expContext;
+}
+
 QgsSizeScaleWidget::QgsSizeScaleWidget( const QgsVectorLayer * layer, const QgsMarkerSymbolV2 * symbol )
     : mSymbol( symbol )
     // we just use the minimumValue and maximumValue from the layer, unfortunately they are
     // non const, so we get the layer from the registry instead
     , mLayer( layer ? dynamic_cast<QgsVectorLayer *>( QgsMapLayerRegistry::instance()->mapLayer( layer->id() ) ) : 0 )
+    , mMapCanvas( 0 )
 {
   setupUi( this );
   setWindowFlags( Qt::WindowStaysOnTopHint );
+
+  mExpressionWidget->registerGetExpressionContextCallback( &_getExpressionContext, this );
 
   if ( mLayer )
   {
@@ -207,7 +236,14 @@ void QgsSizeScaleWidget::computeFromLayerTriggered()
     return;
 
   QgsExpression expression( mExpressionWidget->currentField() );
-  if ( ! expression.prepare( mLayer->pendingFields() ) )
+
+  QgsExpressionContext context;
+  context << QgsExpressionContextUtils::globalScope()
+  << QgsExpressionContextUtils::projectScope()
+  << QgsExpressionContextUtils::atlasScope( 0 )
+  << QgsExpressionContextUtils::layerScope( mLayer );
+
+  if ( ! expression.prepare( &context ) )
     return;
 
   QStringList lst( expression.referencedColumns() );
@@ -216,7 +252,7 @@ void QgsSizeScaleWidget::computeFromLayerTriggered()
                              QgsFeatureRequest().setFlags( expression.needsGeometry()
                                                            ? QgsFeatureRequest::NoFlags
                                                            : QgsFeatureRequest::NoGeometry )
-                             .setSubsetOfAttributes( lst, mLayer->pendingFields() ) );
+                             .setSubsetOfAttributes( lst, mLayer->fields() ) );
 
   // create list of non-null attribute values
   double min = DBL_MAX;
@@ -225,7 +261,8 @@ void QgsSizeScaleWidget::computeFromLayerTriggered()
   while ( fit.nextFeature( f ) )
   {
     bool ok;
-    const double value = expression.evaluate( f ).toDouble( &ok );
+    context.setFeature( f );
+    const double value = expression.evaluate( &context ).toDouble( &ok );
     if ( ok )
     {
       max = qMax( max, value );

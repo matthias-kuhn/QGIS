@@ -34,6 +34,7 @@
 #include "qgscoordinatereferencesystem.h"
 #include "qgsdatasourceuri.h"
 #include "qgslogger.h"
+#include "qgsauthmanager.h"
 #include "qgsmaplayer.h"
 #include "qgsmaplayerlegend.h"
 #include "qgsmaplayerstylemanager.h"
@@ -182,7 +183,16 @@ bool QgsMapLayer::readLayerXML( const QDomElement& layerElement )
   mne = mnl.toElement();
   mDataSource = mne.text();
 
+  // if the layer needs authentication, ensure the master password is set
+  QRegExp rx( "authcfg=([a-z]|[A-Z]|[0-9]){7}" );
+  if (( rx.indexIn( mDataSource ) != -1 )
+      && !QgsAuthManager::instance()->setMasterPassword( true ) )
+  {
+    return false;
+  }
+
   // TODO: this should go to providers
+  // see also QgsProject::createEmbeddedLayer
   if ( provider == "spatialite" )
   {
     QgsDataSourceURI uri( mDataSource );
@@ -746,7 +756,7 @@ QDomDocument QgsMapLayer::asLayerDefinition( QList<QgsMapLayer *> layers, QStrin
   QDomElement qgiselm = doc.createElement( "qlr" );
   doc.appendChild( qgiselm );
   QDomElement layerselm = doc.createElement( "maplayers" );
-  foreach ( QgsMapLayer* layer, layers )
+  Q_FOREACH ( QgsMapLayer* layer, layers )
   {
     QDomElement layerelm = doc.createElement( "maplayer" );
     layer->writeLayerXML( layerelm, doc, relativeBasePath );

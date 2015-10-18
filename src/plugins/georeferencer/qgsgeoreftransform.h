@@ -72,7 +72,7 @@ class QgsGeorefTransform : public QgsGeorefTransformInterface
       InvalidTransform = 65535
     };
 
-    QgsGeorefTransform( TransformParametrisation parametrisation );
+    explicit QgsGeorefTransform( TransformParametrisation parametrisation );
     QgsGeorefTransform();
     ~QgsGeorefTransform();
 
@@ -98,7 +98,7 @@ class QgsGeorefTransform : public QgsGeorefTransformInterface
     //! \brief The transform parametrisation currently in use.
     TransformParametrisation transformParametrisation() const;
 
-    /**True for linear, Helmert, first order polynomial*/
+    /** True for linear, Helmert, first order polynomial*/
     bool providesAccurateInverseTransformation() const;
 
     //! \returns whether the parameters of this transform have been initialised by \ref updateParametersFromGCPs

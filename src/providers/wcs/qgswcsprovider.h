@@ -24,6 +24,7 @@
 
 #include "qgserror.h"
 #include "qgswcscapabilities.h"
+#include "qgsauthmanager.h"
 #include "qgsrasterdataprovider.h"
 #include "qgsgdalproviderbase.h"
 #include "qgsrectangle.h"
@@ -50,15 +51,24 @@ class QNetworkRequest;
 // TODO: merge with QgsWmsAuthorization?
 struct QgsWcsAuthorization
 {
-  QgsWcsAuthorization( const QString& userName = QString(), const QString& password = QString() ) : mUserName( userName ), mPassword( password ) {}
+  QgsWcsAuthorization( const QString& userName = QString(), const QString& password = QString(), const QString& authcfg = QString() )
+      : mUserName( userName )
+      , mPassword( password )
+      , mAuthCfg( authcfg )
+  {}
 
   //! set authorization header
-  void setAuthorization( QNetworkRequest &request ) const
+  bool setAuthorization( QNetworkRequest &request ) const
   {
-    if ( !mUserName.isNull() || !mPassword.isNull() )
+    if ( !mAuthCfg.isEmpty() )
+    {
+      return QgsAuthManager::instance()->updateNetworkRequest( request, mAuthCfg );
+    }
+    else if ( !mUserName.isNull() || !mPassword.isNull() )
     {
       request.setRawHeader( "Authorization", "Basic " + QString( "%1:%2" ).arg( mUserName ).arg( mPassword ).toAscii().toBase64() );
     }
+    return true;
   }
 
   //! Username for basic http authentication
@@ -66,6 +76,9 @@ struct QgsWcsAuthorization
 
   //! Password for basic http authentication
   QString mPassword;
+
+  //! Authentication configuration ID
+  QString mAuthCfg;
 };
 
 /**
@@ -89,14 +102,14 @@ class QgsWcsProvider : public QgsRasterDataProvider, QgsGdalProviderBase
     *                otherwise we contact the host directly.
     *
     */
-    QgsWcsProvider( QString const & uri = 0 );
+    explicit QgsWcsProvider( QString const & uri = 0 );
 
     //! Destructor
     virtual ~QgsWcsProvider();
 
     QgsRasterInterface * clone() const override;
 
-    /*! Get the QgsCoordinateReferenceSystem for this layer
+    /** Get the QgsCoordinateReferenceSystem for this layer
      * @note Must be reimplemented by each provider.
      * If the provider isn't capable of returning
      * its projection an empty srs will be return, ti will return 0
@@ -147,11 +160,11 @@ class QgsWcsProvider : public QgsRasterDataProvider, QgsGdalProviderBase
     */
     virtual QgsRectangle extent() override;
 
-    /**Returns true if layer is valid
+    /** Returns true if layer is valid
      */
     bool isValid() override;
 
-    /**Returns the base url
+    /** Returns the base url
      */
     virtual QString baseUrl() const;
 
@@ -424,6 +437,7 @@ class QgsWcsDownloadHandler : public QObject
     void finish() { QMetaObject::invokeMethod( mEventLoop, "quit", Qt::QueuedConnection ); }
 
     QgsNetworkAccessManager* mNAM;
+    QgsWcsAuthorization& mAuth;
     QEventLoop* mEventLoop;
 
     QNetworkReply* mCacheReply;

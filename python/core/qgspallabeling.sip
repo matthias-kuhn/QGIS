@@ -145,6 +145,17 @@ class QgsPalLayerSettings
                                will be drawn with right alignment*/
     };
 
+    /** Valid obstacle types, which affect how features within the layer will act as obstacles
+     * for labels.
+     */
+    enum ObstacleType
+    {
+      PolygonInterior, /*!< avoid placing labels over interior of polygon (prefer placing labels totally
+       outside or just slightly inside polygon) */
+      PolygonBoundary /*!< avoid placing labels over boundary of polygon (prefer placing outside or
+       completely inside polygon) */
+    };
+
     enum ShapeType
     {
       ShapeRectangle,
@@ -287,6 +298,9 @@ class QgsPalLayerSettings
       FontLimitPixel,
       FontMinPixel,
       FontMaxPixel,
+      IsObstacle,
+      ObstacleFactor,
+
       // (data defined only)
       Show,
       AlwaysShow
@@ -294,6 +308,15 @@ class QgsPalLayerSettings
 
     // whether to label this layer
     bool enabled;
+
+    /** Whether to draw labels for this layer. For some layers it may be desirable
+     * to register their features as obstacles for other labels without requiring
+     * labels to be drawn for the layer itself. In this case drawLabels can be set
+     * to false and obstacle set to true, which will result in the layer acting
+     * as an obstacle but having no labels of its own.
+     * @note added in QGIS 2.12
+     */
+    bool drawLabels;
 
     //-- text style
 
@@ -398,6 +421,10 @@ class QgsPalLayerSettings
 
     bool centroidWhole; // whether centroid calculated from whole or visible polygon
     bool centroidInside; // whether centroid-point calculated must be inside polygon
+
+    /** True if only labels which completely fit within a polygon are allowed.
+     */
+    bool fitInPolygonOnly;
     double dist; // distance from the feature (in mm)
     bool distInMapUnits; //true if distance is in map units (otherwise in mm)
     QgsMapUnitScale distMapUnitScale;
@@ -433,7 +460,7 @@ class QgsPalLayerSettings
     int fontMaxPixelSize; // maximum pixel size for showing rendered map unit labels (1 - 10000)
 
     bool displayAll;  // if true, all features will be labelled even though overlaps occur
-    unsigned int upsidedownLabels; // whether, or how, to show upsidedown labels
+    UpsideDownLabels upsidedownLabels; // whether, or how, to show upsidedown labels
 
     bool labelPerPart; // whether to label every feature's part or only the biggest one
     bool mergeLines;
@@ -444,15 +471,29 @@ class QgsPalLayerSettings
     double minFeatureSize; // minimum feature size to be labelled (in mm)
     bool obstacle; // whether features for layer are obstacles to labels of other layers
 
+    /** Obstacle factor, where 1.0 = default, < 1.0 more likely to be covered by labels,
+     * > 1.0 less likely to be covered
+     */
+    double obstacleFactor;
+
+    /** Controls how features act as obstacles for labels
+     */
+    ObstacleType obstacleType;
+
     //-- scale factors
     double vectorScaleFactor; //scale factor painter units->pixels
     double rasterCompressFactor; //pixel resolution scale factor
 
     // called from register feature hook
-    void calculateLabelSize( const QFontMetricsF* fm, QString text, double& labelX, double& labelY, QgsFeature* f = 0 );
+    void calculateLabelSize( const QFontMetricsF* fm, QString text, double& labelX, double& labelY, QgsFeature* f = 0, QgsRenderContext* context = 0 );
 
-    // implementation of register feature hook
-    void registerFeature( QgsFeature& f, const QgsRenderContext& context, QString dxfLayer );
+    /** Register a feature for labelling.
+     * @param f feature to label
+     * @param context render context. The QgsExpressionContext contained within the render context
+     * must have already had the feature and fields sets prior to calling this method.
+     * @param dxfLayer dxfLayer name
+     */
+    void registerFeature( QgsFeature& f, QgsRenderContext& context, QString dxfLayer );
 
     void readFromLayer( QgsVectorLayer* layer );
     void writeToLayer( QgsVectorLayer* layer );
@@ -471,6 +512,11 @@ class QgsPalLayerSettings
     /** Set a property to static instead data defined */
     void removeDataDefinedProperty( QgsPalLayerSettings::DataDefinedProperties p );
 
+    /** Clear all data-defined properties
+     * @note added in QGIS 2.12
+     */
+    void removeAllDataDefinedProperties();
+
     /** Convert old property value to new one as delimited values
      * @note not available in python bindings; as temporary solution until refactoring of project settings
      */
@@ -485,13 +531,14 @@ class QgsPalLayerSettings
      * @returns value inside QVariant
      * @note not available in python bindings
      */
-    QVariant dataDefinedValue( QgsPalLayerSettings::DataDefinedProperties p, QgsFeature& f, const QgsFields& fields ) const;
+    //QVariant dataDefinedValue( QgsPalLayerSettings::DataDefinedProperties p, QgsFeature& f, const QgsFields& fields,
+    //                           const QgsExpressionContext* context = 0 ) const;
 
     /** Get data defined property value from expression string or attribute field name
      * @returns true/false whether result is null or invalid
      * @note not available in python bindings
      */
-    bool dataDefinedEvaluate( QgsPalLayerSettings::DataDefinedProperties p, QVariant& exprVal ) const;
+    //bool dataDefinedEvaluate( QgsPalLayerSettings::DataDefinedProperties p, QVariant& exprVal, const QgsExpressionContext* context = 0 ) const;
 
     /** Whether data definition is active
      */
@@ -657,7 +704,8 @@ class QgsPalLabeling : QgsLabelingEngineInterface
 
     bool isShowingCandidates() const;
     void setShowingCandidates( bool showing );
-    const QList<QgsLabelCandidate>& candidates();
+    //! @deprecated since 2.12
+    const QList<QgsLabelCandidate>& candidates() /Deprecated/;
 
     bool isShowingShadowRectangles() const;
     void setShowingShadowRectangles( bool showing );
@@ -671,6 +719,21 @@ class QgsPalLabeling : QgsLabelingEngineInterface
     //! @note added in 2.4
     bool isDrawingOutlineLabels() const;
     void setDrawingOutlineLabels( bool outline );
+
+    /** Returns whether the engine will only draw the outline rectangles of labels,
+     * not the label contents themselves. Used for debugging and testing purposes.
+     * @see setDrawLabelRectOnly
+     * @note added in QGIS 2.12
+     */
+    bool drawLabelRectOnly() const;
+
+    /** Sets whether the engine should only draw the outline rectangles of labels,
+     * not the label contents themselves. Used for debugging and testing purposes.
+     * @param drawRect set to true to enable rect drawing only
+     * @see drawLabelRectOnly
+     * @note added in QGIS 2.12
+     */
+    void setDrawLabelRectOnly( bool drawRect );
 
     // implemented methods from labeling engine interface
 
@@ -695,9 +758,17 @@ class QgsPalLabeling : QgsLabelingEngineInterface
     virtual int prepareLayer( QgsVectorLayer* layer, QStringList &attrNames, QgsRenderContext& ctx );
     //! adds a diagram layer to the labeling engine
     virtual int addDiagramLayer( QgsVectorLayer* layer, const QgsDiagramLayerSettings *s );
-    //! hook called when drawing for every feature in a layer
-    virtual void registerFeature( const QString& layerID, QgsFeature& feat, const QgsRenderContext& context = QgsRenderContext(), QString dxfLayer = QString::null );
-    virtual void registerDiagramFeature( const QString& layerID, QgsFeature& feat, const QgsRenderContext& context = QgsRenderContext() );
+
+    /** Register a feature for labelling.
+     * @param layerID string identifying layer associated with label
+     * @param feat feature to label
+     * @param context render context. The QgsExpressionContext contained within the render context
+     * must have already had the feature and fields sets prior to calling this method.
+     * @param dxfLayer dxfLayer name
+     */
+    virtual void registerFeature( const QString& layerID, QgsFeature& feat, QgsRenderContext& context, QString dxfLayer = QString::null );
+
+    virtual void registerDiagramFeature( const QString& layerID, QgsFeature& feat, QgsRenderContext& context );
     //! called when the map is drawn and labels should be placed
     virtual void drawLabeling( QgsRenderContext& context );
     //! called when we're done with rendering
@@ -752,7 +823,7 @@ class QgsPalLabeling : QgsLabelingEngineInterface
      * @returns prepared geometry
      * @note added in QGIS 2.9
      */
-    static QgsGeometry* prepareGeometry( const QgsGeometry *geometry, const QgsRenderContext &context, const QgsCoordinateTransform *ct, QgsGeometry *clipGeometry = 0 ) /Factory/;
+    static QgsGeometry* prepareGeometry( const QgsGeometry *geometry, QgsRenderContext &context, const QgsCoordinateTransform *ct, QgsGeometry *clipGeometry = 0 ) /Factory/;
 
     /** Checks whether a geometry requires preparation before registration with PAL
      * @param geometry geometry to prepare
@@ -762,7 +833,7 @@ class QgsPalLabeling : QgsLabelingEngineInterface
      * @returns true if geometry requires preparation
      * @note added in QGIS 2.9
      */
-    static bool geometryRequiresPreparation( const QgsGeometry *geometry, const QgsRenderContext &context, const QgsCoordinateTransform *ct, QgsGeometry *clipGeometry = 0 );
+    static bool geometryRequiresPreparation( const QgsGeometry *geometry, QgsRenderContext &context, const QgsCoordinateTransform *ct, QgsGeometry *clipGeometry = 0 );
 
     /** Splits a text string to a list of separate lines, using a specified wrap character.
      * The text string will be split on either newline characters or the wrap character.

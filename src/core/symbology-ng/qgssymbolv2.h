@@ -49,27 +49,36 @@ class CORE_EXPORT QgsSymbolV2
 {
   public:
 
+    /**
+     * The unit of the output
+     */
     enum OutputUnit
     {
-      MM = 0,
-      MapUnit,
-      Mixed, //mixed units in symbol layers
-      Pixel
+      MM = 0,  //!< The output shall be in millimeters
+      MapUnit, //!< The output shall be in map unitx
+      Mixed,   //!< Mixed units in symbol layers
+      Pixel    //!< The output shall be in pixels
     };
 
     typedef QList<OutputUnit> OutputUnitList;
 
+    /**
+     * Type of the symbol
+     */
     enum SymbolType
     {
-      Marker,
-      Line,
-      Fill
+      Marker, //!< Marker symbol
+      Line,   //!< Line symbol
+      Fill    //!< Fill symbol
     };
 
+    /**
+     * Scale method
+     */
     enum ScaleMethod
     {
-      ScaleArea,
-      ScaleDiameter
+      ScaleArea,     //!< Calculate scale by the area
+      ScaleDiameter  //!< Calculate scale by the diameter
     };
 
     enum RenderHint
@@ -112,16 +121,32 @@ class CORE_EXPORT QgsSymbolV2
      */
     int symbolLayerCount() { return mLayers.count(); }
 
-    //! insert symbol layer to specified index
+    /**
+     * Insert symbol layer to specified index
+     * Ownership will be transferred.
+     * @param index The index at which the layer should be added
+     * @param layer The symbol layer to add
+     * @return True if the layer is added, False if the index or the layer is bad
+     */
     bool insertSymbolLayer( int index, QgsSymbolLayerV2* layer );
 
-    //! append symbol layer at the end of the list
+    /**
+     * Append symbol layer at the end of the list
+     * Ownership will be transferred.
+     * @param layer The layer to add
+     * @return True if the layer is added, False if the layer is bad
+     */
     bool appendSymbolLayer( QgsSymbolLayerV2* layer );
 
     //! delete symbol layer at specified index
     bool deleteSymbolLayer( int index );
 
-    //! remove symbol layer from the list and return pointer to it
+    /**
+     * Remove symbol layer from the list and return pointer to it.
+     * Ownership is handed to the caller.
+     * @param index The index of the layer to remove
+     * @return A pointer to the removed layer
+     */
     QgsSymbolLayerV2* takeSymbolLayer( int index );
 
     //! delete layer at specified index and set a new one
@@ -144,7 +169,11 @@ class CORE_EXPORT QgsSymbolV2
     //! Generate symbol as image
     QImage asImage( QSize size, QgsRenderContext* customContext = 0 );
 
-    QImage bigSymbolPreviewImage();
+    /** Returns a large (roughly 100x100 pixel) preview image for the symbol.
+     * @param expressionContext optional expression context, for evaluation of
+     * data defined symbol properties
+     */
+    QImage bigSymbolPreviewImage( QgsExpressionContext* expressionContext = 0 );
 
     QString dump() const;
 
@@ -224,6 +253,13 @@ class CORE_EXPORT QgsSymbolV2RenderContext
 
     QgsRenderContext& renderContext() { return mRenderContext; }
     const QgsRenderContext& renderContext() const { return mRenderContext; }
+
+    /** Sets the original value variable value for data defined symbology
+     * @param value value for original value variable. This usually represents the symbol property value
+     * before any data defined overrides have been applied.
+     * @note added in QGIS 2.12
+     */
+    void setOriginalValueVariable( const QVariant& value );
 
     QgsSymbolV2::OutputUnit outputUnit() const { return mOutputUnit; }
     void setOutputUnit( QgsSymbolV2::OutputUnit u ) { mOutputUnit = u; }

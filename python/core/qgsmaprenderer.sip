@@ -47,13 +47,18 @@ class QgsLabelingEngineInterface
     //! called when starting rendering of a layer
     virtual int prepareLayer( QgsVectorLayer* layer, QStringList& attrNames, QgsRenderContext& ctx ) = 0;
     //! returns PAL layer settings for a registered layer
-    virtual QgsPalLayerSettings& layer( const QString& layerName ) = 0;
+    //! @deprecated since 2.12 - if direct access to QgsPalLayerSettings is necessary, use QgsPalLayerSettings::fromLayer()
+    virtual QgsPalLayerSettings& layer( const QString& layerName ) = 0 /Deprecated/;
     //! adds a diagram layer to the labeling engine
-    virtual int addDiagramLayer( QgsVectorLayer* layer, const QgsDiagramLayerSettings* s );
+    //! @note added in QGIS 2.12
+    virtual int prepareDiagramLayer( QgsVectorLayer* layer, QStringList& attrNames, QgsRenderContext& ctx );
+    //! adds a diagram layer to the labeling engine
+    //! @deprecated since 2.12 - use prepareDiagramLayer()
+    virtual int addDiagramLayer( QgsVectorLayer* layer, const QgsDiagramLayerSettings* s ) /Deprecated/;
     //! called for every feature
-    virtual void registerFeature( const QString& layerID, QgsFeature& feat, const QgsRenderContext& context = QgsRenderContext(), QString dxfLayer = QString::null ) = 0;
+    virtual void registerFeature( const QString& layerID, QgsFeature& feat, QgsRenderContext& context, QString dxfLayer = QString::null ) = 0;
     //! called for every diagram feature
-    virtual void registerDiagramFeature( const QString& layerID, QgsFeature& feat, const QgsRenderContext& context = QgsRenderContext() );
+    virtual void registerDiagramFeature( const QString& layerID, QgsFeature& feat, QgsRenderContext& context );
     //! called when the map is drawn and labels should be placed
     virtual void drawLabeling( QgsRenderContext& context ) = 0;
     //! called when we're done with rendering
@@ -91,7 +96,7 @@ class QgsMapRenderer : QObject
 
   public:
 
-    /**Output units for pen width and point marker width/height*/
+    /** Output units for pen width and point marker width/height*/
     enum OutputUnits
     {
       Millimeters,
@@ -151,7 +156,7 @@ class QgsMapRenderer : QObject
 
     //! Scale denominator
     double scale() const;
-    /**Sets scale for scale based visibility. Normally, the scale is calculated automatically. This
+    /** Sets scale for scale based visibility. Normally, the scale is calculated automatically. This
      function is only used to force a preview scale (e.g. for print composer)*/
     void setScale( double scale );
     double mapUnitsPerPixel() const;

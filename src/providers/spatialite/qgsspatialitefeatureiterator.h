@@ -29,7 +29,7 @@ class QgsSpatiaLiteProvider;
 class QgsSpatiaLiteFeatureSource : public QgsAbstractFeatureSource
 {
   public:
-    QgsSpatiaLiteFeatureSource( const QgsSpatiaLiteProvider* p );
+    explicit QgsSpatiaLiteFeatureSource( const QgsSpatiaLiteProvider* p );
     ~QgsSpatiaLiteFeatureSource();
 
     virtual QgsFeatureIterator getFeatures( const QgsFeatureRequest& request ) override;
@@ -88,7 +88,7 @@ class QgsSpatiaLiteFeatureIterator : public QgsAbstractFeatureIteratorFromSource
      */
     sqlite3_stmt *sqliteStatement;
 
-    /** geometry column index used when fetching geometry */
+    /** Geometry column index used when fetching geometry */
     int mGeomColIdx;
 
     //! Set to true, if geometry is in the requested columns

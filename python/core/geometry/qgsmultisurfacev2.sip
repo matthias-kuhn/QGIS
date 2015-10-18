@@ -5,7 +5,7 @@ class QgsMultiSurfaceV2: public QgsGeometryCollectionV2
 %End
   public:
     virtual QString geometryType() const;
-    QgsAbstractGeometryV2* clone() const;
+    virtual QgsMultiSurfaceV2* clone() const;
 
     bool fromWkt( const QString& wkt );
 
@@ -17,9 +17,9 @@ class QgsMultiSurfaceV2: public QgsGeometryCollectionV2
     QString asJSON( int precision = 17 ) const;
 
 
-    /**Adds a geometry and takes ownership. Returns true in case of success*/
+    /** Adds a geometry and takes ownership. Returns true in case of success*/
     virtual bool addGeometry( QgsAbstractGeometryV2* g );
 
-    /**Returns a geometry without curves. Caller takes ownership*/
+    /** Returns a geometry without curves. Caller takes ownership*/
     QgsAbstractGeometryV2* segmentize() const /Factory/;
 };

@@ -60,7 +60,7 @@ static const double POINT_LOC_EPSILON = 1e-12;
 class QgsPointLocator_Stream : public IDataStream
 {
   public:
-    QgsPointLocator_Stream( const QLinkedList<RTree::Data*>& dataList ) : mDataList( dataList ), mIt( mDataList ) { }
+    explicit QgsPointLocator_Stream( const QLinkedList<RTree::Data*>& dataList ) : mDataList( dataList ), mIt( mDataList ) { }
     ~QgsPointLocator_Stream() { }
 
     virtual IData* getNext() override { return mIt.next(); }
@@ -192,7 +192,7 @@ class QgsPointLocator_VisitorArea : public IVisitor
 // http://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
 struct _CohenSutherland
 {
-  _CohenSutherland( const QgsRectangle& rect ) : mRect( rect ) {}
+  explicit _CohenSutherland( const QgsRectangle& rect ) : mRect( rect ) {}
 
   typedef int OutCode;
 
@@ -503,7 +503,7 @@ class QgsPointLocator_VisitorEdgesInRect : public IVisitor
       QgsFeatureId id = d.getIdentifier();
       QgsGeometry* geom = mLocator->mGeoms.value( id );
 
-      foreach ( const QgsPointLocator::Match& m, _geometrySegmentsInRect( geom, mSrcRect, mLocator->mLayer, id ) )
+      Q_FOREACH ( const QgsPointLocator::Match& m, _geometrySegmentsInRect( geom, mSrcRect, mLocator->mLayer, id ) )
       {
         // in range queries the filter may reject some matches
         if ( mFilter && !mFilter->acceptMatch( m ) )
@@ -670,6 +670,9 @@ bool QgsPointLocator::rebuildIndex( int maxFeaturesToIndex )
 
     SpatialIndex::Region r( rect2region( f.constGeometry()->boundingBox() ) );
     dataList << new RTree::Data( 0, 0, r, f.id() );
+
+    if ( mGeoms.contains( f.id() ) )
+      delete mGeoms.take( f.id() );
     mGeoms[f.id()] = new QgsGeometry( *f.constGeometry() );
     ++indexedCount;
 
@@ -748,6 +751,9 @@ void QgsPointLocator::onFeatureAdded( QgsFeatureId fid )
     {
       SpatialIndex::Region r( rect2region( bbox ) );
       mRTree->insertData( 0, 0, r, f.id() );
+
+      if ( mGeoms.contains( f.id() ) )
+        delete mGeoms.take( f.id() );
       mGeoms[fid] = new QgsGeometry( *f.constGeometry() );
     }
   }
@@ -761,7 +767,7 @@ void QgsPointLocator::onFeatureDeleted( QgsFeatureId fid )
   if ( mGeoms.contains( fid ) )
   {
     mRTree->deleteData( rect2region( mGeoms[fid]->boundingBox() ), fid );
-    mGeoms.remove( fid );
+    delete mGeoms.take( fid );
   }
 }
 

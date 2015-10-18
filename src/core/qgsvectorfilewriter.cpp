@@ -81,6 +81,8 @@ QgsVectorFileWriter::QgsVectorFileWriter(
   QStringList layOptions = layerOptions;
   QStringList dsOptions = datasourceOptions;
 
+  mRenderContext.setRendererScale( mSymbologyScaleDenominator );
+
   if ( theVectorFileName.isEmpty() )
   {
     mErrorMessage = QObject::tr( "Empty filename given" );
@@ -190,7 +192,7 @@ QgsVectorFileWriter::QgsVectorFileWriter(
     {
       QStringList allExts = exts.split( " ", QString::SkipEmptyParts );
       bool found = false;
-      foreach ( QString ext, allExts )
+      Q_FOREACH ( const QString& ext, allExts )
       {
         if ( vectorFileName.endsWith( "." + ext, Qt::CaseInsensitive ) )
         {
@@ -1444,10 +1446,10 @@ QMap<QString, QgsVectorFileWriter::MetaData> QgsVectorFileWriter::initMetaData()
   layerOptions.clear();
 
 #if 0
-//  datasetOptions.insert( "HEADER", new StringOption(
-  QObject::tr( "Override the header file used - in place of header.dxf." ),
-  ""  // Default value
-  ) );
+  datasetOptions.insert( "HEADER", new StringOption(
+                           QObject::tr( "Override the header file used - in place of header.dxf." ),
+                           ""  // Default value
+                         ) );
 
   datasetOptions.insert( "TRAILER", new StringOption(
                            QObject::tr( "Override the trailer file used - in place of trailer.dxf." ),
@@ -1530,9 +1532,9 @@ QMap<QString, QgsVectorFileWriter::MetaData> QgsVectorFileWriter::initMetaData()
                          )
                        );
   return driverMetadata;
-       }
+}
 
-       bool QgsVectorFileWriter::driverMetadata( const QString& driverName, QgsVectorFileWriter::MetaData& driverMetadata )
+bool QgsVectorFileWriter::driverMetadata( const QString& driverName, QgsVectorFileWriter::MetaData& driverMetadata )
 {
   static const QMap<QString, MetaData> sDriverMetadata = initMetaData();
 
@@ -1571,8 +1573,9 @@ bool QgsVectorFileWriter::addFeature( QgsFeature& feature, QgsFeatureRendererV2*
   //add OGR feature style type
   if ( mSymbologyExport != NoSymbology && renderer )
   {
+    mRenderContext.expressionContext().setFeature( feature );
     //SymbolLayerSymbology: concatenate ogr styles of all symbollayers
-    QgsSymbolV2List symbols = renderer->symbolsForFeature( feature );
+    QgsSymbolV2List symbols = renderer->symbolsForFeature( feature, mRenderContext );
     QString styleString;
     QString currentStyle;
 
@@ -1728,16 +1731,32 @@ OGRFeatureH QgsVectorFileWriter::createFeature( QgsFeature& feature )
 
     if ( geom && geom->wkbType() != mWkbType )
     {
-      // there's a problem when layer type is set as wkbtype Polygon
-      // although there are also features of type MultiPolygon
-      // (at least in OGR provider)
-      // If the feature's wkbtype is different from the layer's wkbtype,
-      // try to export it too.
-      //
-      // Btw. OGRGeometry must be exactly of the type of the geometry which it will receive
-      // i.e. Polygons can't be imported to OGRMultiPolygon
+      OGRGeometryH mGeom2 = NULL;
 
-      OGRGeometryH mGeom2 = createEmptyGeometry( geom->wkbType() );
+      // If requested WKB type is 25D and geometry WKB type is 3D,
+      // we must force the use of 25D.
+      if ( mWkbType >= QGis::WKBPoint25D && mWkbType <= QGis::WKBMultiPolygon25D )
+      {
+        QgsWKBTypes::Type wkbType = ( QgsWKBTypes::Type )geom->wkbType();
+        if ( wkbType >= QgsWKBTypes::PointZ && wkbType <= QgsWKBTypes::MultiPolygonZ )
+        {
+          QGis::WkbType wkbType25d = ( QGis::WkbType )( geom->wkbType() - QgsWKBTypes::PointZ + QgsWKBTypes::Point25D );
+          mGeom2 = createEmptyGeometry( wkbType25d );
+        }
+      }
+
+      if ( !mGeom2 )
+      {
+        // there's a problem when layer type is set as wkbtype Polygon
+        // although there are also features of type MultiPolygon
+        // (at least in OGR provider)
+        // If the feature's wkbtype is different from the layer's wkbtype,
+        // try to export it too.
+        //
+        // Btw. OGRGeometry must be exactly of the type of the geometry which it will receive
+        // i.e. Polygons can't be imported to OGRMultiPolygon
+        mGeom2 = createEmptyGeometry( geom->wkbType() );
+      }
 
       if ( !mGeom2 )
       {
@@ -1872,7 +1891,7 @@ QgsVectorFileWriter::WriterError QgsVectorFileWriter::writeAsVectorFormat( QgsVe
   }
 
   QGis::WkbType wkbType = layer->wkbType();
-  QgsFields fields = skipAttributeCreation ? QgsFields() : layer->pendingFields();
+  QgsFields fields = skipAttributeCreation ? QgsFields() : layer->fields();
 
   if ( layer->providerType() == "ogr" && layer->dataProvider() )
   {
@@ -1945,7 +1964,7 @@ QgsVectorFileWriter::WriterError QgsVectorFileWriter::writeAsVectorFormat( QgsVe
     errorMessage->clear();
   }
 
-  QgsAttributeList allAttr = skipAttributeCreation ? QgsAttributeList() : layer->pendingAllAttributesList();
+  QgsAttributeList allAttr = skipAttributeCreation ? QgsAttributeList() : layer->attributeList();
   QgsFeature fet;
 
   //add possible attributes needed by renderer
@@ -2096,16 +2115,23 @@ bool QgsVectorFileWriter::deleteShapeFile( QString theFileName )
   }
 
   bool ok = true;
-  foreach ( QString file, dir.entryList( filter ) )
+  Q_FOREACH ( const QString& file, dir.entryList( filter ) )
   {
-    if ( !QFile::remove( dir.canonicalPath() + "/" + file ) )
+    QFile f( dir.canonicalPath() + "/" + file );
+    if ( !f.remove( ) )
     {
-      QgsDebugMsg( "Removing file failed : " + file );
+      QgsDebugMsg( QString( "Removing file %1 failed: %2" ).arg( file ).arg( f.errorString() ) );
       ok = false;
     }
   }
 
   return ok;
+}
+
+void QgsVectorFileWriter::setSymbologyScaleDenominator( double d )
+{
+  mSymbologyScaleDenominator = d;
+  mRenderContext.setRendererScale( mSymbologyScaleDenominator );
 }
 
 QMap< QString, QString> QgsVectorFileWriter::supportedFiltersAndFormats()
@@ -2192,7 +2218,7 @@ QMap<QString, QString> QgsVectorFileWriter::ogrDriverList()
     }
   }
 
-  foreach ( QString drvName, writableDrivers )
+  Q_FOREACH ( const QString& drvName, writableDrivers )
   {
     QString longName;
     QString trLongName;
@@ -2465,7 +2491,7 @@ void QgsVectorFileWriter::createSymbolLayerTable( QgsVectorLayer* vl,  const Qgs
 
   //get symbols
   int nTotalLevels = 0;
-  QgsSymbolV2List symbolList = renderer->symbols();
+  QgsSymbolV2List symbolList = renderer->symbols( mRenderContext );
   QgsSymbolV2List::iterator symbolIt = symbolList.begin();
   for ( ; symbolIt != symbolList.end(); ++symbolIt )
   {
@@ -2490,6 +2516,11 @@ QgsVectorFileWriter::WriterError QgsVectorFileWriter::exportFeaturesSymbolLevels
 {
   if ( !layer )
     return ErrInvalidLayer;
+
+  mRenderContext.expressionContext() = QgsExpressionContext();
+  mRenderContext.expressionContext() << QgsExpressionContextUtils::globalScope()
+  << QgsExpressionContextUtils::projectScope()
+  << QgsExpressionContextUtils::layerScope( layer );
 
   QgsFeatureRendererV2 *renderer = layer->rendererV2();
   if ( !renderer )
@@ -2531,8 +2562,9 @@ QgsVectorFileWriter::WriterError QgsVectorFileWriter::exportFeaturesSymbolLevels
         return ErrProjection;
       }
     }
+    mRenderContext.expressionContext().setFeature( fet );
 
-    featureSymbol = renderer->symbolForFeature( fet );
+    featureSymbol = renderer->symbolForFeature( fet, mRenderContext );
     if ( !featureSymbol )
     {
       continue;
@@ -2548,7 +2580,7 @@ QgsVectorFileWriter::WriterError QgsVectorFileWriter::exportFeaturesSymbolLevels
 
   //find out order
   QgsSymbolV2LevelOrder levels;
-  QgsSymbolV2List symbols = renderer->symbols();
+  QgsSymbolV2List symbols = renderer->symbols( mRenderContext );
   for ( int i = 0; i < symbols.count(); i++ )
   {
     QgsSymbolV2* sym = symbols[i];
@@ -2655,14 +2687,7 @@ double QgsVectorFileWriter::mapUnitScaleFactor( double scaleDenominator, QgsSymb
   return 1.0;
 }
 
-QgsRenderContext QgsVectorFileWriter::renderContext() const
-{
-  QgsRenderContext context;
-  context.setRendererScale( mSymbologyScaleDenominator );
-  return context;
-}
-
-void QgsVectorFileWriter::startRender( QgsVectorLayer* vl ) const
+void QgsVectorFileWriter::startRender( QgsVectorLayer* vl )
 {
   QgsFeatureRendererV2* renderer = symbologyRenderer( vl );
   if ( !renderer )
@@ -2670,11 +2695,10 @@ void QgsVectorFileWriter::startRender( QgsVectorLayer* vl ) const
     return;
   }
 
-  QgsRenderContext ctx = renderContext();
-  renderer->startRender( ctx, vl->pendingFields() );
+  renderer->startRender( mRenderContext, vl->fields() );
 }
 
-void QgsVectorFileWriter::stopRender( QgsVectorLayer* vl ) const
+void QgsVectorFileWriter::stopRender( QgsVectorLayer* vl )
 {
   QgsFeatureRendererV2* renderer = symbologyRenderer( vl );
   if ( !renderer )
@@ -2682,8 +2706,7 @@ void QgsVectorFileWriter::stopRender( QgsVectorLayer* vl ) const
     return;
   }
 
-  QgsRenderContext ctx = renderContext();
-  renderer->stopRender( ctx );
+  renderer->stopRender( mRenderContext );
 }
 
 QgsFeatureRendererV2* QgsVectorFileWriter::symbologyRenderer( QgsVectorLayer* vl ) const

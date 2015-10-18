@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 5.1.2014
     Copyright            : (C) 2014 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -51,7 +51,7 @@ QgsEditorWidgetConfig QgsValueMapWidgetFactory::readConfig( const QDomElement& c
 
   QDomNodeList nodes = configElement.elementsByTagName( "value" );
 
-  for ( unsigned int i = 0; i < nodes.length(); ++i )
+  for ( int i = 0; i < nodes.size(); ++i )
   {
     QDomElement elem = nodes.at( i ).toElement();
     cfg.insert( elem.attribute( "key" ), elem.attribute( "value" ) );
@@ -87,4 +87,11 @@ QString QgsValueMapWidgetFactory::representValue( QgsVectorLayer* vl, int fieldI
   Q_UNUSED( cache )
 
   return config.key( value, QVariant( QString( "(%1)" ).arg( value.toString() ) ).toString() );
+}
+
+QMap<const char*, int> QgsValueMapWidgetFactory::supportedWidgetTypes()
+{
+  QMap<const char*, int> map = QMap<const char*, int>();
+  map.insert( QComboBox::staticMetaObject.className(), 10 );
+  return map;
 }

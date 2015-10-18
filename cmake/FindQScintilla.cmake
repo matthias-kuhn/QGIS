@@ -30,10 +30,15 @@ ELSE(EXISTS QSCINTILLA_VERSION_STR)
       "${QT_INCLUDE_DIR}"
       /usr/local/include
       /usr/include
+     /usr/include/x86_64-linux-gnu/qt5/
     )
 
+  IF(ENABLE_QT5)
+    SET(LIBNAMES ${LIBNAMES} qt5scintilla2)
+  ENDIF(ENABLE_QT5)
+  SET(LIBNAMES qscintilla2 libqscintilla2 libqscintilla2.dylib)
   FIND_LIBRARY(QSCINTILLA_LIBRARY
-    NAMES qscintilla2 libqscintilla2 libqscintilla2.dylib
+    NAMES ${LIBNAMES}
     PATHS
       "${QT_LIBRARY_DIR}"
       /usr/local/lib

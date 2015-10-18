@@ -28,7 +28,7 @@ class QgsWFSCapabilities : public QObject
     Q_OBJECT
   public:
     //explicit QgsWFSCapabilities( QString connName, QObject *parent = 0 );
-    QgsWFSCapabilities( QString theUri );
+    explicit QgsWFSCapabilities( QString theUri );
 
     //! Append ? or & if necessary
     QString prepareUri( QString uri );
@@ -74,7 +74,7 @@ class QgsWFSCapabilities : public QObject
     GetCapabilities capabilities() { return mCaps; }
 
     //! set authorization header
-    void setAuthorization( QNetworkRequest &request ) const;
+    bool setAuthorization( QNetworkRequest &request ) const;
 
   signals:
     void gotCapabilities();

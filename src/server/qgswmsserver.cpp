@@ -355,7 +355,7 @@ void QgsWMSServer::executeRequest()
 
 void QgsWMSServer::appendFormats( QDomDocument &doc, QDomElement &elem, const QStringList &formats )
 {
-  foreach ( QString format, formats )
+  Q_FOREACH ( const QString& format, formats )
   {
     QDomElement formatElem = doc.createElement( "Format"/*wms:Format*/ );
     formatElem.appendChild( doc.createTextNode( format ) );
@@ -604,9 +604,9 @@ QDomDocument QgsWMSServer::getContext()
 
 static QgsLayerTreeModelLegendNode* _findLegendNodeForRule( QgsLayerTreeModel* legendModel, const QString& rule )
 {
-  foreach ( QgsLayerTreeLayer* nodeLayer, legendModel->rootGroup()->findLayers() )
+  Q_FOREACH ( QgsLayerTreeLayer* nodeLayer, legendModel->rootGroup()->findLayers() )
   {
-    foreach ( QgsLayerTreeModelLegendNode* legendNode, legendModel->layerLegendNodes( nodeLayer ) )
+    Q_FOREACH ( QgsLayerTreeModelLegendNode* legendNode, legendModel->layerLegendNodes( nodeLayer ) )
     {
       if ( legendNode->data( Qt::DisplayRole ).toString() == rule )
         return legendNode;
@@ -745,7 +745,7 @@ QImage* QgsWMSServer::getLegendGraphics()
   // Store layers' name to reset them
   QMap<QString, QString> layerNameMap;
   // Create tree layer node for each layer
-  foreach ( QString layerId, layerIds )
+  Q_FOREACH ( const QString& layerId, layerIds )
   {
     // get layer
     QgsMapLayer *ml = QgsMapLayerRegistry::instance()->mapLayer( layerId );
@@ -769,7 +769,7 @@ QImage* QgsWMSServer::getLegendGraphics()
     HitTest hitTest;
     getMap( &hitTest );
 
-    foreach ( QgsLayerTreeNode* node, rootGroup.children() )
+    Q_FOREACH ( QgsLayerTreeNode* node, rootGroup.children() )
     {
       Q_ASSERT( QgsLayerTree::isLayer( node ) );
       QgsLayerTreeLayer* nodeLayer = QgsLayerTree::toLayer( node );
@@ -781,7 +781,7 @@ QImage* QgsWMSServer::getLegendGraphics()
       const SymbolV2Set& usedSymbols = hitTest[vl];
       QList<int> order;
       int i = 0;
-      foreach ( const QgsLegendSymbolItemV2& legendItem, vl->rendererV2()->legendSymbolItemsV2() )
+      Q_FOREACH ( const QgsLegendSymbolItemV2& legendItem, vl->rendererV2()->legendSymbolItemsV2() )
       {
         if ( usedSymbols.contains( legendItem.legacyRuleKey() ) )
           order.append( i );
@@ -852,7 +852,7 @@ QImage* QgsWMSServer::getLegendGraphics()
     return paintImage;
   }
 
-  foreach ( QgsLayerTreeNode* node, rootChildren )
+  Q_FOREACH ( QgsLayerTreeNode* node, rootChildren )
   {
     if ( QgsLayerTree::isLayer( node ) )
     {
@@ -863,7 +863,7 @@ QImage* QgsWMSServer::getLegendGraphics()
       // rule item titles
       if ( !mDrawLegendItemLabel )
       {
-        foreach ( QgsLayerTreeModelLegendNode* legendNode, legendModel.layerLegendNodes( nodeLayer ) )
+        Q_FOREACH ( QgsLayerTreeModelLegendNode* legendNode, legendModel.layerLegendNodes( nodeLayer ) )
         {
           legendNode->setUserLabel( " " ); // empty string = no override, so let's use one space
         }
@@ -886,7 +886,7 @@ QImage* QgsWMSServer::getLegendGraphics()
   p.end();
 
   // reset layers' name
-  foreach ( QString layerId, layerIds )
+  Q_FOREACH ( const QString& layerId, layerIds )
   {
     QgsMapLayer *ml = QgsMapLayerRegistry::instance()->mapLayer( layerId );
     ml->setLayerName( layerNameMap[ layerId ] );
@@ -911,7 +911,7 @@ void QgsWMSServer::runHitTest( QPainter* painter, HitTest& hitTest )
   context.setMapToPixel( *mMapRenderer->coordinateTransform() );
   context.setExtent( mMapRenderer->extent() );
 
-  foreach ( QString layerID, mMapRenderer->layerSet() )
+  Q_FOREACH ( const QString& layerID, mMapRenderer->layerSet() )
   {
     QgsVectorLayer* vl = qobject_cast<QgsVectorLayer*>( QgsMapLayerRegistry::instance()->mapLayer( layerID ) );
     if ( !vl || !vl->rendererV2() )
@@ -949,13 +949,14 @@ void QgsWMSServer::runHitTestLayer( QgsVectorLayer* vl, SymbolV2Set& usedSymbols
   QgsFeatureIterator fi = vl->getFeatures( request );
   while ( fi.nextFeature( f ) )
   {
+    context.expressionContext().setFeature( f );
     if ( moreSymbolsPerFeature )
     {
-      foreach ( QgsSymbolV2* s, r->originalSymbolsForFeature( f ) )
+      Q_FOREACH ( QgsSymbolV2* s, r->originalSymbolsForFeature( f, context ) )
         usedSymbols.insert( s );
     }
     else
-      usedSymbols.insert( r->originalSymbolForFeature( f ) );
+      usedSymbols.insert( r->originalSymbolForFeature( f, context ) );
   }
   r->stopRender( context );
 }
@@ -2073,9 +2074,11 @@ int QgsWMSServer::featureInfoFromVectorLayer( QgsVectorLayer* layer,
       continue;
     }
 
+    renderContext.expressionContext().setFeature( feature );
+
     //check if feature is rendered at all
     r2->startRender( renderContext, layer->pendingFields() );
-    bool renderV2 = r2->willRenderFeature( feature );
+    bool renderV2 = r2->willRenderFeature( feature, renderContext );
     r2->stopRender( renderContext );
     if ( !renderV2 )
     {
@@ -2140,7 +2143,7 @@ int QgsWMSServer::featureInfoFromVectorLayer( QgsVectorLayer* layer,
         attributeElement.setAttribute( "value",
                                        replaceValueMapAndRelation(
                                          layer, i,
-                                         featureAttributes[i].isNull() ?  QString::null : QgsExpression::replaceExpressionText( featureAttributes[i].toString(), &feature, layer )
+                                         featureAttributes[i].isNull() ?  QString::null : QgsExpression::replaceExpressionText( featureAttributes[i].toString(), &renderContext.expressionContext() )
                                        )
                                      );
         featureElement.appendChild( attributeElement );
@@ -2154,7 +2157,7 @@ int QgsWMSServer::featureInfoFromVectorLayer( QgsVectorLayer* layer,
         {
           QDomElement maptipElem = infoDocument.createElement( "Attribute" );
           maptipElem.setAttribute( "name", "maptip" );
-          maptipElem.setAttribute( "value",  QgsExpression::replaceExpressionText( displayField, &feature, layer ) );
+          maptipElem.setAttribute( "value",  QgsExpression::replaceExpressionText( displayField, &renderContext.expressionContext() ) );
           featureElement.appendChild( maptipElem );
         }
       }
@@ -2357,7 +2360,7 @@ QMap<QString, QString> QgsWMSServer::applyRequestedLayerFilters( const QStringLi
       //we need to find the maplayer objects matching the layer name
       QList<QgsMapLayer*> layersToFilter;
 
-      foreach ( QgsMapLayer *layer, QgsMapLayerRegistry::instance()->mapLayers() )
+      Q_FOREACH ( QgsMapLayer *layer, QgsMapLayerRegistry::instance()->mapLayers() )
       {
         if ( layer && ( mConfigParser && mConfigParser->useLayerIDs() ? layer->id() : layer->name() ) == eqSplit.at( 0 ) )
         {
@@ -2365,7 +2368,7 @@ QMap<QString, QString> QgsWMSServer::applyRequestedLayerFilters( const QStringLi
         }
       }
 
-      foreach ( QgsMapLayer *filter, layersToFilter )
+      Q_FOREACH ( QgsMapLayer *filter, layersToFilter )
       {
         QgsVectorLayer* filteredLayer = dynamic_cast<QgsVectorLayer*>( filter );
         if ( filteredLayer )
@@ -2569,7 +2572,7 @@ QStringList QgsWMSServer::applyFeatureSelections( const QStringList& layerList )
     return layersWithSelections;
   }
 
-  foreach ( QString selectionLayer, selectionString.split( ";" ) )
+  Q_FOREACH ( const QString& selectionLayer, selectionString.split( ";" ) )
   {
     //separate layer name from id list
     QStringList layerIdSplit = selectionLayer.split( ":" );
@@ -2582,7 +2585,7 @@ QStringList QgsWMSServer::applyFeatureSelections( const QStringList& layerList )
     QString layerName = layerIdSplit.at( 0 );
     QgsVectorLayer* vLayer = 0;
 
-    foreach ( QgsMapLayer *layer, QgsMapLayerRegistry::instance()->mapLayers() )
+    Q_FOREACH ( QgsMapLayer *layer, QgsMapLayerRegistry::instance()->mapLayers() )
     {
       if ( layer && ( mConfigParser && mConfigParser->useLayerIDs() ? layer->id() : layer->name() ) == layerName )
       {
@@ -2600,7 +2603,7 @@ QStringList QgsWMSServer::applyFeatureSelections( const QStringList& layerList )
     QStringList idList = layerIdSplit.at( 1 ).split( "," );
     QgsFeatureIds selectedIds;
 
-    foreach ( QString id, idList )
+    Q_FOREACH ( const QString& id, idList )
     {
       selectedIds.insert( STRING_TO_FID( id ) );
     }
@@ -2616,7 +2619,7 @@ void QgsWMSServer::clearFeatureSelections( const QStringList& layerIds ) const
 {
   const QMap<QString, QgsMapLayer*>& layerMap = QgsMapLayerRegistry::instance()->mapLayers();
 
-  foreach ( QString id, layerIds )
+  Q_FOREACH ( const QString& id, layerIds )
   {
     QgsVectorLayer *layer = qobject_cast< QgsVectorLayer * >( layerMap.value( id, 0 ) );
     if ( !layer )
@@ -2682,7 +2685,12 @@ void QgsWMSServer::applyOpacities( const QStringList& layerList, QList< QPair< Q
       //backup old renderer
       vectorRenderers.push_back( qMakePair( vl, rendererV2->clone() ) );
       //modify symbols of current renderer
-      QgsSymbolV2List symbolList = rendererV2->symbols();
+      QgsRenderContext context;
+      context.expressionContext() << QgsExpressionContextUtils::globalScope()
+      << QgsExpressionContextUtils::projectScope()
+      << QgsExpressionContextUtils::layerScope( vl );
+
+      QgsSymbolV2List symbolList = rendererV2->symbols( context );
       QgsSymbolV2List::iterator symbolIt = symbolList.begin();
       for ( ; symbolIt != symbolList.end(); ++symbolIt )
       {
@@ -2990,6 +2998,13 @@ QDomElement QgsWMSServer::createFeatureGML(
 
   QgsGeometry* geom = feat->geometry();
 
+  QgsExpressionContext expressionContext;
+  expressionContext << QgsExpressionContextUtils::globalScope()
+  << QgsExpressionContextUtils::projectScope();
+  if ( layer )
+    expressionContext << QgsExpressionContextUtils::layerScope( layer );
+  expressionContext.setFeature( *feat );
+
   // always add bounding box info if feature contains geometry
   if ( geom && geom->type() != QGis::UnknownGeometry &&  geom->type() != QGis::NoGeometry )
   {
@@ -3072,7 +3087,7 @@ QDomElement QgsWMSServer::createFeatureGML(
     QString fieldTextString = featureAttributes[i].toString();
     if ( layer )
     {
-      fieldTextString = replaceValueMapAndRelation( layer, i, QgsExpression::replaceExpressionText( fieldTextString, feat, layer ) );
+      fieldTextString = replaceValueMapAndRelation( layer, i, QgsExpression::replaceExpressionText( fieldTextString, &expressionContext ) );
     }
     QDomText fieldText = doc.createTextNode( fieldTextString );
     fieldElem.appendChild( fieldText );
@@ -3085,7 +3100,7 @@ QDomElement QgsWMSServer::createFeatureGML(
     QString displayField = layer->displayField();
     if ( !displayField.isEmpty() )
     {
-      QString fieldTextString = QgsExpression::replaceExpressionText( displayField, feat, layer );
+      QString fieldTextString = QgsExpression::replaceExpressionText( displayField, &expressionContext );
       QDomElement fieldElem = doc.createElement( "qgs:maptip" );
       QDomText maptipText = doc.createTextNode( fieldTextString );
       fieldElem.appendChild( maptipText );

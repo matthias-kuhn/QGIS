@@ -36,12 +36,15 @@
 #include "qgsrectangle.h"
 #include "qgsrelationmanager.h"
 #include "qgsvectorlayer.h"
+#include "qgsvisibilitypresetcollection.h"
 
 #include <QApplication>
 #include <QFileInfo>
 #include <QDomNode>
 #include <QObject>
 #include <QTextStream>
+#include <QDir>
+#include <QUrl>
 
 // canonical project instance
 QgsProject *QgsProject::theProject_ = 0;
@@ -147,7 +150,7 @@ QgsProperty *findKey_( QString const &scope,
 
 
 
-/** add the given key and value
+/** Add the given key and value
 
 @param scope scope of key
 @param key key name
@@ -304,7 +307,7 @@ struct QgsProject::Imp
     properties_.name() = "properties"; // root property node always this value
   }
 
-  /** clear project properties when a new project is started
+  /** Clear project properties when a new project is started
    */
   void clear()
   {
@@ -332,7 +335,6 @@ QgsProject::QgsProject()
   // whenever layers are added to or removed from the registry,
   // layer tree will be updated
   mLayerTreeRegistryBridge = new QgsLayerTreeRegistryBridge( mRootGroup, this );
-
 } // QgsProject ctor
 
 
@@ -357,16 +359,11 @@ QgsProject *QgsProject::instance()
   return theProject_;
 } // QgsProject *instance()
 
-void QgsProject::title( QString const &title )
+void QgsProject::setTitle( const QString &title )
 {
   imp_->title = title;
 
   dirty( true );
-} // void QgsProject::title
-
-void QgsProject::setTitle( const QString &t )
-{
-  title( t );
 }
 
 
@@ -406,13 +403,20 @@ void QgsProject::setFileName( QString const &name )
 QString QgsProject::fileName() const
 {
   return imp_->file.fileName();
-} // QString QgsProject::fileName() const
+}
+
+QFileInfo QgsProject::fileInfo() const
+{
+  return QFileInfo( imp_->file );
+}
 
 void QgsProject::clear()
 {
   imp_->clear();
   mEmbeddedLayers.clear();
   mRelationManager->clear();
+
+  mVisibilityPresetCollection.reset( new QgsVisibilityPresetCollection() );
 
   mRootGroup->removeAllChildren();
 
@@ -545,7 +549,7 @@ static void _getTitle( QDomDocument const &doc, QString &title )
 } // _getTitle
 
 
-/** return the version string found in the given Dom document
+/** Return the version string found in the given Dom document
 
    @returns the version string or an empty string if none found
  */
@@ -556,7 +560,7 @@ static QgsProjectVersion _getVersion( QDomDocument const &doc )
   if ( !nl.count() )
   {
     QgsDebugMsg( " unable to find qgis element in project file" );
-    return QgsProjectVersion( 0, 0, 0, QString( "" ) );
+    return QgsProjectVersion( 0, 0, 0, QString() );
   }
 
   QDomNode qgisNode = nl.item( 0 );  // there should only be one, so zeroth element ok
@@ -894,6 +898,9 @@ bool QgsProject::read()
 
   mRootGroup->removeCustomProperty( "loading" );
 
+  mVisibilityPresetCollection.reset( new QgsVisibilityPresetCollection() );
+  mVisibilityPresetCollection->readXML( *doc );
+
   // read the project: used by map canvas and legend
   emit readProject( *doc );
 
@@ -908,7 +915,7 @@ bool QgsProject::read()
 
 void QgsProject::loadEmbeddedNodes( QgsLayerTreeGroup *group )
 {
-  foreach ( QgsLayerTreeNode *child, group->children() )
+  Q_FOREACH ( QgsLayerTreeNode *child, group->children() )
   {
     if ( QgsLayerTree::isGroup( child ) )
     {
@@ -923,7 +930,7 @@ void QgsProject::loadEmbeddedNodes( QgsLayerTreeGroup *group )
         if ( newGroup )
         {
           QList<QgsLayerTreeNode*> clonedChildren;
-          foreach ( QgsLayerTreeNode *newGroupChild, newGroup->children() )
+          Q_FOREACH ( QgsLayerTreeNode *newGroupChild, newGroup->children() )
             clonedChildren << newGroupChild->clone();
           delete newGroup;
 
@@ -1092,6 +1099,8 @@ bool QgsProject::write()
   {
     imp_->properties_.writeXML( "properties", qgisNode, *doc );
   }
+
+  mVisibilityPresetCollection->writeXML( *doc );
 
   // now wrap it up and ship it to the project file
   doc->normalize();             // XXX I'm not entirely sure what this does
@@ -1657,34 +1666,72 @@ bool QgsProject::createEmbeddedLayer( const QString &layerId, const QString &pro
       mEmbeddedLayers.insert( layerId, qMakePair( projectFilePath, saveFlag ) );
 
       // change datasource path from relative to absolute if necessary
+      // see also QgsMapLayer::readLayerXML
       if ( !useAbsolutePathes )
       {
-        QDomElement provider = mapLayerElem.firstChildElement( "provider" );
-        if ( provider.text() == "spatialite" )
+        QString provider( mapLayerElem.firstChildElement( "provider" ).text() );
+        QDomElement dsElem( mapLayerElem.firstChildElement( "datasource" ) );
+        QString datasource( dsElem.text() );
+        if ( provider == "spatialite" )
         {
-          QDomElement dsElem = mapLayerElem.firstChildElement( "datasource" );
-
-          QgsDataSourceURI uri( dsElem.text() );
-
+          QgsDataSourceURI uri( datasource );
           QFileInfo absoluteDs( QFileInfo( projectFilePath ).absolutePath() + "/" + uri.database() );
           if ( absoluteDs.exists() )
           {
             uri.setDatabase( absoluteDs.absoluteFilePath() );
-            dsElem.removeChild( dsElem.childNodes().at( 0 ) );
-            dsElem.appendChild( projectDocument.createTextNode( uri.uri() ) );
+            datasource = uri.uri();
+          }
+        }
+        else if ( provider == "ogr" )
+        {
+          QStringList theURIParts( datasource.split( "|" ) );
+          QFileInfo absoluteDs( QFileInfo( projectFilePath ).absolutePath() + "/" + theURIParts[0] );
+          if ( absoluteDs.exists() )
+          {
+            theURIParts[0] = absoluteDs.absoluteFilePath();
+            datasource = theURIParts.join( "|" );
+          }
+        }
+        else if ( provider == "gpx" )
+        {
+          QStringList theURIParts( datasource.split( "?" ) );
+          QFileInfo absoluteDs( QFileInfo( projectFilePath ).absolutePath() + "/" + theURIParts[0] );
+          if ( absoluteDs.exists() )
+          {
+            theURIParts[0] = absoluteDs.absoluteFilePath();
+            datasource = theURIParts.join( "?" );
+          }
+        }
+        else if ( provider == "delimitedtext" )
+        {
+          QUrl urlSource( QUrl::fromEncoded( datasource.toAscii() ) );
+
+          if ( !datasource.startsWith( "file:" ) )
+          {
+            QUrl file( QUrl::fromLocalFile( datasource.left( datasource.indexOf( "?" ) ) ) );
+            urlSource.setScheme( "file" );
+            urlSource.setPath( file.path() );
+          }
+
+          QFileInfo absoluteDs( QFileInfo( projectFilePath ).absolutePath() + "/" + urlSource.toLocalFile() );
+          if ( absoluteDs.exists() )
+          {
+            QUrl urlDest = QUrl::fromLocalFile( absoluteDs.absoluteFilePath() );
+            urlDest.setQueryItems( urlSource.queryItems() );
+            datasource = QString::fromAscii( urlDest.toEncoded() );
           }
         }
         else
         {
-          QDomElement dsElem = mapLayerElem.firstChildElement( "datasource" );
-          QString debug( QFileInfo( projectFilePath ).absolutePath() + "/" + dsElem.text() );
-          QFileInfo absoluteDs( QFileInfo( projectFilePath ).absolutePath() + "/" + dsElem.text() );
+          QFileInfo absoluteDs( QFileInfo( projectFilePath ).absolutePath() + "/" + datasource );
           if ( absoluteDs.exists() )
           {
-            dsElem.removeChild( dsElem.childNodes().at( 0 ) );
-            dsElem.appendChild( projectDocument.createTextNode( absoluteDs.absoluteFilePath() ) );
+            datasource = absoluteDs.absoluteFilePath();
           }
         }
+
+        dsElem.removeChild( dsElem.childNodes().at( 0 ) );
+        dsElem.appendChild( projectDocument.createTextNode( datasource ) );
       }
 
       if ( addLayer( mapLayerElem, brokenNodes, vectorLayerList ) )
@@ -1764,7 +1811,7 @@ QgsLayerTreeGroup *QgsProject::createEmbeddedGroup( const QString &groupName, co
   mLayerTreeRegistryBridge->setEnabled( true );
 
   // consider the layers might be identify disabled in its project
-  foreach ( QString layerId, newGroup->findLayerIds() )
+  Q_FOREACH ( const QString& layerId, newGroup->findLayerIds() )
   {
     if ( embeddedIdentifyDisabledLayers.contains( layerId ) )
     {
@@ -1785,7 +1832,7 @@ QgsLayerTreeGroup *QgsProject::createEmbeddedGroup( const QString &groupName, co
 
 void QgsProject::initializeEmbeddedSubtree( const QString &projectFilePath, QgsLayerTreeGroup *group )
 {
-  foreach ( QgsLayerTreeNode *child, group->children() )
+  Q_FOREACH ( QgsLayerTreeNode *child, group->children() )
   {
     // all nodes in the subtree will have "embedded" custom property set
     child->setCustomProperty( "embedded", 1 );
@@ -1965,4 +2012,9 @@ QgsRelationManager *QgsProject::relationManager() const
 QgsLayerTreeGroup *QgsProject::layerTreeRoot() const
 {
   return mRootGroup;
+}
+
+QgsVisibilityPresetCollection* QgsProject::visibilityPresetCollection()
+{
+  return mVisibilityPresetCollection.data();
 }

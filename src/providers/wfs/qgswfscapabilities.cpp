@@ -13,6 +13,7 @@
  *                                                                         *
  ***************************************************************************/
 #include "qgswfscapabilities.h"
+#include "qgsauthmanager.h"
 #include "qgsexpression.h"
 #include "qgslogger.h"
 #include "qgsmessagelog.h"
@@ -141,18 +142,27 @@ QString QgsWFSCapabilities::uriGetFeature( QString typeName, QString crsString, 
     uri += "&username=" + mUri.param( "username" );
     uri += "&password=" + mUri.param( "password" );
   }
+  if ( mUri.hasParam( "authcfg" ) )
+  {
+    uri += "&authcfg=" + mUri.param( "authcfg" );
+  }
   QgsDebugMsg( uri );
   return uri;
 }
 
-void QgsWFSCapabilities::setAuthorization( QNetworkRequest &request ) const
+bool QgsWFSCapabilities::setAuthorization( QNetworkRequest &request ) const
 {
   QgsDebugMsg( "entered" );
-  if ( mUri.hasParam( "username" ) && mUri.hasParam( "password" ) )
+  if ( mUri.hasParam( "authcfg" ) && !mUri.param( "authcfg" ).isEmpty() )
+  {
+    return QgsAuthManager::instance()->updateNetworkRequest( request, mUri.param( "authcfg" ) );
+  }
+  else if ( mUri.hasParam( "username" ) && mUri.hasParam( "password" ) )
   {
     QgsDebugMsg( "setAuthorization " + mUri.param( "username" ) );
     request.setRawHeader( "Authorization", "Basic " + QString( "%1:%2" ).arg( mUri.param( "username" ) ).arg( mUri.param( "password" ) ).toAscii().toBase64() );
   }
+  return true;
 }
 
 void QgsWFSCapabilities::requestCapabilities()
@@ -161,7 +171,15 @@ void QgsWFSCapabilities::requestCapabilities()
   mErrorMessage.clear();
 
   QNetworkRequest request( uriGetCapabilities() );
-  setAuthorization( request );
+  if ( !setAuthorization( request ) )
+  {
+    mErrorCode = QgsWFSCapabilities::NetworkError;
+    mErrorMessage = tr( "Download of capabilities failed: network request update failed for authentication config" );
+    QgsMessageLog::logMessage( mErrorMessage, tr( "WFS" ) );
+    emit gotCapabilities();
+    return;
+  }
+
   request.setAttribute( QNetworkRequest::CacheSaveControlAttribute, true );
   mCapabilitiesReply = QgsNetworkAccessManager::instance()->get( request );
   connect( mCapabilitiesReply, SIGNAL( finished() ), this, SLOT( capabilitiesReplyFinished() ) );
@@ -188,7 +206,16 @@ void QgsWFSCapabilities::capabilitiesReplyFinished()
   {
     QgsDebugMsg( "redirecting to " + redirect.toUrl().toString() );
     QNetworkRequest request( redirect.toUrl() );
-    setAuthorization( request );
+    if ( !setAuthorization( request ) )
+    {
+      mCaps.clear();
+      mErrorCode = QgsWFSCapabilities::NetworkError;
+      mErrorMessage = tr( "Download of capabilities failed: network request update failed for authentication config" );
+      QgsMessageLog::logMessage( mErrorMessage, tr( "WFS" ) );
+      emit gotCapabilities();
+      return;
+    }
+
     request.setAttribute( QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferNetwork );
     request.setAttribute( QNetworkRequest::CacheSaveControlAttribute, true );
 
@@ -241,7 +268,7 @@ void QgsWFSCapabilities::capabilitiesReplyFinished()
 
   // get the <FeatureType> elements
   QDomNodeList featureTypeList = capabilitiesDocument.elementsByTagNameNS( WFS_NAMESPACE, "FeatureType" );
-  for ( unsigned int i = 0; i < featureTypeList.length(); ++i )
+  for ( int i = 0; i < featureTypeList.size(); ++i )
   {
     FeatureType featureType;
     QDomElement featureTypeElem = featureTypeList.at( i ).toElement();
@@ -274,14 +301,14 @@ void QgsWFSCapabilities::capabilitiesReplyFinished()
 
     //OtherSRS
     QDomNodeList otherCRSList = featureTypeElem.elementsByTagNameNS( WFS_NAMESPACE, "OtherSRS" );
-    for ( unsigned int i = 0; i < otherCRSList.length(); ++i )
+    for ( int i = 0; i < otherCRSList.size(); ++i )
     {
       featureType.crslist.append( otherCRSList.at( i ).toElement().text() );
     }
 
     //Support <SRS> for compatibility with older versions
     QDomNodeList srsList = featureTypeElem.elementsByTagNameNS( WFS_NAMESPACE, "SRS" );
-    for ( unsigned int i = 0; i < srsList.length(); ++i )
+    for ( int i = 0; i < srsList.size(); ++i )
     {
       featureType.crslist.append( srsList.at( i ).toElement().text() );
     }

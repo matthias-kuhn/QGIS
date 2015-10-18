@@ -308,6 +308,15 @@ ENDIF (WITH_TOUCH)
 # search for QScintilla2 (C++ lib)
 FIND_PACKAGE(QScintilla REQUIRED)
 
+# Master password hash and authentication encryption
+FIND_PACKAGE(QCA REQUIRED)
+# Check for runtime dependency of qca-ossl plugin
+# REQUIRED if unit tests are to be run from build directory
+IF(NOT MSVC)
+include(QCAMacros)
+FIND_QCAOSSL_PLUGIN_CPP(ENABLE_TESTS)
+ENDIF(NOT MSVC)
+
 # ModelTest
 SET(ENABLE_MODELTEST FALSE CACHE BOOL "Enable QT ModelTest (not for production)")
 
@@ -663,12 +672,16 @@ ENDIF (UNIX AND NOT APPLE)
 
 
 #############################################################
+# Python build dependency
+
+FIND_PACKAGE(PythonInterp REQUIRED)
+
+#############################################################
 # Python bindings
 
 IF (WITH_BINDINGS)
 
   # python support: check for interpreter, sip, pyqt4
-  FIND_PACKAGE(PythonInterp REQUIRED)
   FIND_PACKAGE(PythonLibrary REQUIRED)
   FIND_PACKAGE(SIP REQUIRED)
   FIND_PACKAGE(PyQt4 REQUIRED)
@@ -710,43 +723,24 @@ FIND_FILE(GIT_MARKER index PATHS ${CMAKE_SOURCE_DIR}/.git)
 IF (GIT_MARKER)
   FIND_PROGRAM(GITCOMMAND git PATHS c:/cygwin/bin)
   IF(GITCOMMAND)
-    IF(MSVC)
+    IF(WIN32)
       ADD_CUSTOM_COMMAND(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
-        COMMAND for /f \"usebackq tokens=1\" %%a in "(`\"${GITCOMMAND}\" log -n1 --oneline`)" do echo \#define QGSVERSION \"%%a\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
+        COMMAND for /f \"usebackq tokens=1\" %%a in "(`\"${GITCOMMAND}\" log -n1 --oneline`)" do echo \#define QGSVERSION \"%%a\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
+        COMMAND ${CMAKE_COMMAND} -DSRC=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp -DDST=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h -P ${CMAKE_SOURCE_DIR}/cmake/CopyIfChanged.cmake
         MAIN_DEPENDENCY ${GIT_MARKER}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       )
-    ELSE(MSVC)
-      EXECUTE_PROCESS(
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND ${GITCOMMAND} log -n1 --pretty=%h OUTPUT_VARIABLE REVISION
-      )
-      STRING(STRIP "${REVISION}" REVISION)
-      # Get GIT remote and branch
-      EXECUTE_PROCESS(
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND ${GITCOMMAND} name-rev --name-only HEAD OUTPUT_VARIABLE GIT_LOCAL_BRANCH
-      )
-      STRING(STRIP "${GIT_LOCAL_BRANCH}" GIT_LOCAL_BRANCH)
-      EXECUTE_PROCESS(
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND ${GITCOMMAND} config branch.${GIT_LOCAL_BRANCH}.remote OUTPUT_VARIABLE GIT_REMOTE
-      )
-      STRING(STRIP "${GIT_REMOTE}" GIT_REMOTE)
-      EXECUTE_PROCESS(
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND ${GITCOMMAND} config remote.${GIT_REMOTE}.url OUTPUT_VARIABLE GIT_REMOTE_URL
-      )
-      STRING(STRIP "${GIT_REMOTE_URL}" GIT_REMOTE_URL)
+    ELSE(WIN32)
       ADD_CUSTOM_COMMAND(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
-        COMMAND echo \\\#define QGSVERSION \\\"${REVISION}\\\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
-        COMMAND echo \\\#define QGS_GIT_REMOTE_URL \\\"${GIT_REMOTE_URL}\\\" >>${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
+        COMMAND ${GITCOMMAND} log -n1 --pretty=\#define\\ QGSVERSION\\ \\"%h\\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
+        COMMAND ${GITCOMMAND} config remote.$$\(${GITCOMMAND} config branch.$$\(${GITCOMMAND} name-rev --name-only HEAD\).remote\).url | sed -e 's/^/\#define QGS_GIT_REMOTE_URL \"/' -e 's/$$/\"/' >>${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
+        COMMAND ${CMAKE_COMMAND} -DSRC=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp -DDST=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h -P ${CMAKE_SOURCE_DIR}/cmake/CopyIfChanged.cmake
         MAIN_DEPENDENCY ${GIT_MARKER}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       )
-    ENDIF(MSVC)
+    ENDIF(WIN32)
   ELSE(GITCOMMAND)
     MESSAGE(STATUS "git marker, but no git found - version will be unknown")
     SET(REVISION "unknown")
@@ -791,7 +785,11 @@ IF (APPLE)
   # allow QGIS to be run directly from build directory and to run unit tests
   EXECUTE_PROCESS(COMMAND /bin/mkdir -p "${QGIS_OUTPUT_DIRECTORY}/lib")
   EXECUTE_PROCESS(
-    COMMAND /bin/ln -fs ../../Plugins/qgis/qgisgrass.framework lib/
+    COMMAND /bin/ln -fs ../../Plugins/qgis/qgisgrass6.framework lib/
+    WORKING_DIRECTORY "${QGIS_OUTPUT_DIRECTORY}"
+  )
+  EXECUTE_PROCESS(
+    COMMAND /bin/ln -fs ../../Plugins/qgis/qgisgrass7.framework lib/
     WORKING_DIRECTORY "${QGIS_OUTPUT_DIRECTORY}"
   )
 ENDIF (APPLE)

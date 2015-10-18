@@ -91,7 +91,7 @@ void TestQgsRasterFileWriter::writeTest()
   filters << "*.tif";
   QStringList rasterNames = dir.entryList( filters, QDir::Files );
   bool allOK = true;
-  foreach ( QString rasterName, rasterNames )
+  Q_FOREACH ( const QString& rasterName, rasterNames )
   {
     bool ok = writeTest( "raster/" + rasterName );
     if ( !ok ) allOK = false;
@@ -108,8 +108,8 @@ bool TestQgsRasterFileWriter::writeTest( QString theRasterName )
   qDebug() << myFileName;
   QFileInfo myRasterFileInfo( myFileName );
 
-  QgsRasterLayer * mpRasterLayer =  new QgsRasterLayer( myRasterFileInfo.filePath(),
-      myRasterFileInfo.completeBaseName() );
+  QScopedPointer<QgsRasterLayer> mpRasterLayer( new QgsRasterLayer( myRasterFileInfo.filePath(),
+      myRasterFileInfo.completeBaseName() ) );
   qDebug() << theRasterName <<  " metadata: " << mpRasterLayer->dataProvider()->metadata();
 
   if ( !mpRasterLayer->isValid() ) return false;
