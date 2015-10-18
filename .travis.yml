@@ -1,10 +1,21 @@
-language: cpp
+language: generic
 
 sudo: required
 
 os:
   - linux
   - osx
+
+dist: trusty
+
+env:
+  - QT=4
+  - QT=5
+
+matrix:
+  exclude:
+    - os: osx
+      env: QT=5
 
 compiler:
   - clang
