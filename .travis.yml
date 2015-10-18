@@ -11,6 +11,9 @@ env:
 services:
   - docker
 
+dist:
+  - trusty
+
 matrix:
   exclude:
     - os: osx
