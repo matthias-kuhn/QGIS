@@ -17,10 +17,7 @@ if [ ${QT} == 5 ]; then
                 -DENABLE_QT5=ON
                 -DWITH_GRASS=OFF
                 -DWITH_GRASS7=ON
-                -DQSCINTILLA_LIBRARY=/usr/lib/libqt5scintilla2.so
-                -DQSCINTILLA_INCLUDE_DIR=/usr/include/x86_64-linux-gnu/qt5
-                -DQCA_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libqca-qt5.so.2
-                -DQCA_INCLUDE_DIR:PATH=/usr/include/Qca-qt5/QtCrypto/
+                -DQSCINTILLA_INCLUDE_DIR=/usr/include/qt5
                 -DWITH_BINDINGS=OFF"
 else
   CMAKE_OPTIONS="${CMAKE_OPTIONS}

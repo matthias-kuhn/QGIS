@@ -59,10 +59,7 @@ if [ ${QT} == 5 ]; then
     qtpositioning5-dev \
     libqt5xmlpatterns5-dev \
     libqt5svg5-dev \
-    libqwt-qt5-dev \
     libqt5scintilla2-dev \
-    libqca-qt5-2-dev \
-    libqca-qt5-2-plugins \
     libqt5webkit5-dev
 else
   sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggests \
