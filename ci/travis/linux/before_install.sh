@@ -43,8 +43,7 @@ sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggest
         xvfb \
         postgresql \
         postgresql-contrib \
-        postgis \
-        postgresql-9.3-postgis-2.1
+        postgis
 #        postgresql-9.1-postgis-2.1/trusty # from ubuntugis-unstable, not pgdg
 
 if [ ${QT} == 5 ]; then
@@ -73,6 +72,8 @@ else
     libqtwebkit-dev \
     pyqt4-dev-tools
 fi
+
+sudo su -c "create user postgres password 'postgres';" - postgres
 
 cmake --version
 clang --version
