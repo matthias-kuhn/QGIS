@@ -1,10 +1,5 @@
 export DEBIAN_FRONTEND=noninteractive
-
-wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
-sudo add-apt-repository 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.7 main' -y
-
-sudo add-apt-repository ppa:ubuntugis/ppa -y
-sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable -y # For postgresql-9.1-postgis-2.1
+sudo add-apt-repository ppa:grass/grass-stable -y
 sudo add-apt-repository ppa:smspillaz/cmake-3.0.2 -y
 sudo add-apt-repository ppa:kedazo/doxygen-updates-precise -y # For doxygen 1.8.8
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
@@ -45,7 +40,11 @@ sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggest
         xfonts-75dpi \
         xfonts-base \
         xfonts-scalable \
-        xvfb
+        xvfb \
+        postgresql \
+        postgresql-contrib \
+        postgis \
+        postgresql-9.3-postgis-2.1
 #        postgresql-9.1-postgis-2.1/trusty # from ubuntugis-unstable, not pgdg
 
 if [ ${QT} == 5 ]; then
