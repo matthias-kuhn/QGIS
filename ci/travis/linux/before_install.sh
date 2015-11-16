@@ -73,7 +73,7 @@ else
     pyqt4-dev-tools
 fi
 
-sudo -u postgres psql -c "CREATE USER postgres password 'postgres'"
+sudo -u postgres psql -c "ALTER ROLE postgres WITH PASSWORD 'postgres'"
 
 
 cmake --version
