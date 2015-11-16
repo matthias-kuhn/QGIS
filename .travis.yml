@@ -42,7 +42,10 @@ notifications:
     on_start: never # default: never
 
 addons:
-  postgresql: "9.1"
+  postgresql: "9.4"
+
+services:
+  - postgresql
 
 before_install:
   - ./ci/travis/${TRAVIS_OS_NAME}/before_install.sh
