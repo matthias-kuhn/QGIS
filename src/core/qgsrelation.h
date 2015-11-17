@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 29.4.2013
     Copyright            : (C) 2013 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -43,13 +43,13 @@ class CORE_EXPORT QgsRelation
             : QPair< QString, QString >() {}
 
         //! Constructor which takes two fields
-        FieldPair( QString referencingField, QString referencedField )
+        FieldPair( const QString& referencingField, const QString& referencedField )
             : QPair< QString, QString >( referencingField, referencedField ) {}
 
         //! Get the name of the referencing field
-        const QString& referencingField() const { return first; }
+        QString referencingField() const { return first; }
         //! Get the name of the referenced field
-        const QString& referencedField() const { return second; }
+        QString referencedField() const { return second; }
     };
 
     /**
@@ -79,28 +79,28 @@ class CORE_EXPORT QgsRelation
      *
      * @param id
      */
-    void setRelationId( QString id );
+    void setRelationId( const QString& id );
 
     /**
      * Set a name for this relation
      *
      * @param name
      */
-    void setRelationName( QString name );
+    void setRelationName( const QString& name );
 
     /**
      * Set the referencing layer id. This layer will be searched in the registry.
      *
      * @param id
      */
-    void setReferencingLayer( QString id );
+    void setReferencingLayer( const QString& id );
 
     /**
      * Set the referenced layer id. This layer will be searched in the registry.
      *
      * @param id
      */
-    void setReferencedLayer( QString id );
+    void setReferencedLayer( const QString& id );
 
     /**
      * Add a field pairs which is part of this relation
@@ -110,7 +110,7 @@ class CORE_EXPORT QgsRelation
      * @param referencingField  The field name on the referencing layer (FK)
      * @param referencedField   The field name on the referenced layer  (PK)
      */
-    void addFieldPair( QString referencingField, QString referencedField );
+    void addFieldPair( const QString& referencingField, const QString& referencedField );
 
     /**
      * Add a field pairs which is part of this relation
@@ -138,17 +138,55 @@ class CORE_EXPORT QgsRelation
      *
      * @param feature A feature from the referenced (parent) layer
      *
-     * @return An request for all the referenced features
+     * @return A request for all the referencing features
      */
     QgsFeatureRequest getRelatedFeaturesRequest( const QgsFeature& feature ) const;
 
-    const QString name() const;
+    /**
+     * Creates a request to return the feature on the referenced (parent) layer
+     * which is referenced by the provided feature.
+     *
+     * @param attributes An attribute vector containing the foreign key
+     *
+     * @return A request the referenced feature
+     */
+    QgsFeatureRequest getReferencedFeatureRequest( const QgsAttributes& attributes ) const;
 
     /**
-     * The id
-     * @return
+     * Creates a request to return the feature on the referenced (parent) layer
+     * which is referenced by the provided feature.
+     *
+     * @param feature A feature from the referencing (child) layer
+     *
+     * @return A request the referenced feature
      */
-    const QString& id() const;
+    QgsFeatureRequest getReferencedFeatureRequest( const QgsFeature& feature ) const;
+
+    /**
+     * Creates a request to return the feature on the referenced (parent) layer
+     * which is referenced by the provided feature.
+     *
+     * @param feature A feature from the referencing (child) layer
+     *
+     * @return A request the referenced feature
+     */
+    QgsFeature getReferencedFeature( const QgsFeature& feature ) const;
+
+    /**
+     * Returns a human readable name for this relation. Mostly used as title for the children.
+     *
+     * @see id()
+     *
+     * @return A name
+     */
+    QString name() const;
+
+    /**
+     * A (project-wide) unique id for this relation
+     *
+     * @return The id
+     */
+    QString id() const;
 
     /**
      * Access the referencing (child) layer's id
@@ -198,7 +236,6 @@ class CORE_EXPORT QgsRelation
 
   protected:
     void updateRelationStatus();
-    void runChecks();
 
   private:
     /** Unique Id */

@@ -17,6 +17,7 @@ class QgsSymbolV2LevelItem
     int layer();
 };
 
+
 // every level has list of items: symbol + symbol layer num
 // typedef QList< QgsSymbolV2LevelItem > QgsSymbolV2Level;
 
@@ -35,21 +36,21 @@ class QgsFeatureRendererV2
 
 %ConvertToSubClassCode
   if (sipCpp->type() == "singleSymbol")
-    sipClass = sipClass_QgsSingleSymbolRendererV2;
+    sipType = sipType_QgsSingleSymbolRendererV2;
   else if (sipCpp->type() == "categorizedSymbol")
-    sipClass = sipClass_QgsCategorizedSymbolRendererV2;
+    sipType = sipType_QgsCategorizedSymbolRendererV2;
   else if (sipCpp->type() == "graduatedSymbol")
-    sipClass = sipClass_QgsGraduatedSymbolRendererV2;
+    sipType = sipType_QgsGraduatedSymbolRendererV2;
   else if (sipCpp->type() == "RuleRenderer")
-    sipClass = sipClass_QgsRuleBasedRendererV2;
+    sipType = sipType_QgsRuleBasedRendererV2;
   else if (sipCpp->type() == "heatmapRenderer")
-    sipClass = sipClass_QgsHeatmapRenderer;
+    sipType = sipType_QgsHeatmapRenderer;
   else if (sipCpp->type() == "invertedPolygonRenderer")
-    sipClass = sipClass_QgsInvertedPolygonRenderer;
+    sipType = sipType_QgsInvertedPolygonRenderer;
   else if (sipCpp->type() == "pointDisplacement")
-    sipClass = sipClass_QgsPointDisplacementRenderer;
+    sipType = sipType_QgsPointDisplacementRenderer;
   else
-    sipClass = 0;
+    sipType = 0;
 %End
 
   public:
@@ -60,11 +61,22 @@ class QgsFeatureRendererV2
 
     QString type() const;
 
-    /** to be overridden
+    /** To be overridden
      * @param feature feature
      * @return returns pointer to symbol or 0 if symbol was not found
      */
-    virtual QgsSymbolV2* symbolForFeature( QgsFeature& feature ) = 0;
+    virtual QgsSymbolV2* symbolForFeature( QgsFeature& feature ) /Deprecated/;
+
+    /** To be overridden
+     * @param feature feature
+     * @param context render context
+     * @return returns pointer to symbol or 0 if symbol was not found
+     * @note added in QGIS 2.12
+     * @note available in Python bindings as symbolForFeature2
+     */
+    // TODO - QGIS 3.0 make pure virtual when above method is removed
+    // TODO - QGIS 3.0 change PyName to symbolForFeature when deprecated method is removed
+    virtual QgsSymbolV2* symbolForFeature( QgsFeature& feature, QgsRenderContext& context ) /PyName=symbolForFeature2/;
 
     /**
      * Return symbol for feature. The difference compared to symbolForFeature() is that it returns original
@@ -72,7 +84,17 @@ class QgsFeatureRendererV2
      * of a symbol for use in rendering.
      * @note added in 2.6
      */
-    virtual QgsSymbolV2* originalSymbolForFeature( QgsFeature& feature );
+    virtual QgsSymbolV2* originalSymbolForFeature( QgsFeature& feature ) /Deprecated/;
+
+    /**
+     * Return symbol for feature. The difference compared to symbolForFeature() is that it returns original
+     * symbol which can be used as an identifier for renderer's rule - the former may return a temporary replacement
+     * of a symbol for use in rendering.
+     * @note added in 2.12
+     * @note available in Python bindings as originalSymbolForFeature2
+     */
+    //TODO - QGIS 3.0 change PyName to originalSymbolForFeature when deprecated method is removed
+    virtual QgsSymbolV2* originalSymbolForFeature( QgsFeature& feature, QgsRenderContext& context ) /PyName=originalSymbolForFeature2/;
 
     virtual void startRender( QgsRenderContext& context, const QgsFields& fields ) = 0;
 
@@ -80,6 +102,8 @@ class QgsFeatureRendererV2
     virtual void startRender( QgsRenderContext& context, const QgsVectorLayer *vlayer ) /Deprecated/;
 
     virtual void stopRender( QgsRenderContext& context ) = 0;
+
+    virtual QString filter();
 
     virtual QList<QString> usedAttributes() = 0;
 
@@ -105,7 +129,15 @@ class QgsFeatureRendererV2
     virtual int capabilities();
 
     //! for symbol levels
-    virtual QgsSymbolV2List symbols() = 0;
+    virtual QgsSymbolV2List symbols() /Deprecated/;
+
+    /** Returns list of symbols used by the renderer.
+     * @param context render context
+     * @note added in QGIS 2.12
+     * @note available in Python bindings as symbols2
+     */
+    //TODO - QGIS 3.0 change PyName to symbols when deprecated method is removed
+    virtual QgsSymbolV2List symbols( QgsRenderContext& context ) /PyName=symbols2/;
 
     bool usingSymbolLevels() const;
     void setUsingSymbolLevels( bool usingSymbolLevels );
@@ -123,7 +155,7 @@ class QgsFeatureRendererV2
     //! @note added in 2.8
     virtual QDomElement writeSld( QDomDocument& doc, const QString& styleName ) const;
 
-    /** create a new renderer according to the information contained in
+    /** Create a new renderer according to the information contained in
      * the UserStyle element of a SLD style document
      * @param node the node in the SLD document whose the UserStyle element
      * is a child
@@ -147,15 +179,15 @@ class QgsFeatureRendererV2
 
     //! items of symbology items in legend is checked
     //! @note added in 2.5
-    virtual bool legendSymbolItemChecked( QString key );
+    virtual bool legendSymbolItemChecked( const QString& key );
 
     //! item in symbology was checked
     //! @note added in 2.5
-    virtual void checkLegendSymbolItem( QString key, bool state = true );
+    virtual void checkLegendSymbolItem( const QString& key, bool state = true );
 
     //! return a list of item text / symbol
     //! @note not available in python bindings
-    // virtual QgsLegendSymbolList legendSymbolItems( double scaleDenominator = -1, QString rule = "" );
+    // virtual QgsLegendSymbolList legendSymbolItems( double scaleDenominator = -1, const QString& rule = "" );
 
     //! Return a list of symbology items for the legend. Better choice than legendSymbolItems().
     //! Default fallback implementation just uses legendSymbolItems() implementation
@@ -170,26 +202,52 @@ class QgsFeatureRendererV2
     void setVertexMarkerAppearance( int type, int size );
 
     //! return rotation field name (or empty string if not set or not supported by renderer)
-    virtual QString rotationField() const;
+    virtual QString rotationField() const /Deprecated/;
     //! sets rotation field of renderer (if supported by the renderer)
-    virtual void setRotationField( QString fieldName );
+    virtual void setRotationField( const QString& fieldName ) /Deprecated/;
 
     //! return whether the renderer will render a feature or not.
     //! Must be called between startRender() and stopRender() calls.
     //! Default implementation uses symbolForFeature().
-    virtual bool willRenderFeature( QgsFeature& feat );
+    virtual bool willRenderFeature( QgsFeature& feat ) /Deprecated/;
+
+    /** Returns whether the renderer will render a feature or not.
+     * Must be called between startRender() and stopRender() calls.
+     * Default implementation uses symbolForFeature().
+     * @note added in QGIS 2.12
+     * @note available in Python bindings as willRenderFeature2
+     */
+    //TODO - QGIS 3.0 change PyName to willRenderFeature when deprecated method is removed
+    virtual bool willRenderFeature( QgsFeature& feat, QgsRenderContext& context ) /PyName=willRenderFeature2/;
 
     //! return list of symbols used for rendering the feature.
     //! For renderers that do not support MoreSymbolsPerFeature it is more efficient
     //! to use symbolForFeature()
-    virtual QgsSymbolV2List symbolsForFeature( QgsFeature& feat );
+    virtual QgsSymbolV2List symbolsForFeature( QgsFeature& feat ) /Deprecated/;
+
+    /** Returns list of symbols used for rendering the feature.
+     * For renderers that do not support MoreSymbolsPerFeature it is more efficient
+     * to use symbolForFeature()
+     * @note added in QGIS 2.12
+     * @note available in Python bindings as symbolsForFeature2
+    */
+    //TODO - QGIS 3.0 change PyName to symbolsForFeature when deprecated method is removed
+    virtual QgsSymbolV2List symbolsForFeature( QgsFeature& feat, QgsRenderContext& context ) /PyName=symbolsForFeature2/;
 
     //! Equivalent of originalSymbolsForFeature() call
     //! extended to support renderers that may use more symbols per feature - similar to symbolsForFeature()
     //! @note added in 2.6
-    virtual QgsSymbolV2List originalSymbolsForFeature( QgsFeature& feat );
+    virtual QgsSymbolV2List originalSymbolsForFeature( QgsFeature& feat ) /Deprecated/;
 
-    /**Allows for a renderer to modify the extent of a feature request prior to rendering
+     /** Equivalent of originalSymbolsForFeature() call
+     * extended to support renderers that may use more symbols per feature - similar to symbolsForFeature()
+     * @note added in 2.12
+     * @note available in Python bindings as originalSymbolsForFeature2
+    */
+    //TODO - QGIS 3.0 change PyName to symbolsForFeature when deprecated method is removed
+    virtual QgsSymbolV2List originalSymbolsForFeature( QgsFeature& feat, QgsRenderContext& context ) /PyName=originalSymbolsForFeature2/;
+
+    /** Allows for a renderer to modify the extent of a feature request prior to rendering
      * @param extent reference to request's filter extent. Modify extent to change the
      * extent of feature request
      * @param context render context
@@ -227,7 +285,7 @@ class QgsFeatureRendererV2
     void setForceRasterRender( bool forceRaster );
 
   protected:
-    QgsFeatureRendererV2( QString type );
+    QgsFeatureRendererV2( const QString& type );
 
     void renderFeatureWithSymbol( QgsFeature& feature,
                                   QgsSymbolV2* symbol,
@@ -237,7 +295,7 @@ class QgsFeatureRendererV2
                                   bool drawVertexMarker );
 
     //! render editing vertex marker at specified point
-    void renderVertexMarker( QPointF& pt, QgsRenderContext& context );
+    void renderVertexMarker( const QPointF& pt, QgsRenderContext& context );
     //! render editing vertex marker for a polyline
     void renderVertexMarkerPolyline( QPolygonF& pts, QgsRenderContext& context );
     //! render editing vertex marker for a polygon

@@ -20,7 +20,7 @@
 
 class QgsExpression;
 
-/**A symbol layer for rendering objects with major and minor axis (e.g. ellipse, rectangle )*/
+/** A symbol layer for rendering objects with major and minor axis (e.g. ellipse, rectangle )*/
 class CORE_EXPORT QgsEllipseSymbolLayerV2: public QgsMarkerSymbolLayerV2
 {
   public:
@@ -34,13 +34,13 @@ class CORE_EXPORT QgsEllipseSymbolLayerV2: public QgsMarkerSymbolLayerV2
     QString layerType() const override;
     void startRender( QgsSymbolV2RenderContext& context ) override;
     void stopRender( QgsSymbolV2RenderContext& context ) override;
-    QgsSymbolLayerV2* clone() const override;
+    QgsEllipseSymbolLayerV2* clone() const override;
     QgsStringMap properties() const override;
 
-    void toSld( QDomDocument& doc, QDomElement &element, QgsStringMap props ) const override;
-    void writeSldMarker( QDomDocument& doc, QDomElement &element, QgsStringMap props ) const override;
+    void toSld( QDomDocument& doc, QDomElement &element, const QgsStringMap& props ) const override;
+    void writeSldMarker( QDomDocument& doc, QDomElement &element, const QgsStringMap& props ) const override;
 
-    bool writeDxf( QgsDxfExport& e, double mmMapUnitScaleFactor, const QString& layerName, const QgsSymbolV2RenderContext* context, const QgsFeature* f, const QPointF& shift = QPointF( 0.0, 0.0 ) ) const override;
+    bool writeDxf( QgsDxfExport& e, double mmMapUnitScaleFactor, const QString& layerName, QgsSymbolV2RenderContext* context, const QgsFeature* f, const QPointF& shift = QPointF( 0.0, 0.0 ) ) const override;
 
     void setSymbolName( const QString& name ) { mSymbolName = name; }
     QString symbolName() const { return mSymbolName; }
@@ -57,8 +57,8 @@ class CORE_EXPORT QgsEllipseSymbolLayerV2: public QgsMarkerSymbolLayerV2
     void setOutlineWidth( double w ) { mOutlineWidth = w; }
     double outlineWidth() const { return mOutlineWidth; }
 
-    void setFillColor( const QColor& c ) override { mFillColor = c;}
-    QColor fillColor() const override { return mFillColor; }
+    void setFillColor( const QColor& c ) override { setColor( c ); }
+    QColor fillColor() const override { return color(); }
 
     void setOutlineColor( const QColor& c ) override { mOutlineColor = c; }
     QColor outlineColor() const override { return mOutlineColor; }
@@ -95,7 +95,6 @@ class CORE_EXPORT QgsEllipseSymbolLayerV2: public QgsMarkerSymbolLayerV2
     double mSymbolHeight;
     QgsSymbolV2::OutputUnit mSymbolHeightUnit;
     QgsMapUnitScale mSymbolHeightMapUnitScale;
-    QColor mFillColor;
     QColor mOutlineColor;
     Qt::PenStyle mOutlineStyle;
     double mOutlineWidth;
@@ -107,7 +106,7 @@ class CORE_EXPORT QgsEllipseSymbolLayerV2: public QgsMarkerSymbolLayerV2
     QPen mPen;
     QBrush mBrush;
 
-    /**Setup mPainterPath
+    /** Setup mPainterPath
       @param symbolName name of symbol
       @param context render context
       @param scaledWidth optional width

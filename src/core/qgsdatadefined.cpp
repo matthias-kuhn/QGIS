@@ -59,9 +59,9 @@ QgsDataDefined* QgsDataDefined::fromMap( const QgsStringMap &map, const QString 
     return 0;
   }
 
-  bool active = ( map.value( QString( "%1active" ).arg( prefix ), "1" ) != QString( "0" ) );
+  bool active = ( map.value( QString( "%1active" ).arg( prefix ), "1" ) != QLatin1String( "0" ) );
   QString expression = map.value( QString( "%1expression" ).arg( prefix ) );
-  bool useExpression = ( map.value( QString( "%1useexpr" ).arg( prefix ), "1" ) != QString( "0" ) );
+  bool useExpression = ( map.value( QString( "%1useexpr" ).arg( prefix ), "1" ) != QLatin1String( "0" ) );
   QString field = map.value( QString( "%1field" ).arg( prefix ), QString() );
 
   return new QgsDataDefined( active, useExpression, expression, field );
@@ -115,6 +115,7 @@ void QgsDataDefined::setUseExpression( bool use )
 
   d.detach();
   d->useExpression = use;
+  d->expressionPrepared = false;
   d->exprRefColumns.clear();
 }
 
@@ -130,9 +131,15 @@ void QgsDataDefined::setExpressionString( const QString &expr )
 
   d.detach();
 
+  d->useExpression = true;
   d->expressionString = expr;
   d->expressionPrepared = false;
   d->exprRefColumns.clear();
+}
+
+QString QgsDataDefined::expressionOrField() const
+{
+  return d->useExpression ? d->expressionString : QString( "\"%1\"" ).arg( d->field );
 }
 
 QMap<QString, QVariant> QgsDataDefined::expressionParams() const
@@ -140,7 +147,7 @@ QMap<QString, QVariant> QgsDataDefined::expressionParams() const
   return d->expressionParams;
 }
 
-void QgsDataDefined::setExpressionParams( QMap<QString, QVariant> params )
+void QgsDataDefined::setExpressionParams( const QMap<QString, QVariant>& params )
 {
   d.detach();
   d->expressionParams = params;
@@ -150,17 +157,22 @@ bool QgsDataDefined::prepareExpression( QgsVectorLayer* layer )
 {
   if ( layer )
   {
-    return prepareExpression( layer->pendingFields() );
+    return prepareExpression( QgsExpressionContextUtils::createFeatureBasedContext( QgsFeature(), layer->fields() ) );
   }
   else
   {
-    //preparing expression without a layer set, so pass empty field list
-    QgsFields empty;
+    //preparing expression without a layer set, so pass empty context
+    QgsExpressionContext empty;
     return prepareExpression( empty );
   }
 }
 
 bool QgsDataDefined::prepareExpression( const QgsFields &fields )
+{
+  return prepareExpression( QgsExpressionContextUtils::createFeatureBasedContext( QgsFeature(), fields ) );
+}
+
+bool QgsDataDefined::prepareExpression( const QgsExpressionContext& context )
 {
   if ( !d->useExpression || d->expressionString.isEmpty() )
   {
@@ -188,7 +200,7 @@ bool QgsDataDefined::prepareExpression( const QgsFields &fields )
     }
   }
 
-  d->expression->prepare( fields );
+  d->expression->prepare( &context );
   d->exprRefColumns = d->expression->referencedColumns();
 
   if ( d->expression->hasEvalError() )
@@ -221,15 +233,21 @@ QStringList QgsDataDefined::referencedColumns( QgsVectorLayer* layer )
 {
   if ( layer )
   {
-    return referencedColumns( layer->pendingFields() );
+    return referencedColumns( QgsExpressionContextUtils::createFeatureBasedContext( QgsFeature(), layer->fields() ) );
   }
   else
   {
-    return referencedColumns( );
+    QgsExpressionContext empty;
+    return referencedColumns( empty );
   }
 }
 
 QStringList QgsDataDefined::referencedColumns( const QgsFields &fields )
+{
+  return referencedColumns( QgsExpressionContextUtils::createFeatureBasedContext( QgsFeature(), fields ) );
+}
+
+QStringList QgsDataDefined::referencedColumns( const QgsExpressionContext& context )
 {
   if ( !d->exprRefColumns.isEmpty() )
   {
@@ -241,7 +259,7 @@ QStringList QgsDataDefined::referencedColumns( const QgsFields &fields )
   {
     if ( !d->expression || !d->expressionPrepared )
     {
-      prepareExpression( fields );
+      prepareExpression( context );
     }
   }
   else if ( !d->field.isEmpty() )
@@ -263,11 +281,12 @@ void QgsDataDefined::setField( const QString &field )
     return;
 
   d.detach();
+  d->useExpression = false;
   d->field = field;
   d->exprRefColumns.clear();
 }
 
-void QgsDataDefined::insertExpressionParam( QString key, QVariant param )
+void QgsDataDefined::insertExpressionParam( const QString& key, const QVariant& param )
 {
   d.detach();
   d->expressionParams.insert( key, param );

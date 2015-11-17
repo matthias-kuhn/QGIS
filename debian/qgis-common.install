@@ -18,3 +18,4 @@ usr/share/qgis/doc/style.css
 usr/share/qgis/i18n/*
 usr/share/qgis/images/*
 usr/share/qgis/resources/spatialite.db
+usr/share/qgis/resources/themes/*

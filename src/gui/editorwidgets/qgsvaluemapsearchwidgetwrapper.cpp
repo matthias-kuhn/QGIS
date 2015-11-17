@@ -23,8 +23,8 @@
 #include <QSizePolicy>
 
 QgsValueMapSearchWidgetWrapper::QgsValueMapSearchWidgetWrapper( QgsVectorLayer* vl, int fieldIdx, QWidget* parent )
-    : QgsDefaultSearchWidgetWrapper( vl, fieldIdx, parent ),
-      mComboBox( NULL )
+    : QgsSearchWidgetWrapper( vl, fieldIdx, parent ),
+    mComboBox( NULL )
 {
 }
 
@@ -33,15 +33,35 @@ QWidget* QgsValueMapSearchWidgetWrapper::createWidget( QWidget* parent )
   return new QComboBox( parent );
 }
 
-void QgsValueMapSearchWidgetWrapper::comboBoxIndexChanged(int)
+void QgsValueMapSearchWidgetWrapper::comboBoxIndexChanged( int idx )
 {
   if ( mComboBox )
-    setExpression(mComboBox->itemData( mComboBox->currentIndex()).toString());
+  {
+    if ( idx == 0 )
+    {
+      clearExpression();
+    }
+    else
+    {
+      setExpression( mComboBox->itemData( idx ).toString() );
+    }
+    emit expressionChanged( mExpression );
+  }
 }
 
-bool QgsValueMapSearchWidgetWrapper::applyDirectly() 
+bool QgsValueMapSearchWidgetWrapper::applyDirectly()
 {
-    return true;
+  return true;
+}
+
+QString QgsValueMapSearchWidgetWrapper::expression()
+{
+  return mExpression;
+}
+
+bool QgsValueMapSearchWidgetWrapper::valid()
+{
+  return true;
 }
 
 void QgsValueMapSearchWidgetWrapper::initWidget( QWidget* editor )
@@ -52,14 +72,26 @@ void QgsValueMapSearchWidgetWrapper::initWidget( QWidget* editor )
   {
     const QgsEditorWidgetConfig cfg = config();
     QgsEditorWidgetConfig::ConstIterator it = cfg.constBegin();
-    mComboBox->addItem( tr( "Please select" ), "");
+    mComboBox->addItem( tr( "Please select" ), "" );
 
     while ( it != cfg.constEnd() )
     {
       mComboBox->addItem( it.key(), it.value() );
       ++it;
     }
-    connect( mComboBox, SIGNAL( currentIndexChanged(int) ), this, SLOT( comboBoxIndexChanged(int) ) );
+    connect( mComboBox, SIGNAL( currentIndexChanged( int ) ), this, SLOT( comboBoxIndexChanged( int ) ) );
   }
+}
+
+void QgsValueMapSearchWidgetWrapper::setExpression( QString exp )
+{
+  QString fieldName = layer()->fields().at( mFieldIdx ).name();
+  QString str;
+
+  str = QString( "%1 = '%2'" )
+        .arg( QgsExpression::quotedColumnRef( fieldName ),
+              exp.replace( '\'', "''" ) );
+
+  mExpression = str;
 }
 

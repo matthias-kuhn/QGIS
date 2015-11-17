@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 5.1.2014
     Copyright            : (C) 2014 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -41,7 +41,7 @@ class QgsValueRelationWidgetFactory;
  * <li><b>FilterExpression</b> <i>If not empty, will be used as expression. Only if this evaluates to True, the value will be shown.</i></li>
  * <li><b>OrderByValue</b> <i>Will order by value instead of key.</i></li>
  * </ul>
- *
+ * \note not available in Python bindings
  */
 
 class GUI_EXPORT QgsValueRelationWidgetWrapper : public QgsEditorWidgetWrapper
@@ -55,9 +55,9 @@ class GUI_EXPORT QgsValueRelationWidgetWrapper : public QgsEditorWidgetWrapper
   public:
     explicit QgsValueRelationWidgetWrapper( QgsVectorLayer* vl, int fieldIdx, QWidget* editor = 0, QWidget* parent = 0 );
     static bool orderByKeyLessThan( const QgsValueRelationWidgetWrapper::ValueRelationItem& p1 ,
-            const QgsValueRelationWidgetWrapper::ValueRelationItem& p2 );
+                                    const QgsValueRelationWidgetWrapper::ValueRelationItem& p2 );
     static bool orderByValueLessThan( const QgsValueRelationWidgetWrapper::ValueRelationItem& p1 ,
-            const QgsValueRelationWidgetWrapper::ValueRelationItem& p2 );
+                                      const QgsValueRelationWidgetWrapper::ValueRelationItem& p2 );
 
 
 
@@ -70,6 +70,7 @@ class GUI_EXPORT QgsValueRelationWidgetWrapper : public QgsEditorWidgetWrapper
   protected:
     QWidget* createWidget( QWidget* parent ) override;
     void initWidget( QWidget* editor ) override;
+    bool valid() override;
 
   public slots:
     void setValue( const QVariant& value ) override;

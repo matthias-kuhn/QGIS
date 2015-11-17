@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 5.1.2014
     Copyright            : (C) 2014 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,7 +19,7 @@
 #include "qgsvectorlayer.h"
 
 
-QgsRangeWidgetFactory::QgsRangeWidgetFactory( QString name )
+QgsRangeWidgetFactory::QgsRangeWidgetFactory( const QString& name )
     : QgsEditorWidgetFactory( name )
 {
 }
@@ -73,7 +73,7 @@ void QgsRangeWidgetFactory::writeConfig( const QgsEditorWidgetConfig& config, QD
 
 bool QgsRangeWidgetFactory::isFieldSupported( QgsVectorLayer* vl, int fieldIdx )
 {
-  switch ( vl->pendingFields()[fieldIdx].type() )
+  switch ( vl->fields().at( fieldIdx ).type() )
   {
     case QVariant::LongLong:
     case QVariant::Double:
@@ -83,4 +83,14 @@ bool QgsRangeWidgetFactory::isFieldSupported( QgsVectorLayer* vl, int fieldIdx )
     default:
       return false;
   }
+}
+
+QMap<const char*, int> QgsRangeWidgetFactory::supportedWidgetTypes()
+{
+  QMap<const char*, int> map = QMap<const char*, int>();
+  map.insert( QSlider::staticMetaObject.className(), 10 );
+  map.insert( QDial::staticMetaObject.className(), 10 );
+  map.insert( QSpinBox::staticMetaObject.className(), 10 );
+  map.insert( QDoubleSpinBox::staticMetaObject.className(), 10 );
+  return map;
 }

@@ -18,7 +18,7 @@ email                : marco.hugentobler at sourcepole dot com
 
 #include "qgsmulticurvev2.h"
 
-/**\ingroup core
+/** \ingroup core
  * \class QgsMultiLineStringV2
  * \brief Multi line string geometry collection.
  * \note added in QGIS 2.10
@@ -28,7 +28,7 @@ class CORE_EXPORT QgsMultiLineStringV2: public QgsMultiCurveV2
 {
   public:
     virtual QString geometryType() const override { return "MultiLineString"; }
-    QgsAbstractGeometryV2* clone() const override;
+    QgsMultiLineStringV2* clone() const override;
 
     bool fromWkt( const QString& wkt ) override;
 
@@ -40,8 +40,12 @@ class CORE_EXPORT QgsMultiLineStringV2: public QgsMultiCurveV2
     QString asJSON( int precision = 17 ) const override;
 
 
-    /**Adds a geometry and takes ownership. Returns true in case of success*/
+    /** Adds a geometry and takes ownership. Returns true in case of success*/
     virtual bool addGeometry( QgsAbstractGeometryV2* g ) override;
+
+  protected:
+
+    virtual bool wktOmitChildType() const override { return true; }
 };
 
 #endif // QGSMULTILINESTRINGV2_H

@@ -56,7 +56,10 @@ if "%ARCH%"=="x86" goto devenv_x86
 goto devenv_x86_64
 
 :devenv_x86
-set GRASS_VERSIONS=6.4.4 7.0.1RC1
+for /f "usebackq tokens=1" %%a in (`%OSGEO4W_ROOT%\bin\grass70 --config path`) do set GRASS70_PATH=%%a
+for %%i in ("%GRASS70_PATH%") do set GRASS70_VERSION=%%~nxi
+set GRASS70_VERSION=%GRASS70_VERSION:grass-=%
+set GRASS_VERSIONS=6.4.4 %GRASS70_VERSION%
 call "%PF86%\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" x86
 if exist "c:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" call "c:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.Cmd" /x86 /Release
 path %path%;%PF86%\Microsoft Visual Studio 10.0\VC\bin
@@ -66,9 +69,10 @@ set CMAKE_OPT=^
 	-D SIP_BINARY_PATH=%O4W_ROOT%/apps/Python27/sip.exe ^
 	-D QWT_LIBRARY=%O4W_ROOT%/lib/qwt.lib ^
 	-D WITH_GRASS=TRUE ^
+	-D WITH_GRASS6=TRUE ^
 	-D WITH_GRASS7=TRUE ^
 	-D GRASS_PREFIX=%O4W_ROOT%/apps/grass/grass-6.4.4 ^
-	-D GRASS_PREFIX7=%O4W_ROOT%/apps/grass/grass-7.0.1RC1 ^
+	-D GRASS_PREFIX7=%GRASS70_PATH:\=/% ^
 	-D CMAKE_CXX_FLAGS_RELWITHDEBINFO="/MD /ZI /MP /Od /D NDEBUG /D QGISDEBUG" ^
 	-D CMAKE_PDB_OUTPUT_DIRECTORY_RELWITHDEBINFO=%BUILDDIR%\apps\%PACKAGENAME%\pdb
 goto devenv
@@ -87,6 +91,7 @@ set CMAKE_OPT=^
 	-G "Visual Studio 10 Win64" ^
 	-D SPATIALINDEX_LIBRARY=%O4W_ROOT%/lib/spatialindex-64.lib ^
 	-D WITH_GRASS=TRUE ^
+	-D WITH_GRASS6=TRUE ^
 	-D WITH_GRASS7=FALSE ^
 	-D GRASS_PREFIX=%O4W_ROOT%/apps/grass/grass-6.4.3 ^
 	-D SIP_BINARY_PATH=%O4W_ROOT%/bin/sip.exe ^
@@ -207,7 +212,15 @@ if exist ..\skiptests goto skiptests
 
 echo RUN_TESTS: %DATE% %TIME%
 
+set oldtemp=%TEMP%
+set oldtmp=%TMP%
 set oldpath=%PATH%
+
+set TEMP=%TEMP%\%PACKAGENAME%-%ARCH%
+set TMP=%TEMP%
+if exist "%TEMP%" rmdir /s /q "%TEMP%"
+mkdir "%TEMP%"
+
 for %%g IN (%GRASS_VERSIONS%) do (
 	set path=!path!;%OSGEO4W_ROOT%\apps\grass\grass-%%g\lib
 	set GISBASE=%OSGEO4W_ROOT%\apps\grass\grass-%%g
@@ -217,13 +230,15 @@ PATH %path%;%BUILDDIR%\output\plugins\%BUILDCONF%
 cmake --build %BUILDDIR% --target Nightly --config %BUILDCONF%
 if errorlevel 1 echo TESTS WERE NOT SUCCESSFUL.
 
+set TEMP=%oldtemp%
+set TMP=%oldtmp%
 PATH %oldpath%
 
 :skiptests
 
-if exist %PKGDIR% (
+if exist "%PKGDIR%" (
 	echo REMOVE: %DATE% %TIME%
-	rmdir /s /q %PKGDIR%
+	rmdir /s /q "%PKGDIR%"
 )
 
 echo INSTALL: %DATE% %TIME%
@@ -247,11 +262,11 @@ if errorlevel 1 (echo creation of registry template & goto error)
 
 set batches=
 for %%g IN (%GRASS_VERSIONS%) do (
-	sed -e 's/@package@/%PACKAGENAME%/g' -e 's/@version@/%VERSION%/g' -e 's/@grassversion@/%%g/g' qgis.bat.tmpl >%OSGEO4W_ROOT%\bin\%PACKAGENAME%-g%%g.bat.tmpl
+	sed -e 's/@package@/%PACKAGENAME%/g' -e 's/@version@/%VERSION%/g' -e 's/@grassversion@/%%g/g' qgis-grass.bat.tmpl >%OSGEO4W_ROOT%\bin\%PACKAGENAME%-g%%g.bat.tmpl
 	if errorlevel 1 (echo creation of desktop template failed & goto error)
 	set batches=!batches! bin/%PACKAGENAME%-g%%g.bat.tmpl
 
-	sed -e 's/@package@/%PACKAGENAME%/g' -e 's/@version@/%VERSION%/g' -e 's/@grassversion@/%%g/g' browser.bat.tmpl >%OSGEO4W_ROOT%\bin\%PACKAGENAME%-browser-g%%g.bat.tmpl
+	sed -e 's/@package@/%PACKAGENAME%/g' -e 's/@version@/%VERSION%/g' -e 's/@grassversion@/%%g/g' browser-grass.bat.tmpl >%OSGEO4W_ROOT%\bin\%PACKAGENAME%-browser-g%%g.bat.tmpl
 	if errorlevel 1 (echo creation of browser template & goto error)
 	set batches=!batches! bin/%PACKAGENAME%-browser-g%%g.bat.tmpl
 )

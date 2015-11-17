@@ -69,7 +69,7 @@ QgsTransaction* QgsTransaction::create( const QStringList& layerIds )
     return 0;
   }
 
-  foreach ( const QString& layerId, layerIds )
+  Q_FOREACH ( const QString& layerId, layerIds )
   {
     if ( !ts->addLayer( layerId ) )
     {
@@ -123,6 +123,8 @@ bool QgsTransaction::addLayer( const QString& layerId )
   //connection string not compatible
   if ( QgsDataSourceURI( layer->source() ).connectionInfo() != mConnString )
   {
+    QgsDebugMsg( QString( "Couldn't start transaction because connection string for layer %1 : '%2' does not match '%3'" ).arg(
+                   layerId, QgsDataSourceURI( layer->source() ).connectionInfo(), mConnString ) );
     return false;
   }
 
@@ -155,7 +157,7 @@ bool QgsTransaction::commit( QString& errorMsg )
     return false;
   }
 
-  foreach ( const QString& layerid, mLayers )
+  Q_FOREACH ( const QString& layerid, mLayers )
   {
     QgsMapLayer* l = QgsMapLayerRegistry::instance()->mapLayer( layerid );
     if ( !l || l->isEditable() )
@@ -181,7 +183,7 @@ bool QgsTransaction::rollback( QString& errorMsg )
     return false;
   }
 
-  foreach ( const QString& layerid, mLayers )
+  Q_FOREACH ( const QString& layerid, mLayers )
   {
     QgsMapLayer* l = QgsMapLayerRegistry::instance()->mapLayer( layerid );
     if ( !l || l->isEditable() )
@@ -202,7 +204,7 @@ bool QgsTransaction::rollback( QString& errorMsg )
 
 void QgsTransaction::setLayerTransactionIds( QgsTransaction* transaction )
 {
-  foreach ( const QString& layerid, mLayers )
+  Q_FOREACH ( const QString& layerid, mLayers )
   {
     QgsVectorLayer* vl = qobject_cast<QgsVectorLayer*>( QgsMapLayerRegistry::instance()->mapLayer( layerid ) );
     if ( vl && vl->dataProvider() )

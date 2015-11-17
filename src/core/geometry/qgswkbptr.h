@@ -5,6 +5,10 @@
 #include "qgsapplication.h"
 #include "qgis.h"
 
+/** \class QgsWkbPtr
+ * \note not available in Python bindings
+ */
+
 class CORE_EXPORT QgsWkbPtr
 {
     mutable unsigned char *mP;
@@ -37,6 +41,10 @@ class CORE_EXPORT QgsWkbPtr
     inline operator unsigned char *() const { return mP; }
 };
 
+/** \class QgsConstWkbPtr
+ * \note not available in Python bindings
+ */
+
 class CORE_EXPORT QgsConstWkbPtr
 {
     mutable unsigned char *mP;
@@ -47,14 +55,12 @@ class CORE_EXPORT QgsConstWkbPtr
     QgsWKBTypes::Type readHeader() const;
 
     inline const QgsConstWkbPtr &operator>>( double &v ) const { read( v ); return *this; }
+    inline const QgsConstWkbPtr &operator>>( float &r ) const { double v; read( v ); r = v; return *this; }
     inline const QgsConstWkbPtr &operator>>( int &v ) const { read( v ); return *this; }
     inline const QgsConstWkbPtr &operator>>( unsigned int &v ) const { read( v ); return *this; }
     inline const QgsConstWkbPtr &operator>>( char &v ) const { read( v ); return *this; }
     inline const QgsConstWkbPtr &operator>>( QGis::WkbType &v ) const { read( v ); return *this; }
     inline const QgsConstWkbPtr &operator>>( QgsWKBTypes::Type &v ) const { read( v ); return *this; }
-#ifdef QT_ARCH_ARM
-    inline const QgsConstWkbPtr &operator>>( qreal &r ) const { double v; read( v ); r = v; return *this; }
-#endif
 
     inline void operator+=( int n ) { mP += n; }
     inline void operator-=( int n ) { mP -= n; }

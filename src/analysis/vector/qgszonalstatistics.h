@@ -25,7 +25,7 @@ class QgsGeometry;
 class QgsVectorLayer;
 class QProgressDialog;
 
-/**A class that calculates raster statistics (count, sum, mean) for a polygon or multipolygon layer and appends the results as attributes*/
+/** A class that calculates raster statistics (count, sum, mean) for a polygon or multipolygon layer and appends the results as attributes*/
 class ANALYSIS_EXPORT QgsZonalStatistics
 {
   public:
@@ -49,10 +49,10 @@ class ANALYSIS_EXPORT QgsZonalStatistics
     Q_DECLARE_FLAGS( Statistics, Statistic )
 
     QgsZonalStatistics( QgsVectorLayer* polygonLayer, const QString& rasterFile, const QString& attributePrefix = "", int rasterBand = 1,
-                        Statistics stats = Statistics( Count | Sum | Mean ) );
+                        const Statistics& stats = Statistics( Count | Sum | Mean ) );
     ~QgsZonalStatistics();
 
-    /**Starts the calculation
+    /** Starts the calculation
       @return 0 in case of success*/
     int calculateStatistics( QProgressDialog* p );
 
@@ -100,30 +100,30 @@ class ANALYSIS_EXPORT QgsZonalStatistics
         bool mStoreValueCounts;
     };
 
-    /**Analysis what cells need to be considered to cover the bounding box of a feature
+    /** Analysis what cells need to be considered to cover the bounding box of a feature
       @return 0 in case of success*/
     int cellInfoForBBox( const QgsRectangle& rasterBBox, const QgsRectangle& featureBBox, double cellSizeX, double cellSizeY,
                          int& offsetX, int& offsetY, int& nCellsX, int& nCellsY ) const;
 
-    /**Returns statistics by considering the pixels where the center point is within the polygon (fast)*/
+    /** Returns statistics by considering the pixels where the center point is within the polygon (fast)*/
     void statisticsFromMiddlePointTest( void* band, const QgsGeometry* poly, int pixelOffsetX, int pixelOffsetY, int nCellsX, int nCellsY,
                                         double cellSizeX, double cellSizeY, const QgsRectangle& rasterBBox, FeatureStats& stats );
 
-    /**Returns statistics with precise pixel - polygon intersection test (slow) */
+    /** Returns statistics with precise pixel - polygon intersection test (slow) */
     void statisticsFromPreciseIntersection( void* band, const QgsGeometry* poly, int pixelOffsetX, int pixelOffsetY, int nCellsX, int nCellsY,
                                             double cellSizeX, double cellSizeY, const QgsRectangle& rasterBBox, FeatureStats& stats );
 
-    /**Tests whether a pixel's value should be included in the result*/
+    /** Tests whether a pixel's value should be included in the result*/
     bool validPixel( float value ) const;
 
-    QString getUniqueFieldName( QString fieldName );
+    QString getUniqueFieldName( const QString& fieldName );
 
     QString mRasterFilePath;
-    /**Raster band to calculate statistics from (defaults to 1)*/
+    /** Raster band to calculate statistics from (defaults to 1)*/
     int mRasterBand;
     QgsVectorLayer* mPolygonLayer;
     QString mAttributePrefix;
-    /**The nodata value of the input layer*/
+    /** The nodata value of the input layer*/
     float mInputNodataValue;
     Statistics mStatistics;
 };

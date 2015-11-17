@@ -20,6 +20,7 @@
 #include "qgsattributeaction.h"
 #include "qgseditorwidgetregistry.h"
 #include "qgsexpression.h"
+#include "qgsconditionalstyle.h"
 #include "qgsfield.h"
 #include "qgslogger.h"
 #include "qgsmapcanvas.h"
@@ -27,6 +28,8 @@
 #include "qgsmaplayerregistry.h"
 #include "qgsrendererv2.h"
 #include "qgsvectorlayer.h"
+#include "qgsvectordataprovider.h"
+#include "qgssymbollayerv2utils.h"
 
 #include <QVariant>
 
@@ -39,6 +42,10 @@ QgsAttributeTableModel::QgsAttributeTableModel( QgsVectorLayerCache *layerCache,
     , mCachedField( -1 )
 {
   QgsDebugMsg( "entered." );
+
+  mExpressionContext << QgsExpressionContextUtils::globalScope()
+  << QgsExpressionContextUtils::projectScope()
+  << QgsExpressionContextUtils::layerScope( layerCache->layer() );
 
   if ( layerCache->layer()->geometryType() == QGis::NoGeometry )
   {
@@ -73,7 +80,7 @@ bool QgsAttributeTableModel::loadFeatureAtId( QgsFeatureId fid ) const
   return mLayerCache->featureAtId( fid, mFeat );
 }
 
-void QgsAttributeTableModel::featuresDeleted( QgsFeatureIds fids )
+void QgsAttributeTableModel::featuresDeleted( const QgsFeatureIds& fids )
 {
   QList<int> rows;
 
@@ -289,7 +296,7 @@ void QgsAttributeTableModel::loadAttributes()
   bool ins = false, rm = false;
 
   QgsAttributeList attributes;
-  const QgsFields& fields = layer()->pendingFields();
+  const QgsFields& fields = layer()->fields();
 
   mWidgetFactories.clear();
   mAttributeWidgetCaches.clear();
@@ -382,6 +389,24 @@ void QgsAttributeTableModel::loadLayer()
   endResetModel();
 }
 
+void QgsAttributeTableModel::fieldConditionalStyleChanged( const QString &fieldName )
+{
+  if ( fieldName.isNull() )
+  {
+    mRowStylesMap.clear();
+    emit dataChanged( index( 0, 0 ), index( rowCount() - 1, columnCount() - 1 ) );
+    return;
+  }
+
+  int fieldIndex = mLayerCache->layer()->fieldNameIndex( fieldName );
+  if ( fieldIndex == -1 )
+    return;
+
+  //whole column has changed
+  int col = fieldCol( fieldIndex );
+  emit dataChanged( index( 0, col ), index( rowCount() - 1, col ) );
+}
+
 void QgsAttributeTableModel::swapRows( QgsFeatureId a, QgsFeatureId b )
 {
   if ( a == b )
@@ -426,7 +451,9 @@ QModelIndexList QgsAttributeTableModel::idToIndexList( QgsFeatureId id ) const
   QModelIndexList indexes;
 
   int row = idToRow( id );
-  for ( int column = 0; column < columnCount(); ++column )
+  int columns = columnCount();
+  indexes.reserve( columns );
+  for ( int column = 0; column < columns; ++column )
   {
     indexes.append( index( row, column ) );
   }
@@ -484,7 +511,7 @@ QVariant QgsAttributeTableModel::headerData( int section, Qt::Orientation orient
       QString attributeName = layer()->attributeAlias( mAttributes[section] );
       if ( attributeName.isEmpty() )
       {
-        QgsField field = layer()->pendingFields()[ mAttributes[section] ];
+        QgsField field = layer()->fields().at( mAttributes[section] );
         attributeName = field.name();
       }
       return QVariant( attributeName );
@@ -509,6 +536,10 @@ QVariant QgsAttributeTableModel::data( const QModelIndex &index, int role ) cons
          && role != SortRole
          && role != FeatureIdRole
          && role != FieldIndexRole
+         && role != Qt::BackgroundColorRole
+         && role != Qt::TextColorRole
+         && role != Qt::DecorationRole
+         && role != Qt::FontRole
        )
      )
     return QVariant();
@@ -526,7 +557,7 @@ QVariant QgsAttributeTableModel::data( const QModelIndex &index, int role ) cons
   if ( role == FieldIndexRole )
     return fieldId;
 
-  const QgsField& field = layer()->pendingFields()[ fieldId ];
+  QgsField field = layer()->fields().at( fieldId );
 
   QVariant::Type fldType = field.type();
   bool fldNumeric = ( fldType == QVariant::Int || fldType == QVariant::Double || fldType == QVariant::LongLong );
@@ -565,6 +596,40 @@ QVariant QgsAttributeTableModel::data( const QModelIndex &index, int role ) cons
     return mWidgetFactories[ index.column()]->representValue( layer(), fieldId, mWidgetConfigs[ index.column()], mAttributeWidgetCaches[ index.column()], val );
   }
 
+  if ( role == Qt::BackgroundColorRole || role == Qt::TextColorRole || role == Qt::DecorationRole || role == Qt::FontRole )
+  {
+    mExpressionContext.setFeature( mFeat );
+    QList<QgsConditionalStyle> styles;
+    if ( mRowStylesMap.contains( index.row() ) )
+    {
+      styles = mRowStylesMap[index.row()];
+    }
+    else
+    {
+      styles = QgsConditionalStyle::matchingConditionalStyles( layer()->conditionalStyles()->rowStyles(), QVariant(),  mExpressionContext );
+      mRowStylesMap.insert( index.row(), styles );
+
+    }
+
+    QgsConditionalStyle rowstyle = QgsConditionalStyle::compressStyles( styles );
+    styles = layer()->conditionalStyles()->fieldStyles( field.name() );
+    styles = QgsConditionalStyle::matchingConditionalStyles( styles , val,  mExpressionContext );
+    styles.insert( 0, rowstyle );
+    QgsConditionalStyle style = QgsConditionalStyle::compressStyles( styles );
+
+    if ( style.isValid() )
+    {
+      if ( role == Qt::BackgroundColorRole && style.validBackgroundColor() )
+        return style.backgroundColor();
+      if ( role == Qt::TextColorRole && style.validTextColor() )
+        return style.textColor();
+      if ( role == Qt::DecorationRole )
+        return style.icon();
+      if ( role == Qt::FontRole )
+        return style.font();
+    }
+
+  }
   return val;
 }
 
@@ -616,7 +681,9 @@ Qt::ItemFlags QgsAttributeTableModel::flags( const QModelIndex &index ) const
   Qt::ItemFlags flags = QAbstractItemModel::flags( index );
 
   if ( layer()->isEditable() &&
-       layer()->fieldEditable( mAttributes[ index.column()] ) )
+       layer()->fieldEditable( mAttributes[ index.column()] ) &&
+       (( layer()->dataProvider() && layer()->dataProvider()->capabilities() & QgsVectorDataProvider::ChangeAttributeValues ) ||
+        FID_IS_NEW( rowToId( index.row() ) ) ) )
     flags |= Qt::ItemIsEditable;
 
   return flags;
@@ -627,7 +694,6 @@ void QgsAttributeTableModel::reload( const QModelIndex &index1, const QModelInde
   mFeat.setFeatureId( std::numeric_limits<int>::min() );
   emit dataChanged( index1, index2 );
 }
-
 
 
 void QgsAttributeTableModel::executeAction( int action, const QModelIndex &idx ) const
@@ -668,7 +734,7 @@ void QgsAttributeTableModel::prefetchColumnData( int column )
     if ( column >= mAttributes.count() )
       return;
     int fieldId = mAttributes[ column ];
-    const QgsFields& fields = layer()->pendingFields();
+    const QgsFields& fields = layer()->fields();
     QStringList fldNames;
     fldNames << fields[ fieldId ].name();
 

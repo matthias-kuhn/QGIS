@@ -3,8 +3,9 @@
 set -e
 
 if [ "$1" = "remove" ]; then
-	dpkg-divert --package qgis-plugin-grass --remove --rename --divert /usr/bin/qgis.bin /usr/bin/qgis
-	dpkg-divert --package qgis-plugin-grass --remove --rename --divert /usr/bin/qbrowser.bin /usr/bin/qbrowser
+	for i in /usr/bin/qgis /usr/bin/qbrowser; do
+		dpkg-divert --package qgis-plugin-grass --remove --rename --divert $i.bin $i
+	done
 fi
 
 #DEBHELPER#

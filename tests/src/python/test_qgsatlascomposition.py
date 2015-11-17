@@ -22,15 +22,16 @@ import shutil
 import tempfile
 from utilities import getQgisTestApp, unitTestDataPath
 from PyQt4.QtCore import QFileInfo, QRectF, qWarning
-from qgis.core import QGis, QgsVectorLayer, QgsMapLayerRegistry, QgsMapRenderer, QgsCoordinateReferenceSystem, \
+from qgis.core import QGis, QgsVectorLayer, QgsMapLayerRegistry, QgsMapSettings, QgsCoordinateReferenceSystem, \
     QgsComposition, QgsFillSymbolV2, QgsSingleSymbolRendererV2, QgsComposerLabel, QgsComposerMap, QgsFontUtils, \
-    QgsRectangle
+    QgsRectangle, QgsComposerLegend, QgsFeature, QgsGeometry, QgsPoint, QgsRendererCategoryV2, QgsCategorizedSymbolRendererV2, QgsMarkerSymbolV2
 from qgscompositionchecker import QgsCompositionChecker
 
 QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
 
 
 class TestQgsAtlasComposition(unittest.TestCase):
+
     def testCase(self):
         self.TEST_DATA_DIR = unitTestDataPath()
         tmppath = tempfile.mkdtemp()
@@ -42,19 +43,19 @@ class TestQgsAtlasComposition(unittest.TestCase):
         QgsMapLayerRegistry.instance().addMapLayers([mVectorLayer])
 
         # create composition with composer map
-        mMapRenderer = QgsMapRenderer()
+        self.mapSettings = QgsMapSettings()
         layerStringList = []
         layerStringList.append(mVectorLayer.id())
-        mMapRenderer.setLayerSet(layerStringList)
-        mMapRenderer.setProjectionsEnabled(True)
-        mMapRenderer.setMapUnits(QGis.Meters)
+        self.mapSettings.setLayers(layerStringList)
+        self.mapSettings.setCrsTransformEnabled(True)
+        self.mapSettings.setMapUnits(QGis.Meters)
 
         # select epsg:2154
         crs = QgsCoordinateReferenceSystem()
         crs.createFromSrid(2154)
-        mMapRenderer.setDestinationCrs(crs)
+        self.mapSettings.setDestinationCrs(crs)
 
-        self.mComposition = QgsComposition(mMapRenderer)
+        self.mComposition = QgsComposition(self.mapSettings)
         self.mComposition.setPaperSize(297, 210)
 
         # fix the renderer, fill with green
@@ -107,7 +108,7 @@ class TestQgsAtlasComposition(unittest.TestCase):
         self.mLabel2.setSceneRect(QRectF(150, 200, 60, 15))
 
         qWarning("feature number label font: %s exactMatch:%s" % (
-        self.mLabel2.font().toString(), self.mLabel2.font().exactMatch()))
+                 self.mLabel2.font().toString(), self.mLabel2.font().exactMatch()))
 
         self.filename_test()
         self.autoscale_render_test()
@@ -115,6 +116,7 @@ class TestQgsAtlasComposition(unittest.TestCase):
         self.fixedscale_render_test()
         self.predefinedscales_render_test()
         self.hidden_render_test()
+        self.legend_test()
 
         shutil.rmtree(tmppath, True)
 
@@ -139,6 +141,7 @@ class TestQgsAtlasComposition(unittest.TestCase):
             self.mLabel1.adjustSizeToText()
 
             checker = QgsCompositionChecker('atlas_autoscale%d' % (i + 1), self.mComposition)
+            checker.setControlPathPrefix("atlas")
             myTestResult, myMessage = checker.testComposition(0, 200)
 
             assert myTestResult
@@ -160,6 +163,7 @@ class TestQgsAtlasComposition(unittest.TestCase):
             self.mLabel1.adjustSizeToText()
 
             checker = QgsCompositionChecker('atlas_autoscale_old_api%d' % (i + 1), self.mComposition)
+            checker.setControlPathPrefix("atlas")
             myTestResult, myMessage = checker.testComposition(0, 200)
 
             assert myTestResult
@@ -182,6 +186,7 @@ class TestQgsAtlasComposition(unittest.TestCase):
             self.mLabel1.adjustSizeToText()
 
             checker = QgsCompositionChecker('atlas_fixedscale%d' % (i + 1), self.mComposition)
+            checker.setControlPathPrefix("atlas")
             myTestResult, myMessage = checker.testComposition(0, 200)
 
             assert myTestResult
@@ -204,6 +209,7 @@ class TestQgsAtlasComposition(unittest.TestCase):
             self.mLabel1.adjustSizeToText()
 
             checker = QgsCompositionChecker('atlas_predefinedscales%d' % (i + 1), self.mComposition)
+            checker.setControlPathPrefix("atlas")
             myTestResult, myMessage = checker.testComposition(0, 200)
 
             assert myTestResult
@@ -221,10 +227,13 @@ class TestQgsAtlasComposition(unittest.TestCase):
             self.mLabel1.adjustSizeToText()
 
             checker = QgsCompositionChecker('atlas_hiding%d' % (i + 1), self.mComposition)
+            checker.setControlPathPrefix("atlas")
             myTestResult, myMessage = checker.testComposition(0, 200)
 
             assert myTestResult
         self.mAtlas.endRender()
+
+        self.mAtlas.setHideCoverage(False)
 
     def sorting_render_test(self):
         self.mAtlasMap.setNewExtent(QgsRectangle(209838.166, 6528781.020, 610491.166, 6920530.620))
@@ -242,6 +251,7 @@ class TestQgsAtlasComposition(unittest.TestCase):
             self.mLabel1.adjustSizeToText()
 
             checker = QgsCompositionChecker('atlas_sorting%d' % (i + 1), self.mComposition)
+            checker.setControlPathPrefix("atlas")
             myTestResult, myMessage = checker.testComposition(0, 200)
 
             assert myTestResult
@@ -264,10 +274,68 @@ class TestQgsAtlasComposition(unittest.TestCase):
             self.mLabel1.adjustSizeToText()
 
             checker = QgsCompositionChecker('atlas_filtering%d' % (i + 1), self.mComposition)
+            checker.setControlPathPrefix("atlas")
             myTestResult, myMessage = checker.testComposition(0, 200)
 
             assert myTestResult
         self.mAtlas.endRender()
+
+    def legend_test(self):
+        self.mAtlasMap.setAtlasDriven(True)
+        self.mAtlasMap.setAtlasScalingMode(QgsComposerMap.Auto)
+        self.mAtlasMap.setAtlasMargin(0.10)
+
+        # add a point layer
+        ptLayer = QgsVectorLayer("Point?crs=epsg:4326&field=attr:int(1)&field=label:string(20)", "points", "memory")
+
+        pr = ptLayer.dataProvider()
+        f1 = QgsFeature(1)
+        f1.initAttributes(2)
+        f1.setAttribute(0, 1)
+        f1.setAttribute(1, "Test label 1")
+        f1.setGeometry(QgsGeometry.fromPoint(QgsPoint(-0.638, 48.954)))
+        f2 = QgsFeature(2)
+        f2.initAttributes(2)
+        f2.setAttribute(0, 2)
+        f2.setAttribute(1, "Test label 2")
+        f2.setGeometry(QgsGeometry.fromPoint(QgsPoint(-1.682, 48.550)))
+        pr.addFeatures([f1, f2])
+
+        # categorized symbology
+        r = QgsCategorizedSymbolRendererV2("attr", [QgsRendererCategoryV2(1, QgsMarkerSymbolV2.createSimple({"color": "255,0,0"}), "red"),
+                                                    QgsRendererCategoryV2(2, QgsMarkerSymbolV2.createSimple({"color": "0,0,255"}), "blue")])
+        ptLayer.setRendererV2(r)
+
+        QgsMapLayerRegistry.instance().addMapLayer(ptLayer)
+
+        # add the point layer to the map settings
+        layers = self.mapSettings.layers()
+        layers = [ptLayer.id()] + layers
+        self.mapSettings.setLayers(layers)
+
+        # add a legend
+        legend = QgsComposerLegend(self.mComposition)
+        legend.moveBy(200, 100)
+        # sets the legend filter parameter
+        legend.setComposerMap(self.mAtlasMap)
+        legend.setLegendFilterOutAtlas(True)
+        self.mComposition.addComposerLegend(legend)
+
+        self.mAtlas.beginRender()
+
+        self.mAtlas.prepareForFeature(0)
+        self.mLabel1.adjustSizeToText()
+
+        checker = QgsCompositionChecker('atlas_legend', self.mComposition)
+        myTestResult, myMessage = checker.testComposition()
+        assert myTestResult
+
+        self.mAtlas.endRender()
+
+        # restore state
+        self.mapSettings.setLayers([layers[1]])
+        self.mComposition.removeComposerItem(legend)
+        QgsMapLayerRegistry.instance().removeMapLayer(ptLayer.id())
 
 
 if __name__ == '__main__':

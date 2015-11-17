@@ -25,7 +25,7 @@
 #include "qgsstylev2.h"
 #include "qgssymbollayerv2utils.h"
 #include "qgsmarkersymbollayerv2.h"
-
+#include "qgsmapcanvas.h"
 #include "qgsapplication.h"
 
 #include <QString>
@@ -47,10 +47,12 @@ QgsSymbolsListWidget::QgsSymbolsListWidget( QgsSymbolV2* symbol, QgsStyleV2* sty
     , mAdvancedMenu( 0 )
     , mClipFeaturesAction( 0 )
     , mLayer( layer )
+    , mMapCanvas( 0 )
+    , mPresetExpressionContext( 0 )
 {
   setupUi( this );
 
-  mSymbolUnitWidget->setUnits( QgsSymbolV2::OutputUnitList() << QgsSymbolV2::MM << QgsSymbolV2::MapUnit );
+  mSymbolUnitWidget->setUnits( QgsSymbolV2::OutputUnitList() << QgsSymbolV2::MM << QgsSymbolV2::MapUnit << QgsSymbolV2::Pixel );
 
   btnAdvanced->hide(); // advanced button is hidden by default
   if ( menu ) // show it if there is a menu pointer
@@ -71,7 +73,7 @@ QgsSymbolsListWidget::QgsSymbolsListWidget( QgsSymbolV2* symbol, QgsStyleV2* sty
   groupsCombo->addItem( "" );
   populateGroups();
   QStringList groups = style->smartgroupNames();
-  foreach ( QString group, groups )
+  Q_FOREACH ( const QString& group, groups )
   {
     groupsCombo->addItem( group, QVariant( "smart" ) );
   }
@@ -107,7 +109,9 @@ QgsSymbolsListWidget::QgsSymbolsListWidget( QgsSymbolV2* symbol, QgsStyleV2* sty
   connect( mWidthDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedLineWidth() ) );
 
   if ( mSymbol->type() == QgsSymbolV2::Marker && mLayer )
-    mSizeDDBtn->setAssistant( tr( "Size Assistant..." ), new QgsSizeScaleWidget( mLayer, static_cast<const QgsMarkerSymbolV2*>( mSymbol ) ) );
+    mSizeDDBtn->setAssistant( tr( "Size Assistant..." ), new QgsSizeScaleWidget( mLayer, mSymbol ) );
+  else if ( mSymbol->type() == QgsSymbolV2::Line && mLayer )
+    mWidthDDBtn->setAssistant( tr( "Width Assistant..." ), new QgsSizeScaleWidget( mLayer, mSymbol ) );
 
   // Live color updates are not undoable to child symbol layers
   btnColor->setAcceptLiveUpdates( false );
@@ -116,7 +120,38 @@ QgsSymbolsListWidget::QgsSymbolsListWidget( QgsSymbolV2* symbol, QgsStyleV2* sty
   btnColor->setContext( "symbology" );
 }
 
-void QgsSymbolsListWidget::populateGroups( QString parent, QString prepend )
+QgsSymbolsListWidget::~QgsSymbolsListWidget()
+{
+  // This action was added to the menu by this widget, clean it up
+  // The menu can be passed in the constructor, so may live longer than this widget
+  btnAdvanced->menu()->removeAction( mClipFeaturesAction );
+}
+
+void QgsSymbolsListWidget::setMapCanvas( QgsMapCanvas* canvas )
+{
+  mMapCanvas = canvas;
+  Q_FOREACH ( QgsUnitSelectionWidget* unitWidget, findChildren<QgsUnitSelectionWidget*>() )
+  {
+    unitWidget->setMapCanvas( canvas );
+  }
+  Q_FOREACH ( QgsDataDefinedButton* ddButton, findChildren<QgsDataDefinedButton*>() )
+  {
+    if ( ddButton->assistant() )
+      ddButton->assistant()->setMapCanvas( mMapCanvas );
+  }
+}
+
+const QgsMapCanvas*QgsSymbolsListWidget::mapCanvas() const
+{
+  return mMapCanvas;
+}
+
+void QgsSymbolsListWidget::setExpressionContext( QgsExpressionContext *context )
+{
+  mPresetExpressionContext = context;
+}
+
+void QgsSymbolsListWidget::populateGroups( const QString& parent, const QString& prepend )
 {
   QgsSymbolGroupMap groups = mStyle->childGroupNames( parent );
   QgsSymbolGroupMap::const_iterator i = groups.constBegin();
@@ -125,7 +160,7 @@ void QgsSymbolsListWidget::populateGroups( QString parent, QString prepend )
     QString text;
     if ( !prepend.isEmpty() )
     {
-      text = prepend + "/" + i.value();
+      text = prepend + '/' + i.value();
     }
     else
     {
@@ -142,7 +177,7 @@ void QgsSymbolsListWidget::populateSymbolView()
   populateSymbols( mStyle->symbolNames() );
 }
 
-void QgsSymbolsListWidget::populateSymbols( QStringList names )
+void QgsSymbolsListWidget::populateSymbols( const QStringList& names )
 {
   QSize previewSize = viewSymbols->iconSize();
   QPixmap p( previewSize );
@@ -288,7 +323,7 @@ void QgsSymbolsListWidget::updateDataDefinedLineWidth()
   }
 }
 
-void QgsSymbolsListWidget::symbolAddedToStyle( QString name, QgsSymbolV2* symbol )
+void QgsSymbolsListWidget::symbolAddedToStyle( const QString& name, QgsSymbolV2* symbol )
 {
   Q_UNUSED( name );
   Q_UNUSED( symbol );
@@ -360,9 +395,44 @@ void QgsSymbolsListWidget::updateSymbolColor()
   btnColor->blockSignals( false );
 }
 
+static QgsExpressionContext _getExpressionContext( const void* context )
+{
+  const QgsSymbolsListWidget* widget = ( const QgsSymbolsListWidget* ) context;
+
+  if ( widget->expressionContext() )
+    return QgsExpressionContext( *widget->expressionContext() );
+
+  //otherwise create a default symbol context
+  QgsExpressionContext expContext;
+  expContext << QgsExpressionContextUtils::globalScope()
+  << QgsExpressionContextUtils::projectScope()
+  << QgsExpressionContextUtils::atlasScope( 0 );
+
+  if ( widget->mapCanvas() )
+  {
+    expContext << QgsExpressionContextUtils::mapSettingsScope( widget->mapCanvas()->mapSettings() )
+    << new QgsExpressionContextScope( widget->mapCanvas()->expressionContextScope() );
+  }
+  else
+  {
+    expContext << QgsExpressionContextUtils::mapSettingsScope( QgsMapSettings() );
+  }
+
+  const QgsVectorLayer* layer = widget->layer();
+  if ( layer )
+    expContext << QgsExpressionContextUtils::layerScope( layer );
+
+  return expContext;
+}
+
 void QgsSymbolsListWidget::updateSymbolInfo()
 {
   updateSymbolColor();
+
+  Q_FOREACH ( QgsDataDefinedButton* button, findChildren< QgsDataDefinedButton* >() )
+  {
+    button->registerGetExpressionContextCallback( &_getExpressionContext, this );
+  }
 
   if ( mSymbol->type() == QgsSymbolV2::Marker )
   {

@@ -1,15 +1,13 @@
 
 typedef qint64 QgsFeatureId;
-
-// key = field index, value = field value
 typedef QMap<int, QVariant> QgsAttributeMap;
-
 typedef QVector<QVariant> QgsAttributes;
+
 // QgsAttributes is implemented as a Python list of Python objects.
 %MappedType QgsAttributes /DocType="list-of-attributes"/
 {
 %TypeHeaderCode
-#include <qvector.h>
+#include <qgsfeature.h>
 %End
 
 %ConvertFromTypeCode
@@ -53,7 +51,7 @@ typedef QVector<QVariant> QgsAttributes;
       return 1;
     }
 
-    QVector<QVariant> *qv = new QVector<QVariant>;
+    QgsAttributes* qv = new QgsAttributes;
 
     for (SIP_SSIZE_T i = 0; i < PyList_GET_SIZE(sipPy); ++i)
     {
@@ -112,7 +110,7 @@ class QgsFeature
 %TypeHeaderCode
 #include <qgsfeature.h>
 #if (SIP_VERSION >= 0x040900 && SIP_VERSION < 0x040c01)
-#define sipClass_QVariant ((sipWrapperType *) sipTypeAsPyTypeObject (sipType_QVariant))
+#define sipType_QVariant ((sipWrapperType *) sipTypeAsPyTypeObject (sipType_QVariant))
 #endif
 %End
 
@@ -429,7 +427,7 @@ class QgsFeature
      *  @note For Python: raises a KeyError exception instead of returning false
      *  @see setFields
      */
-    void setAttribute( const QString& name, QVariant value /GetWrapper/ );
+    void setAttribute( const QString& name, const QVariant& value /GetWrapper/ );
 %MethodCode
   int fieldIdx = sipCpp->fieldNameIndex(*a0);
   if (fieldIdx == -1)
@@ -500,4 +498,4 @@ class QgsFeature
 
 }; // class QgsFeature
 
-typedef QSet<QgsFeatureId> QgsFeatureIds;
+typedef QSet<qint64> QgsFeatureIds;

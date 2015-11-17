@@ -47,6 +47,7 @@ cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
 
+
 class ProcessingPlugin:
 
     def __init__(self, iface):
@@ -111,7 +112,7 @@ class ProcessingPlugin:
         self.commanderAction.triggered.connect(self.openCommander)
         self.menu.addAction(self.commanderAction)
         self.iface.registerMainWindowAction(self.commanderAction,
-            self.tr('Ctrl+Alt+M'))
+                                            self.tr('Ctrl+Alt+M'))
 
     def unload(self):
         self.toolbox.setVisible(False)
@@ -143,7 +144,6 @@ class ProcessingPlugin:
         dlg = ModelerDialog()
         dlg.exec_()
         if dlg.update:
-            Processing.updateAlgsList()
             self.toolbox.updateProvider('model')
 
     def openResults(self):

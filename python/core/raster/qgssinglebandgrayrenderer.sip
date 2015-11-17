@@ -12,7 +12,7 @@ class QgsSingleBandGrayRenderer: QgsRasterRenderer
 
     QgsSingleBandGrayRenderer( QgsRasterDataProvider* provider, int grayBand );
     ~QgsSingleBandGrayRenderer();
-    QgsRasterInterface * clone() const /Factory/;
+    virtual QgsSingleBandGrayRenderer * clone() const /Factory/;
 
     static QgsRasterRenderer* create( const QDomElement& elem, QgsRasterDataProvider* provider ) /Factory/;
 
@@ -21,7 +21,7 @@ class QgsSingleBandGrayRenderer: QgsRasterRenderer
     int grayBand() const;
     void setGrayBand( int band );
     const QgsContrastEnhancement* contrastEnhancement() const;
-    /**Takes ownership*/
+    /** Takes ownership*/
     void setContrastEnhancement( QgsContrastEnhancement* ce /Transfer/ );
 
     void setGradient( Gradient theGradient );

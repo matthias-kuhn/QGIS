@@ -77,7 +77,7 @@ QgsCoordinateTransform::QgsCoordinateTransform( long theSourceSrsId, long theDes
   initialise();
 }
 
-QgsCoordinateTransform::QgsCoordinateTransform( QString theSourceCRS, QString theDestCRS )
+QgsCoordinateTransform::QgsCoordinateTransform( const QString& theSourceCRS, const QString& theDestCRS )
     : QObject()
     , mInitialisedFlag( false )
     , mSourceProjection( 0 )
@@ -96,7 +96,7 @@ QgsCoordinateTransform::QgsCoordinateTransform( QString theSourceCRS, QString th
 }
 
 QgsCoordinateTransform::QgsCoordinateTransform( long theSourceSrid,
-    QString theDestWkt,
+    const QString& theDestWkt,
     QgsCoordinateReferenceSystem::CrsType theSourceCRSType )
     : QObject()
     , mInitialisedFlag( false )
@@ -190,7 +190,7 @@ void QgsCoordinateTransform::initialise()
   }
   if ( mSourceDatumTransform != -1 )
   {
-    sourceProjString += ( " " + datumTransformString( mSourceDatumTransform ) );
+    sourceProjString += ( ' ' + datumTransformString( mSourceDatumTransform ) );
   }
 
   pj_free( mDestinationProjection );
@@ -201,7 +201,7 @@ void QgsCoordinateTransform::initialise()
   }
   if ( mDestinationDatumTransform != -1 )
   {
-    destProjString += ( " " +  datumTransformString( mDestinationDatumTransform ) );
+    destProjString += ( ' ' +  datumTransformString( mDestinationDatumTransform ) );
   }
 
   if ( !useDefaultDatumTransform )
@@ -369,6 +369,42 @@ void QgsCoordinateTransform::transformInPlace( double& x, double& y, double& z,
   }
 }
 
+void QgsCoordinateTransform::transformInPlace( float& x, float& y, double& z,
+    TransformDirection direction ) const
+{
+  double xd = ( double )x, yd = ( double )y;
+  transformInPlace( xd, yd, z, direction );
+  x = xd;
+  y = yd;
+}
+
+void QgsCoordinateTransform::transformInPlace( float& x, float& y, float& z,
+    TransformDirection direction ) const
+{
+  if ( mShortCircuit || !mInitialisedFlag )
+    return;
+#ifdef QGISDEBUG
+  // QgsDebugMsg(QString("Using transform in place %1 %2").arg(__FILE__).arg(__LINE__));
+#endif
+  // transform x
+  try
+  {
+    double xd = x;
+    double yd = y;
+    double zd = z;
+    transformCoords( 1, &xd, &yd, &zd, direction );
+    x = xd;
+    y = yd;
+    z = zd;
+  }
+  catch ( QgsCsException & )
+  {
+    // rethrow the exception
+    QgsDebugMsg( "rethrowing exception" );
+    throw;
+  }
+}
+
 void QgsCoordinateTransform::transformPolygon( QPolygonF& poly, TransformDirection direction ) const
 {
   if ( mShortCircuit || !mInitialisedFlag )
@@ -436,44 +472,6 @@ void QgsCoordinateTransform::transformInPlace(
   }
 }
 
-#ifdef QT_ARCH_ARM
-void QgsCoordinateTransform::transformInPlace( qreal& x, qreal& y, double& z,
-    TransformDirection direction ) const
-{
-  double xd = ( double ) x, yd = ( double ) y;
-  transformInPlace( xd, yd, z, direction );
-  x = xd;
-  y = yd;
-}
-#endif
-
-#ifdef ANDROID
-void QgsCoordinateTransform::transformInPlace( float& x, float& y, float& z,
-    TransformDirection direction ) const
-{
-  if ( mShortCircuit || !mInitialisedFlag )
-    return;
-#ifdef QGISDEBUG
-// QgsDebugMsg(QString("Using transform in place %1 %2").arg(__FILE__).arg(__LINE__));
-#endif
-  // transform x
-  try
-  {
-    double xd = x;
-    double yd = y;
-    double zd = z;
-    transformCoords( 1, &xd, &yd, &zd, direction );
-    x = xd;
-    y = yd;
-    z = zd;
-  }
-  catch ( QgsCsException & )
-  {
-    // rethrow the exception
-    QgsDebugMsg( "rethrowing exception" );
-    throw;
-  }
-}
 
 void QgsCoordinateTransform::transformInPlace(
   QVector<float>& x, QVector<float>& y, QVector<float>& z,
@@ -519,8 +517,6 @@ void QgsCoordinateTransform::transformInPlace(
     throw;
   }
 }
-#endif //ANDROID
-
 
 QgsRectangle QgsCoordinateTransform::transformBoundingBox( const QgsRectangle &rect, TransformDirection direction, const bool handle180Crossover ) const
 {
@@ -538,7 +534,14 @@ QgsRectangle QgsCoordinateTransform::transformBoundingBox( const QgsRectangle &r
     return QgsRectangle( p, p );
   }
 
-  static const int numP = 8;
+  // 64 points (<=2.12) is not enough, see #13665, for EPSG:4326 -> EPSG:3574 (say that it is a hard one),
+  // are decent result from about 500 points and more. This method is called quite often, but
+  // even with 1000 points it takes < 1ms
+  // TODO: how to effectively and precisely reproject bounding box?
+  const int nPoints = 1000;
+  double d = sqrt(( rect.width() * rect.height() ) / pow( sqrt(( double ) nPoints ) - 1, 2.0 ) );
+  int nXPoints = ( int ) ceil( rect.width() / d ) + 1;
+  int nYPoints = ( int ) ceil( rect.height() / d ) + 1;
 
   QgsRectangle bb_rect;
   bb_rect.setMinimal();
@@ -546,31 +549,31 @@ QgsRectangle QgsCoordinateTransform::transformBoundingBox( const QgsRectangle &r
   // We're interfacing with C-style vectors in the
   // end, so let's do C-style vectors here too.
 
-  double x[numP * numP];
-  double y[numP * numP];
-  double z[numP * numP];
+  QVector<double> x( nXPoints * nYPoints );
+  QVector<double> y( nXPoints * nYPoints );
+  QVector<double> z( nXPoints * nYPoints );
 
   QgsDebugMsg( "Entering transformBoundingBox..." );
 
   // Populate the vectors
 
-  double dx = rect.width()  / ( double )( numP - 1 );
-  double dy = rect.height() / ( double )( numP - 1 );
+  double dx = rect.width()  / ( double )( nXPoints - 1 );
+  double dy = rect.height() / ( double )( nYPoints - 1 );
 
   double pointY = rect.yMinimum();
 
-  for ( int i = 0; i < numP ; i++ )
+  for ( int i = 0; i < nYPoints ; i++ )
   {
 
     // Start at right edge
     double pointX = rect.xMinimum();
 
-    for ( int j = 0; j < numP; j++ )
+    for ( int j = 0; j < nXPoints; j++ )
     {
-      x[( i*numP ) + j] = pointX;
-      y[( i*numP ) + j] = pointY;
+      x[( i*nXPoints ) + j] = pointX;
+      y[( i*nXPoints ) + j] = pointY;
       // and the height...
-      z[( i*numP ) + j] = 0.0;
+      z[( i*nXPoints ) + j] = 0.0;
       // QgsDebugMsg(QString("BBox coord: (%1, %2)").arg(x[(i*numP) + j]).arg(y[(i*numP) + j]));
       pointX += dx;
     }
@@ -581,7 +584,7 @@ QgsRectangle QgsCoordinateTransform::transformBoundingBox( const QgsRectangle &r
   // be handled in above layers.
   try
   {
-    transformCoords( numP * numP, x, y, z, direction );
+    transformCoords( nXPoints * nYPoints, x.data(), y.data(), z.data(), direction );
   }
   catch ( const QgsCsException & )
   {
@@ -592,7 +595,7 @@ QgsRectangle QgsCoordinateTransform::transformBoundingBox( const QgsRectangle &r
 
   // Calculate the bounding box and use that for the extent
 
-  for ( int i = 0; i < numP * numP; i++ )
+  for ( int i = 0; i < nXPoints * nYPoints; i++ )
   {
     if ( !qIsFinite( x[i] ) || !qIsFinite( y[i] ) )
     {
@@ -705,10 +708,10 @@ void QgsCoordinateTransform::transformCoords( const int& numPoints, double *x, d
                       "%2"
                       "PROJ.4: %3 +to %4\n"
                       "Error: %5" )
-                  .arg( dir )
-                  .arg( points )
-                  .arg( srcdef ).arg( dstdef )
-                  .arg( QString::fromUtf8( pj_strerrno( projResult ) ) );
+                  .arg( dir,
+                        points,
+                        srcdef, dstdef,
+                        QString::fromUtf8( pj_strerrno( projResult ) ) );
 
     pj_dalloc( srcdef );
     pj_dalloc( dstdef );
@@ -820,8 +823,8 @@ QList< QList< int > > QgsCoordinateTransform::datumTransformations( const QgsCoo
     return transformations;
   }
 
-  QStringList srcSplit = srcGeoId.split( ":" );
-  QStringList destSplit = destGeoId.split( ":" );
+  QStringList srcSplit = srcGeoId.split( ':' );
+  QStringList destSplit = destGeoId.split( ':' );
 
   if ( srcSplit.size() < 2 || destSplit.size() < 2 )
   {
@@ -878,7 +881,7 @@ QList< QList< int > > QgsCoordinateTransform::datumTransformations( const QgsCoo
 
 QString QgsCoordinateTransform::stripDatumTransform( const QString& proj4 )
 {
-  QStringList parameterSplit = proj4.split( "+", QString::SkipEmptyParts );
+  QStringList parameterSplit = proj4.split( '+', QString::SkipEmptyParts );
   QString currentParameter;
   QString newProjString;
 
@@ -888,9 +891,9 @@ QString QgsCoordinateTransform::stripDatumTransform( const QString& proj4 )
     if ( !currentParameter.startsWith( "towgs84", Qt::CaseInsensitive )
          && !currentParameter.startsWith( "nadgrids", Qt::CaseInsensitive ) )
     {
-      newProjString.append( "+" );
+      newProjString.append( '+' );
       newProjString.append( currentParameter );
-      newProjString.append( " " );
+      newProjString.append( ' ' );
     }
   }
   return newProjString;

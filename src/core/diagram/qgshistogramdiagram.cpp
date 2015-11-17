@@ -3,7 +3,7 @@
     ---------------------
     begin                : August 2012
     copyright            : (C) 2012 by Matthias Kuhn
-    email                : matthias dot kuhn at gmx dot ch
+    email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -30,14 +30,13 @@ QgsHistogramDiagram::~QgsHistogramDiagram()
 {
 }
 
-QgsDiagram* QgsHistogramDiagram::clone() const
+QgsHistogramDiagram* QgsHistogramDiagram::clone() const
 {
   return new QgsHistogramDiagram( *this );
 }
 
 QSizeF QgsHistogramDiagram::diagramSize( const QgsFeature& feature, const QgsRenderContext& c, const QgsDiagramSettings& s, const QgsDiagramInterpolationSettings& is )
 {
-  Q_UNUSED( c );
   QSizeF size;
   if ( feature.attributes().count() == 0 )
   {
@@ -49,10 +48,15 @@ QSizeF QgsHistogramDiagram::diagramSize( const QgsFeature& feature, const QgsRen
 
   double maxValue = 0;
 
-  foreach ( QString cat, s.categoryAttributes )
+  QgsExpressionContext expressionContext = c.expressionContext();
+  expressionContext.setFeature( feature );
+  if ( feature.fields() )
+    expressionContext.setFields( *feature.fields() );
+
+  Q_FOREACH ( const QString& cat, s.categoryAttributes )
   {
-    QgsExpression* expression = getExpression( cat, feature.fields() );
-    maxValue = qMax( expression->evaluate( feature ).toDouble(), maxValue );
+    QgsExpression* expression = getExpression( cat, expressionContext );
+    maxValue = qMax( expression->evaluate( &expressionContext ).toDouble(), maxValue );
   }
 
   // Scale, if extension is smaller than the specified minimum
@@ -89,11 +93,11 @@ QSizeF QgsHistogramDiagram::diagramSize( const QgsAttributes& attributes, const 
     return QSizeF(); //zero size if no attributes
   }
 
-  double maxValue = attributes[0].toDouble();
+  double maxValue = attributes.at( 0 ).toDouble();
 
   for ( int i = 0; i < attributes.count(); ++i )
   {
-    maxValue = qMax( attributes[i].toDouble(), maxValue );
+    maxValue = qMax( attributes.at( i ).toDouble(), maxValue );
   }
 
   switch ( s.diagramOrientation )
@@ -126,10 +130,15 @@ void QgsHistogramDiagram::renderDiagram( const QgsFeature& feature, QgsRenderCon
   QList<double> values;
   double maxValue = 0;
 
-  foreach ( QString cat, s.categoryAttributes )
+  QgsExpressionContext expressionContext = c.expressionContext();
+  expressionContext.setFeature( feature );
+  if ( feature.fields() )
+    expressionContext.setFields( *feature.fields() );
+
+  Q_FOREACH ( const QString& cat, s.categoryAttributes )
   {
-    QgsExpression* expression = getExpression( cat, feature.fields() );
-    double currentVal = expression->evaluate( feature ).toDouble();
+    QgsExpression* expression = getExpression( cat, expressionContext );
+    double currentVal = expression->evaluate( &expressionContext ).toDouble();
     values.push_back( currentVal );
     maxValue = qMax( currentVal, maxValue );
   }

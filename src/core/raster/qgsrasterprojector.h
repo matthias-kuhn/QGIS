@@ -51,31 +51,28 @@ class CORE_EXPORT QgsRasterProjector : public QgsRasterInterface
      * which are used to calculate affine transformation matrices.
      */
 
-    QgsRasterProjector(
-      QgsCoordinateReferenceSystem theSrcCRS,
-      QgsCoordinateReferenceSystem theDestCRS,
-      int theSrcDatumTransform,
-      int theDestDatumTransform,
-      QgsRectangle theDestExtent,
-      int theDestRows, int theDestCols,
-      double theMaxSrcXRes, double theMaxSrcYRes,
-      QgsRectangle theExtent
-    );
+    QgsRasterProjector( const QgsCoordinateReferenceSystem& theSrcCRS,
+                        const QgsCoordinateReferenceSystem& theDestCRS,
+                        int theSrcDatumTransform,
+                        int theDestDatumTransform,
+                        const QgsRectangle& theDestExtent,
+                        int theDestRows, int theDestCols,
+                        double theMaxSrcXRes, double theMaxSrcYRes,
+                        const QgsRectangle& theExtent
+                      );
 
-    QgsRasterProjector(
-      QgsCoordinateReferenceSystem theSrcCRS,
-      QgsCoordinateReferenceSystem theDestCRS,
-      QgsRectangle theDestExtent,
-      int theDestRows, int theDestCols,
-      double theMaxSrcXRes, double theMaxSrcYRes,
-      QgsRectangle theExtent
-    );
-    QgsRasterProjector(
-      QgsCoordinateReferenceSystem theSrcCRS,
-      QgsCoordinateReferenceSystem theDestCRS,
-      double theMaxSrcXRes, double theMaxSrcYRes,
-      QgsRectangle theExtent
-    );
+    QgsRasterProjector( const QgsCoordinateReferenceSystem& theSrcCRS,
+                        const QgsCoordinateReferenceSystem& theDestCRS,
+                        const QgsRectangle& theDestExtent,
+                        int theDestRows, int theDestCols,
+                        double theMaxSrcXRes, double theMaxSrcYRes,
+                        const QgsRectangle& theExtent
+                      );
+    QgsRasterProjector( const QgsCoordinateReferenceSystem& theSrcCRS,
+                        const QgsCoordinateReferenceSystem& theDestCRS,
+                        double theMaxSrcXRes, double theMaxSrcYRes,
+                        const QgsRectangle& theExtent
+                      );
     QgsRasterProjector();
     /** \brief Copy constructor */
     // To avoid synthesized which fails on copy of QgsCoordinateTransform
@@ -87,7 +84,7 @@ class CORE_EXPORT QgsRasterProjector : public QgsRasterInterface
 
     QgsRasterProjector & operator=( const QgsRasterProjector &projector );
 
-    QgsRasterInterface *clone() const override;
+    QgsRasterProjector *clone() const override;
 
     int bandCount() const override;
 
@@ -126,10 +123,10 @@ class CORE_EXPORT QgsRasterProjector : public QgsRasterInterface
                             QgsRectangle& theDestExtent, int& theDestXSize, int& theDestYSize );
 
   private:
-    /** get source extent */
+    /** Get source extent */
     QgsRectangle srcExtent() { return mSrcExtent; }
 
-    /** get/set source width/height */
+    /** Get/set source width/height */
     int srcRows() { return mSrcRows; }
     int srcCols() { return mSrcCols; }
     void setSrcRows( int theRows ) { mSrcRows = theRows; mSrcXRes = mSrcExtent.height() / mSrcRows; }
@@ -169,7 +166,7 @@ class CORE_EXPORT QgsRasterProjector : public QgsRasterInterface
     /** \brief insert columns to matrix */
     void insertCols( const QgsCoordinateTransform* ct );
 
-    /** calculate single control point in current matrix */
+    /** Calculate single control point in current matrix */
     void calcCP( int theRow, int theCol, const QgsCoordinateTransform* ct );
 
     /** \brief calculate matrix row */
@@ -198,7 +195,7 @@ class CORE_EXPORT QgsRasterProjector : public QgsRasterInterface
     /** Calc / switch helper */
     void nextHelper();
 
-    /** get mCPMatrix as string */
+    /** Get mCPMatrix as string */
     QString cpToString();
 
     /** Source CRS */
@@ -246,10 +243,10 @@ class CORE_EXPORT QgsRasterProjector : public QgsRasterInterface
     /** Source y resolution */
     double mSrcYRes;
 
-    /** number of destination rows per matrix row */
+    /** Number of destination rows per matrix row */
     double mDestRowsPerMatrixRow;
 
-    /** number of destination cols per matrix col */
+    /** Number of destination cols per matrix col */
     double mDestColsPerMatrixCol;
 
     /** Grid of source control points */

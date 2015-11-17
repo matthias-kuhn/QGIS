@@ -32,7 +32,7 @@
  * <li><b>allow_null</b> <i>If True, will allow NULL values. Requires QgsDateTimeEdit as widget (Be aware if you work with .ui files).</i></li>
  * <li><b>field_format</b> <i>The format used to save the date/time.</i></li>
  * </ul>
- *
+ * \note not available in Python bindings
  */
 
 class GUI_EXPORT QgsDateTimeEditWrapper : public QgsEditorWidgetWrapper
@@ -54,6 +54,7 @@ class GUI_EXPORT QgsDateTimeEditWrapper : public QgsEditorWidgetWrapper
     QVariant value() override;
     QWidget *createWidget( QWidget *parent ) override;
     void initWidget( QWidget *editor ) override;
+    bool valid() override;
 
   public slots:
     void setValue( const QVariant &value ) override;

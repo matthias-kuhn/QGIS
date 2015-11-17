@@ -38,12 +38,20 @@ QT4_WRAP_CPP(PG_MOC_SRCS ${PG_MOC_HDRS})
 
 INCLUDE_DIRECTORIES(
   ../../core
+  ../../core/auth
   ../../core/geometry
+)
+INCLUDE_DIRECTORIES(SYSTEM
   ${POSTGRES_INCLUDE_DIR}
   ${GEOS_INCLUDE_DIR}
   ${QSCINTILLA_INCLUDE_DIR}
+  ${QCA_INCLUDE_DIR}
+)
+INCLUDE_DIRECTORIES(
   ../../core
   ../../gui
+  ../../gui/auth
+  ../../ui
   ${CMAKE_CURRENT_BINARY_DIR}/../../ui
 )
 

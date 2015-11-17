@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 5.1.2014
     Copyright            : (C) 2014 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -34,7 +34,7 @@
  * <li><b>Max</b> <i>The maximal allowed value</i></li>
  * <li><b>Step</b> <i>The step size when incrementing/decrementing the value</i></li>
  * </ul>
- *
+ * \note not available in Python bindings
  */
 
 class GUI_EXPORT QgsRangeWidgetWrapper : public QgsEditorWidgetWrapper
@@ -50,12 +50,13 @@ class GUI_EXPORT QgsRangeWidgetWrapper : public QgsEditorWidgetWrapper
   protected:
     virtual QWidget* createWidget( QWidget* parent ) override;
     virtual void initWidget( QWidget* editor ) override;
+    bool valid() override;
 
   public slots:
     virtual void setValue( const QVariant& value ) override;
 
   public slots:
-    void valueChanged( QVariant );
+    void valueChanged( const QVariant& );
 
   private:
     QSpinBox* mIntSpinBox;

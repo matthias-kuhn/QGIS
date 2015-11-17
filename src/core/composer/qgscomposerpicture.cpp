@@ -293,8 +293,16 @@ void QgsComposerPicture::setPictureFile( const QString& path )
   setPicturePath( path );
 }
 
-void QgsComposerPicture::refreshPicture()
+void QgsComposerPicture::refreshPicture( const QgsExpressionContext *context )
 {
+  const QgsExpressionContext* evalContext = context;
+  QScopedPointer< QgsExpressionContext > scopedContext;
+  if ( !evalContext )
+  {
+    scopedContext.reset( createExpressionContext() );
+    evalContext = scopedContext.data();
+  }
+
   QString source = mSourcePath;
 
   //data defined source set?
@@ -302,7 +310,7 @@ void QgsComposerPicture::refreshPicture()
   QVariant exprVal;
   if ( dataDefinedProperty( QgsComposerObject::PictureSource )->isActive() )
   {
-    if ( dataDefinedEvaluate( QgsComposerObject::PictureSource, exprVal ) )
+    if ( dataDefinedEvaluate( QgsComposerObject::PictureSource, exprVal, *evalContext ) )
     {
       source = exprVal.toString().trimmed();
       QgsDebugMsg( QString( "exprVal PictureSource:%1" ).arg( source ) );
@@ -418,7 +426,7 @@ void QgsComposerPicture::loadPicture( const QString &path )
   {
     //trying to load an invalid file or bad expression, show cross picture
     mMode = SVG;
-    QString badFile = QString( ":/images/composer/missing_image.svg" );
+    QString badFile( ":/images/composer/missing_image.svg" );
     mSVG.load( badFile );
     if ( mSVG.isValid() )
     {
@@ -661,14 +669,22 @@ void QgsComposerPicture::recalculateSize()
   setSceneRect( QRectF( pos().x(), pos().y(), rect().width(), rect().height() ) );
 }
 
-void QgsComposerPicture::refreshDataDefinedProperty( const QgsComposerObject::DataDefinedProperty property )
+void QgsComposerPicture::refreshDataDefinedProperty( const QgsComposerObject::DataDefinedProperty property, const QgsExpressionContext* context )
 {
-  if ( property == QgsComposerObject::PictureSource || property == QgsComposerObject::AllProperties )
+  const QgsExpressionContext* evalContext = context;
+  QScopedPointer< QgsExpressionContext > scopedContext;
+  if ( !evalContext )
   {
-    refreshPicture();
+    scopedContext.reset( createExpressionContext() );
+    evalContext = scopedContext.data();
   }
 
-  QgsComposerItem::refreshDataDefinedProperty( property );
+  if ( property == QgsComposerObject::PictureSource || property == QgsComposerObject::AllProperties )
+  {
+    refreshPicture( evalContext );
+  }
+
+  QgsComposerItem::refreshDataDefinedProperty( property, evalContext );
 }
 
 void QgsComposerPicture::setUsePictureExpression( bool useExpression )
@@ -677,7 +693,7 @@ void QgsComposerPicture::setUsePictureExpression( bool useExpression )
   refreshPicture();
 }
 
-void QgsComposerPicture::setPictureExpression( QString expression )
+void QgsComposerPicture::setPictureExpression( const QString& expression )
 {
   dataDefinedProperty( QgsComposerObject::PictureSource )->setExpressionString( expression );
   refreshPicture();

@@ -21,6 +21,8 @@
 #include "qgsproject.h"
 #include "qgsvectordataprovider.h"
 #include "qgsvectorlayer.h"
+#include "qgsexpressioncontext.h"
+#include "qgsgeometry.h"
 
 #include <QMessageBox>
 #include <QSettings>
@@ -35,8 +37,18 @@ QgsFieldCalculator::QgsFieldCalculator( QgsVectorLayer* vl )
   if ( !vl )
     return;
 
+
+  QgsExpressionContext expContext;
+  expContext << QgsExpressionContextUtils::globalScope()
+  << QgsExpressionContextUtils::projectScope()
+  << QgsExpressionContextUtils::layerScope( mVectorLayer );
+
+  expContext.lastScope()->setVariable( "row_number", 1 );
+  expContext.setHighlightedVariables( QStringList() << "row_number" );
+
   builder->setLayer( vl );
   builder->loadFieldNames();
+  builder->setExpressionContext( expContext );
 
   populateFields();
   populateOutputFieldTypes();
@@ -147,16 +159,22 @@ void QgsFieldCalculator::accept()
   myDa.setEllipsoidalMode( QgisApp::instance()->mapCanvas()->mapSettings().hasCrsTransformEnabled() );
   myDa.setEllipsoid( QgsProject::instance()->readEntry( "Measure", "/Ellipsoid", GEO_NONE ) );
 
-
   QString calcString = builder->expressionText();
   QgsExpression exp( calcString );
   exp.setGeomCalculator( myDa );
 
-  if ( ! exp.prepare( mVectorLayer->pendingFields() ) )
+  QgsExpressionContext expContext;
+  expContext << QgsExpressionContextUtils::globalScope()
+  << QgsExpressionContextUtils::projectScope()
+  << QgsExpressionContextUtils::layerScope( mVectorLayer );
+
+  if ( !exp.prepare( &expContext ) )
   {
     QMessageBox::critical( 0, tr( "Evaluation error" ), exp.evalErrorString() );
     return;
   }
+
+  bool updatingGeom = false;
 
   // Test for creating expression field based on ! mUpdateExistingGroupBox checked rather
   // than on mNewFieldGroupBox checked, as if the provider does not support adding attributes
@@ -178,10 +196,19 @@ void QgsFieldCalculator::accept()
     //update existing field
     if ( mUpdateExistingGroupBox->isChecked() || !mNewFieldGroupBox->isEnabled() )
     {
-      QMap<QString, int>::const_iterator fieldIt = mFieldMap.find( mExistingFieldComboBox->currentText() );
-      if ( fieldIt != mFieldMap.end() )
+      if ( mExistingFieldComboBox->itemData( mExistingFieldComboBox->currentIndex() ).toString() == "geom" )
       {
-        mAttributeId = fieldIt.value();
+        //update geometry
+        mAttributeId = -1;
+        updatingGeom = true;
+      }
+      else
+      {
+        QMap<QString, int>::const_iterator fieldIt = mFieldMap.find( mExistingFieldComboBox->currentText() );
+        if ( fieldIt != mFieldMap.end() )
+        {
+          mAttributeId = fieldIt.value();
+        }
       }
     }
     else
@@ -198,7 +225,7 @@ void QgsFieldCalculator::accept()
       }
 
       //get index of the new field
-      const QgsFields& fields = mVectorLayer->pendingFields();
+      const QgsFields& fields = mVectorLayer->fields();
 
       for ( int idx = 0; idx < fields.count(); ++idx )
       {
@@ -209,7 +236,9 @@ void QgsFieldCalculator::accept()
         }
       }
 
-      if ( ! exp.prepare( mVectorLayer->pendingFields() ) )
+      //update expression context with new fields
+      expContext.setFields( mVectorLayer->fields() );
+      if ( ! exp.prepare( &expContext ) )
       {
         QApplication::restoreOverrideCursor();
         QMessageBox::critical( 0, tr( "Evaluation error" ), exp.evalErrorString() );
@@ -217,7 +246,7 @@ void QgsFieldCalculator::accept()
       }
     }
 
-    if ( mAttributeId == -1 )
+    if ( mAttributeId == -1 && !updatingGeom )
     {
       mVectorLayer->destroyEditCommand();
       QApplication::restoreOverrideCursor();
@@ -229,40 +258,45 @@ void QgsFieldCalculator::accept()
     bool calculationSuccess = true;
     QString error;
 
-    bool onlySelected = mOnlyUpdateSelectedCheckBox->isChecked();
-    QgsFeatureIds selectedIds = mVectorLayer->selectedFeaturesIds();
-
     bool useGeometry = exp.needsGeometry();
     int rownum = 1;
 
-    const QgsField& field = mVectorLayer->pendingFields()[mAttributeId];
+    QgsField field = !updatingGeom ? mVectorLayer->fields().at( mAttributeId ) : QgsField();
 
     bool newField = !mUpdateExistingGroupBox->isChecked();
     QVariant emptyAttribute;
     if ( newField )
       emptyAttribute = QVariant( field.type() );
 
-    QgsFeatureIterator fit = mVectorLayer->getFeatures( QgsFeatureRequest().setFlags( useGeometry ? QgsFeatureRequest::NoFlags : QgsFeatureRequest::NoGeometry ) );
+    QgsFeatureRequest req = QgsFeatureRequest().setFlags( useGeometry ? QgsFeatureRequest::NoFlags : QgsFeatureRequest::NoGeometry );
+    if ( mOnlyUpdateSelectedCheckBox->isChecked() )
+    {
+      req.setFilterFids( mVectorLayer->selectedFeaturesIds() );
+    }
+    QgsFeatureIterator fit = mVectorLayer->getFeatures( req );
     while ( fit.nextFeature( feature ) )
     {
-      if ( onlySelected )
-      {
-        if ( !selectedIds.contains( feature.id() ) )
-        {
-          continue;
-        }
-      }
-      exp.setCurrentRowNumber( rownum );
-      QVariant value = exp.evaluate( &feature );
-      field.convertCompatible( value );
+      expContext.setFeature( feature );
+      expContext.lastScope()->setVariable( QString( "row_number" ), rownum );
+
+      QVariant value = exp.evaluate( &expContext );
       if ( exp.hasEvalError() )
       {
         calculationSuccess = false;
         error = exp.evalErrorString();
         break;
       }
+      else if ( updatingGeom )
+      {
+        if ( value.canConvert< QgsGeometry >() )
+        {
+          QgsGeometry geom = value.value< QgsGeometry >();
+          mVectorLayer->changeGeometry( feature.id(), &geom );
+        }
+      }
       else
       {
+        field.convertCompatible( value );
         mVectorLayer->changeAttributeValue( feature.id(), mAttributeId, value, newField ? emptyAttribute : feature.attributes().value( mAttributeId ) );
       }
 
@@ -400,7 +434,7 @@ void QgsFieldCalculator::populateFields()
   if ( !mVectorLayer )
     return;
 
-  const QgsFields& fields = mVectorLayer->pendingFields();
+  const QgsFields& fields = mVectorLayer->fields();
   for ( int idx = 0; idx < fields.count(); ++idx )
   {
 
@@ -409,6 +443,15 @@ void QgsFieldCalculator::populateFields()
     //insert into field list and field combo box
     mFieldMap.insert( fieldName, idx );
     mExistingFieldComboBox->addItem( fieldName );
+  }
+
+  if ( mVectorLayer->geometryType() != QGis::NoGeometry )
+  {
+    mExistingFieldComboBox->addItem( tr( "<geometry>" ), "geom" );
+
+    QFont font = mExistingFieldComboBox->itemData( mExistingFieldComboBox->count() - 1, Qt::FontRole ).value<QFont>();
+    font.setItalic( true );
+    mExistingFieldComboBox->setItemData( mExistingFieldComboBox->count() - 1, font, Qt::FontRole );
   }
 }
 

@@ -39,6 +39,7 @@ from processing.tools.system import getTempFilename
 
 sessionExportedLayers = {}
 
+
 class SagaAlgorithm213(SagaAlgorithm212):
 
     OUTPUT_EXTENT = 'OUTPUT_EXTENT'
@@ -47,7 +48,6 @@ class SagaAlgorithm213(SagaAlgorithm212):
         newone = SagaAlgorithm213(self.descriptionFile)
         newone.provider = self.provider
         return newone
-
 
     def processAlgorithm(self, progress):
         commands = list()
@@ -115,9 +115,7 @@ class SagaAlgorithm213(SagaAlgorithm212):
 
         # 2: Set parameters and outputs
         command = self.undecoratedGroup + ' "' + self.cmdname + '"'
-        if self.hardcodedStrings:
-            for s in self.hardcodedStrings:
-                command += ' ' + s
+        command += ' ' + ' '.join(self.hardcodedStrings)
 
         for param in self.parameters:
             if param.value is None:
@@ -147,7 +145,7 @@ class SagaAlgorithm213(SagaAlgorithm212):
                 values = param.value.split(',')
                 for i in range(0, len(values), 3):
                     s = values[i] + '\t' + values[i + 1] + '\t' + values[i
-                            + 2] + '\n'
+                                                                         + 2] + '\n'
                     f.write(s)
                 f.close()
                 command += ' -' + param.name + ' "' + tempTableFile + '"'
@@ -159,11 +157,11 @@ class SagaAlgorithm213(SagaAlgorithm212):
                 values = param.value.split(',')
                 for i in range(4):
                     command += ' -' + self.extentParamNames[i] + ' ' \
-                        + str(float(values[i]) + offset[i])
+                        + unicode(float(values[i]) + offset[i])
             elif isinstance(param, (ParameterNumber, ParameterSelection)):
-                command += ' -' + param.name + ' ' + str(param.value)
+                command += ' -' + param.name + ' ' + unicode(param.value)
             else:
-                command += ' -' + param.name + ' "' + str(param.value) + '"'
+                command += ' -' + param.name + ' "' + unicode(param.value) + '"'
 
         for out in self.outputs:
             command += ' -' + out.name + ' "' + out.getCompatibleFileName(self) + '"'
@@ -181,7 +179,6 @@ class SagaAlgorithm213(SagaAlgorithm212):
                                     + '" -FILE:"' + filename
                                     + '"')
 
-
         # 3: Run SAGA
         commands = self.editCommands(commands)
         SagaUtils.createSagaBatchJobFileFromSagaCommands(commands)
@@ -198,7 +195,5 @@ class SagaAlgorithm213(SagaAlgorithm212):
             for out in self.outputs:
                 if isinstance(out, (OutputVector, OutputRaster)):
                     prjFile = os.path.splitext(out.getCompatibleFileName(self))[0] + ".prj"
-                with open(prjFile, "w") as f:
-                    f.write(self.crs.toWkt())
-
-
+                    with open(prjFile, "w") as f:
+                        f.write(self.crs.toWkt())

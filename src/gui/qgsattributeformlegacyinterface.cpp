@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 13.5.2014
     Copyright            : (C) 2014 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -66,10 +66,10 @@ void QgsAttributeFormLegacyInterface::featureChanged()
   QgsPythonRunner::run( initFeature );
 
   QString expr = QString( "%1( %2, %3, %4)" )
-                 .arg( mPyFunctionName )
-                 .arg( mPyFormVarName )
-                 .arg( mPyLayerVarName )
-                 .arg( pyFeatureVarName );
+                 .arg( mPyFunctionName,
+                       mPyFormVarName,
+                       mPyLayerVarName,
+                       pyFeatureVarName );
 
   QgsPythonRunner::run( expr );
 

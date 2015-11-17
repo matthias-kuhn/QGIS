@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 23.2.2013
     Copyright            : (C) 2013 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -32,7 +32,7 @@ class GUI_EXPORT QgsRelationManagerDialog : public QWidget, private Ui::QgsRelat
     explicit QgsRelationManagerDialog( QgsRelationManager* relationMgr, QWidget *parent = 0 );
     ~QgsRelationManagerDialog();
 
-    void setLayers( QList< QgsVectorLayer* > );
+    void setLayers( const QList<QgsVectorLayer*>& );
 
     void addRelation( const QgsRelation& rel );
     QList< QgsRelation > relations();

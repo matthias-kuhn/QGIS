@@ -28,7 +28,7 @@ class QgsMemoryProvider : public QgsVectorDataProvider
     Q_OBJECT
 
   public:
-    QgsMemoryProvider( QString uri = QString() );
+    explicit QgsMemoryProvider( const QString& uri = QString() );
 
     virtual ~QgsMemoryProvider();
 
@@ -40,7 +40,7 @@ class QgsMemoryProvider : public QgsVectorDataProvider
      * Returns the permanent storage type for this layer as a friendly name.
      */
 
-    virtual QString dataSourceUri() const override;
+    virtual QString dataSourceUri( bool expandAuthConfig = true ) const override;
 
     /**
      * Returns the permanent storage type for this layer as a friendly name.
@@ -114,8 +114,8 @@ class QgsMemoryProvider : public QgsVectorDataProvider
     /** Accessor for sql where clause used to limit dataset */
     QString subsetString() override;
 
-    /** mutator for sql where clause used to limit dataset size */
-    bool setSubsetString( QString theSQL, bool updateFeatureCount = true ) override;
+    /** Mutator for sql where clause used to limit dataset size */
+    bool setSubsetString( const QString& theSQL, bool updateFeatureCount = true ) override;
 
     virtual bool supportsSubsetString() override { return true; }
 

@@ -46,45 +46,53 @@ QgsOracleFeatureIterator::QgsOracleFeatureIterator( QgsOracleFeatureSource* sour
 
   QString whereClause;
 
+  if ( !mRequest.filterRect().isNull() && !mSource->mGeometryColumn.isNull() && mSource->mHasSpatialIndex )
+  {
+    QgsRectangle rect( mRequest.filterRect() );
+    QString bbox = QString( "mdsys.sdo_geometry(2003,%1,NULL,"
+                            "mdsys.sdo_elem_info_array(1,1003,3),"
+                            "mdsys.sdo_ordinate_array(%2,%3,%4,%5)"
+                            ")" )
+                   .arg( mSource->mSrid < 1 ? "NULL" : QString::number( mSource->mSrid ) )
+                   .arg( qgsDoubleToString( rect.xMinimum() ) )
+                   .arg( qgsDoubleToString( rect.yMinimum() ) )
+                   .arg( qgsDoubleToString( rect.xMaximum() ) )
+                   .arg( qgsDoubleToString( rect.yMaximum() ) );
+
+    whereClause = QString( "sdo_filter(%1,%2)='TRUE'" ).arg( QgsOracleProvider::quotedIdentifier( mSource->mGeometryColumn ) ).arg( bbox );
+
+    if ( mRequest.flags() & QgsFeatureRequest::ExactIntersect && mConnection->hasSpatial() )
+    {
+      whereClause += QString( " AND sdo_relate(%1,%2,'mask=ANYINTERACT')='TRUE'" )
+                     .arg( QgsOracleProvider::quotedIdentifier( mSource->mGeometryColumn ) )
+                     .arg( bbox );
+    }
+  }
+
   switch ( request.filterType() )
   {
+    case QgsFeatureRequest::FilterFid:
+    {
+      QString fidWhereClause = QgsOracleUtils::whereClause( request.filterFid(), mSource->mFields, mSource->mPrimaryKeyType, mSource->mPrimaryKeyAttrs, mSource->mShared );
+      whereClause = QgsOracleUtils::andWhereClauses( whereClause, fidWhereClause );
+    }
+    break;
+
+    case QgsFeatureRequest::FilterFids:
+    {
+      QString fidsWhereClause = QgsOracleUtils::whereClause( request.filterFids(), mSource->mFields, mSource->mPrimaryKeyType, mSource->mPrimaryKeyAttrs, mSource->mShared );
+      whereClause = QgsOracleUtils::andWhereClauses( whereClause, fidsWhereClause );
+    }
+    break;
+
+    case QgsFeatureRequest::FilterNone:
+      break;
+
     case QgsFeatureRequest::FilterExpression:
       break;
 
     case QgsFeatureRequest::FilterRect:
-      if ( !mSource->mGeometryColumn.isNull() && mSource->mHasSpatialIndex )
-      {
-        QgsRectangle rect( mRequest.filterRect() );
-        QString bbox = QString( "mdsys.sdo_geometry(2003,%1,NULL,"
-                                "mdsys.sdo_elem_info_array(1,1003,3),"
-                                "mdsys.sdo_ordinate_array(%2,%3,%4,%5)"
-                                ")" )
-                       .arg( mSource->mSrid < 1 ? "NULL" : QString::number( mSource->mSrid ) )
-                       .arg( qgsDoubleToString( rect.xMinimum() ) )
-                       .arg( qgsDoubleToString( rect.yMinimum() ) )
-                       .arg( qgsDoubleToString( rect.xMaximum() ) )
-                       .arg( qgsDoubleToString( rect.yMaximum() ) );
-
-        whereClause = QString( "sdo_filter(%1,%2)='TRUE'" ).arg( QgsOracleProvider::quotedIdentifier( mSource->mGeometryColumn ) ).arg( bbox );
-
-        if ( mRequest.flags() & QgsFeatureRequest::ExactIntersect && mConnection->hasSpatial() )
-        {
-          whereClause += QString( " AND sdo_relate(%1,%2,'mask=ANYINTERACT')='TRUE'" )
-                         .arg( QgsOracleProvider::quotedIdentifier( mSource->mGeometryColumn ) )
-                         .arg( bbox );
-        }
-      }
-      break;
-
-    case QgsFeatureRequest::FilterFid:
-      whereClause = QgsOracleUtils::whereClause( request.filterFid(), mSource->mFields, mSource->mPrimaryKeyType, mSource->mPrimaryKeyAttrs, mSource->mShared );
-      break;
-
-    case QgsFeatureRequest::FilterFids:
-      whereClause = QgsOracleUtils::whereClause( request.filterFids(), mSource->mFields, mSource->mPrimaryKeyType, mSource->mPrimaryKeyAttrs, mSource->mShared );
-      break;
-
-    case QgsFeatureRequest::FilterNone:
+      // Handled in the if-statement above
       break;
   }
 
@@ -179,7 +187,7 @@ bool QgsOracleFeatureIterator::fetchFeature( QgsFeature& feature )
 
         if ( mSource->mPrimaryKeyType == pktFidMap )
         {
-          foreach ( int idx, mSource->mPrimaryKeyAttrs )
+          Q_FOREACH ( int idx, mSource->mPrimaryKeyAttrs )
           {
             const QgsField &fld = mSource->mFields[idx];
 
@@ -212,7 +220,7 @@ bool QgsOracleFeatureIterator::fetchFeature( QgsFeature& feature )
     QgsDebugMsgLevel( QString( "fid=%1" ).arg( fid ), 5 );
 
     // iterate attributes
-    foreach ( int idx, mAttributeList )
+    Q_FOREACH ( int idx, mAttributeList )
     {
       if ( mSource->mPrimaryKeyAttrs.contains( idx ) )
         continue;
@@ -220,7 +228,18 @@ bool QgsOracleFeatureIterator::fetchFeature( QgsFeature& feature )
       const QgsField &fld = mSource->mFields[idx];
 
       QVariant v = mQry.value( col );
-      if ( v.type() != fld.type() )
+      if ( fld.type() == QVariant::ByteArray && fld.typeName().endsWith( ".SDO_GEOMETRY" ) )
+      {
+        QByteArray *ba = static_cast<QByteArray*>( v.data() );
+        unsigned char *copy = new unsigned char[ba->size()];
+        memcpy( copy, ba->constData(), ba->size() );
+
+        QgsGeometry *g = new QgsGeometry();
+        g->fromWkb( copy, ba->size() );
+        v = g->exportToWkt();
+        delete g;
+      }
+      else if ( v.type() != fld.type() )
         v = QgsVectorDataProvider::convertValue( fld.type(), v.toString() );
       feature.setAttribute( idx, v );
 
@@ -283,7 +302,7 @@ bool QgsOracleFeatureIterator::openQuery( QString whereClause )
         break;
 
       case pktFidMap:
-        foreach ( int idx, mSource->mPrimaryKeyAttrs )
+        Q_FOREACH ( int idx, mSource->mPrimaryKeyAttrs )
         {
           query += delim + mConnection->fieldExpression( mSource->mFields[idx] );
           delim = ",";
@@ -296,7 +315,7 @@ bool QgsOracleFeatureIterator::openQuery( QString whereClause )
         break;
     }
 
-    foreach ( int idx, mAttributeList )
+    Q_FOREACH ( int idx, mAttributeList )
     {
       if ( mSource->mPrimaryKeyAttrs.contains( idx ) )
         continue;

@@ -17,15 +17,23 @@
 #include <QObject>
 #include <QString>
 
-#include <qgsscaleexpression.h>
+#include "qgsscaleexpression.h"
+#include "qgsapplication.h"
 
 class TestQgsScaleExpression: public QObject
 {
     Q_OBJECT
   private slots:
 
-    void initTestCase() {}
-    void cleanupTestCase() {}
+    void initTestCase()
+    {
+      QgsApplication::init();
+      QgsApplication::initQgis();
+    }
+    void cleanupTestCase()
+    {
+      QgsApplication::exitQgis();
+    }
 
     void parsing()
     {
@@ -71,8 +79,8 @@ class TestQgsScaleExpression: public QObject
       }
       {
         QgsScaleExpression exp( "coalesce(scale_exp(column, 1, 7, 2, 10, 0.51), 0)" );
-        QCOMPARE( bool( exp ), false );
-        QCOMPARE( exp.type(), QgsScaleExpression::Unknown );
+        QCOMPARE( bool( exp ), true );
+        QCOMPARE( exp.type(), QgsScaleExpression::Exponential );
       }
       {
         QgsScaleExpression exp( "coalesce(scale_exp(column, 1, 7, a, 10, 0.5), 0)" );

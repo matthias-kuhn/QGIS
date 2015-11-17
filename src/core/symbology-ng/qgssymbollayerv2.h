@@ -77,7 +77,7 @@ class CORE_EXPORT QgsSymbolLayerV2
 
     virtual QgsSymbolLayerV2* clone() const = 0;
 
-    virtual void toSld( QDomDocument &doc, QDomElement &element, QgsStringMap props ) const
+    virtual void toSld( QDomDocument &doc, QDomElement &element, const QgsStringMap& props ) const
     { Q_UNUSED( props ); element.appendChild( doc.createComment( QString( "SymbolLayerV2 %1 not implemented yet" ).arg( layerType() ) ) ); }
 
     virtual QString ogrFeatureStyle( double mmScaleFactor, double mapUnitScaleFactor ) const { Q_UNUSED( mmScaleFactor ); Q_UNUSED( mapUnitScaleFactor ); return QString(); }
@@ -95,7 +95,7 @@ class CORE_EXPORT QgsSymbolLayerV2
     void setLocked( bool locked ) { mLocked = locked; }
     bool isLocked() const { return mLocked; }
 
-    /**Returns the estimated maximum distance which the layer style will bleed outside
+    /** Returns the estimated maximum distance which the layer style will bleed outside
       the drawn shape. Eg, polygons drawn with an outline will draw half the width
       of the outline outside of the polygon. This amount is estimated, since it may
       be affected by data defined symbology rules.*/
@@ -199,23 +199,38 @@ class CORE_EXPORT QgsSymbolLayerV2
      * @see getDataDefinedProperty
      * @note added in QGIS 2.9
      */
-    virtual QVariant evaluateDataDefinedProperty( const QString& property, const QgsFeature* feature, const QVariant& defaultVal = QVariant(), bool *ok = 0 ) const;
+    Q_DECL_DEPRECATED virtual QVariant evaluateDataDefinedProperty( const QString& property, const QgsFeature* feature, const QVariant& defaultVal = QVariant(), bool *ok = 0 ) const;
+
+    /** Evaluates the matching data defined property and returns the calculated
+     * value. Prior to evaluation the data defined property must be prepared
+     * by calling @link prepareExpressions @endlink.
+     * @param property property key
+     * @param context symbol render context
+     * @param defaultVal default value to return if evaluation was not successful
+     * @param ok if specified, will be set to true if evaluation was successful
+     * @returns calculated value for data defined property, or default value
+     * if property does not exist or is deactived.
+     * @see hasDataDefinedProperty
+     * @see getDataDefinedProperty
+     * @note added in QGIS 2.12
+     */
+    virtual QVariant evaluateDataDefinedProperty( const QString& property, const QgsSymbolV2RenderContext& context, const QVariant& defaultVal = QVariant(), bool *ok = 0 ) const;
 
     virtual bool writeDxf( QgsDxfExport& e,
                            double mmMapUnitScaleFactor,
                            const QString& layerName,
-                           const QgsSymbolV2RenderContext* context,
+                           QgsSymbolV2RenderContext* context,
                            const QgsFeature* f,
                            const QPointF& shift = QPointF( 0.0, 0.0 ) ) const;
 
-    virtual double dxfWidth( const QgsDxfExport& e, const QgsSymbolV2RenderContext& context ) const;
-    virtual double dxfOffset( const QgsDxfExport& e, const QgsSymbolV2RenderContext& context ) const;
+    virtual double dxfWidth( const QgsDxfExport& e, QgsSymbolV2RenderContext& context ) const;
+    virtual double dxfOffset( const QgsDxfExport& e, QgsSymbolV2RenderContext& context ) const;
 
-    virtual QColor dxfColor( const QgsSymbolV2RenderContext& context ) const;
+    virtual QColor dxfColor( QgsSymbolV2RenderContext& context ) const;
 
     virtual QVector<qreal> dxfCustomDashPattern( QgsSymbolV2::OutputUnit& unit ) const;
     virtual Qt::PenStyle dxfPenStyle() const;
-    virtual QColor dxfBrushColor( const QgsSymbolV2RenderContext& context ) const;
+    virtual QColor dxfBrushColor( QgsSymbolV2RenderContext& context ) const;
     virtual Qt::BrushStyle dxfBrushStyle() const;
 
     /** Returns the current paint effect for the layer.
@@ -254,7 +269,14 @@ class CORE_EXPORT QgsSymbolLayerV2
      * @param fields associated layer fields
      * @param scale map scale
      */
-    virtual void prepareExpressions( const QgsFields* fields, double scale = -1.0 );
+    Q_DECL_DEPRECATED virtual void prepareExpressions( const QgsFields* fields, double scale = -1.0 );
+
+    /** Prepares all data defined property expressions for evaluation. This should
+     * be called prior to evaluating data defined properties.
+     * @param context symbol render context
+     * @note added in QGIS 2.12
+     */
+    virtual void prepareExpressions( const QgsSymbolV2RenderContext& context );
 
     /** Returns the data defined expression associated with a property
      * @deprecated use getDataDefinedProperty or evaluateDataDefinedProperty instead
@@ -279,7 +301,7 @@ class CORE_EXPORT QgsSymbolLayerV2
     */
     void copyDataDefinedProperties( QgsSymbolLayerV2* destLayer ) const;
 
-    /**Copies paint effect of this layer to another symbol layer
+    /** Copies paint effect of this layer to another symbol layer
      * @param destLayer destination layer
      * @note added in QGIS 2.9
      */
@@ -391,9 +413,9 @@ class CORE_EXPORT QgsMarkerSymbolLayerV2 : public QgsSymbolLayerV2
     void setOffset( QPointF offset ) { mOffset = offset; }
     QPointF offset() const { return mOffset; }
 
-    virtual void toSld( QDomDocument &doc, QDomElement &element, QgsStringMap props ) const override;
+    virtual void toSld( QDomDocument &doc, QDomElement &element, const QgsStringMap& props ) const override;
 
-    virtual void writeSldMarker( QDomDocument &doc, QDomElement &element, QgsStringMap props ) const
+    virtual void writeSldMarker( QDomDocument &doc, QDomElement &element, const QgsStringMap& props ) const
     { Q_UNUSED( props ); element.appendChild( doc.createComment( QString( "QgsMarkerSymbolLayerV2 %1 not implemented yet" ).arg( layerType() ) ) ); }
 
     void setOffsetUnit( QgsSymbolV2::OutputUnit unit ) { mOffsetUnit = unit; }
@@ -424,12 +446,13 @@ class CORE_EXPORT QgsMarkerSymbolLayerV2 : public QgsSymbolLayerV2
     QgsMarkerSymbolLayerV2( bool locked = false );
 
     //handles marker offset and anchor point shift together
-    void markerOffset( const QgsSymbolV2RenderContext& context, double& offsetX, double& offsetY ) const;
+    void markerOffset( QgsSymbolV2RenderContext& context, double& offsetX, double& offsetY ) const;
 
-    void markerOffset( const QgsSymbolV2RenderContext& context, double width, double height, double& offsetX, double& offsetY ) const;
+    //! @note available in python as markerOffsetWithWidthAndHeight
+    void markerOffset( QgsSymbolV2RenderContext& context, double width, double height, double& offsetX, double& offsetY ) const;
 
     //! @note available in python bindings as markerOffset2
-    void markerOffset( const QgsSymbolV2RenderContext& context, double width, double height,
+    void markerOffset( QgsSymbolV2RenderContext& context, double width, double height,
                        QgsSymbolV2::OutputUnit widthUnit, QgsSymbolV2::OutputUnit heightUnit,
                        double& offsetX, double& offsetY,
                        const QgsMapUnitScale &widthMapUnitScale, const QgsMapUnitScale &heightMapUnitScale ) const;
@@ -486,7 +509,7 @@ class CORE_EXPORT QgsLineSymbolLayerV2 : public QgsSymbolLayerV2
 
     void drawPreviewIcon( QgsSymbolV2RenderContext& context, QSize size ) override;
 
-    virtual double dxfWidth( const QgsDxfExport& e, const QgsSymbolV2RenderContext& context ) const override;
+    virtual double dxfWidth( const QgsDxfExport& e, QgsSymbolV2RenderContext& context ) const override;
 
   protected:
     QgsLineSymbolLayerV2( bool locked = false );
@@ -511,7 +534,7 @@ class CORE_EXPORT QgsFillSymbolLayerV2 : public QgsSymbolLayerV2
 
   protected:
     QgsFillSymbolLayerV2( bool locked = false );
-    /**Default method to render polygon*/
+    /** Default method to render polygon*/
     void _renderPolygon( QPainter* p, const QPolygonF& points, const QList<QPolygonF>* rings, QgsSymbolV2RenderContext& context );
 
     double mAngle;

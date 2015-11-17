@@ -18,9 +18,11 @@
 
 #include <QDialog>
 
+#include "qgsoptionsdialogbase.h"
+
 #include "ui_qgsgrassoptionsbase.h"
 
-class GRASS_LIB_EXPORT QgsGrassOptions : public QDialog, private Ui::QgsGrassOptionsBase
+class GRASS_LIB_EXPORT QgsGrassOptions : public QgsOptionsDialogBase, private Ui::QgsGrassOptionsBase
 {
     Q_OBJECT
 
@@ -29,11 +31,15 @@ class GRASS_LIB_EXPORT QgsGrassOptions : public QDialog, private Ui::QgsGrassOpt
     ~QgsGrassOptions();
 
   private slots:
+    void on_mGisbaseBrowseButton_clicked();
+    void gisbaseChanged();
+    void on_mModulesConfigBrowseButton_clicked();
     void saveOptions();
 
   private:
-    QString mImportSettingsPath;
 
+    QString mImportSettingsPath;
+    QString mModulesSettingsPath;
 };
 
 #endif // QGSGRASSOPTIONS_H

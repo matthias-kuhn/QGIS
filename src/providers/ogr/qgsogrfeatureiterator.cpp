@@ -58,20 +58,20 @@ QgsOgrFeatureIterator::QgsOgrFeatureIterator( QgsOgrFeatureSource* source, bool 
     mSubsetStringSet = true;
   }
 
-  mFetchGeometry = ( mRequest.filterType() == QgsFeatureRequest::FilterRect ) || !( mRequest.flags() & QgsFeatureRequest::NoGeometry );
+  mFetchGeometry = ( !mRequest.filterRect().isNull() ) || !( mRequest.flags() & QgsFeatureRequest::NoGeometry );
   QgsAttributeList attrs = ( mRequest.flags() & QgsFeatureRequest::SubsetOfAttributes ) ? mRequest.subsetOfAttributes() : mSource->mFields.allAttributesList();
 
   // make sure we fetch just relevant fields
   // unless it's a VRT data source filtered by geometry as we don't know which
   // attributes make up the geometry and OGR won't fetch them to evaluate the
   // filter if we choose to ignore them (fixes #11223)
-  if (( mSource->mDriverName != "VRT" && mSource->mDriverName != "OGR_VRT" ) || mRequest.filterType() != QgsFeatureRequest::FilterRect )
+  if (( mSource->mDriverName != "VRT" && mSource->mDriverName != "OGR_VRT" ) || mRequest.filterRect().isNull() )
   {
     QgsOgrUtils::setRelevantFields( ogrLayer, mSource->mFields.count(), mFetchGeometry, attrs );
   }
 
   // spatial query to select features
-  if ( mRequest.filterType() == QgsFeatureRequest::FilterRect )
+  if ( !mRequest.filterRect().isNull() )
   {
     const QgsRectangle& rect = mRequest.filterRect();
 
@@ -179,7 +179,7 @@ bool QgsOgrFeatureIterator::fetchFeature( QgsFeature& feature )
     if ( !readFeature( fet, feature ) )
       continue;
 
-    if ( mRequest.filterType() == QgsFeatureRequest::FilterRect && !feature.constGeometry() )
+    if ( !mRequest.filterRect().isNull() && !feature.constGeometry() )
       continue;
 
     // we have a feature, end this cycle
@@ -239,7 +239,7 @@ void QgsOgrFeatureIterator::getFeatureAttribute( OGRFeatureH ogrFet, QgsFeature 
 
   if ( OGR_F_IsFieldSet( ogrFet, attindex ) )
   {
-    switch ( mSource->mFields[attindex].type() )
+    switch ( mSource->mFields.at( attindex ).type() )
     {
       case QVariant::String: value = QVariant( mSource->mEncoding->toUnicode( OGR_F_GetFieldAsString( ogrFet, attindex ) ) ); break;
       case QVariant::Int: value = QVariant( OGR_F_GetFieldAsInteger( ogrFet, attindex ) ); break;
@@ -250,7 +250,7 @@ void QgsOgrFeatureIterator::getFeatureAttribute( OGRFeatureH ogrFet, QgsFeature 
         int year, month, day, hour, minute, second, tzf;
 
         OGR_F_GetFieldAsDateTime( ogrFet, attindex, &year, &month, &day, &hour, &minute, &second, &tzf );
-        if ( mSource->mFields[attindex].type() == QVariant::Date )
+        if ( mSource->mFields.at( attindex ).type() == QVariant::Date )
           value = QDate( year, month, day );
         else
           value = QDateTime( QDate( year, month, day ), QTime( hour, minute, second ) );
@@ -342,6 +342,12 @@ QgsOgrFeatureSource::QgsOgrFeatureSource( const QgsOgrProvider* p )
   mFields = p->mAttributeFields;
   mDriverName = p->ogrDriverName;
   mOgrGeometryTypeFilter = wkbFlatten( p->mOgrGeometryTypeFilter );
+  QgsOgrConnPool::refS( mFilePath );
+}
+
+QgsOgrFeatureSource::~QgsOgrFeatureSource()
+{
+  QgsOgrConnPool::unrefS( mFilePath );
 }
 
 QgsFeatureIterator QgsOgrFeatureSource::getFeatures( const QgsFeatureRequest& request )

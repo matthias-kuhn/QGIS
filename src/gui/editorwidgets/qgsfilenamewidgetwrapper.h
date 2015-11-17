@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 5.1.2014
     Copyright            : (C) 2014 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -25,7 +25,7 @@
 
 /**
  * Wraps a file name widget. Will offer a file browser to choose files.
- *
+ * \note not available in Python bindings
  */
 
 class GUI_EXPORT QgsFileNameWidgetWrapper : public QgsEditorWidgetWrapper
@@ -40,6 +40,7 @@ class GUI_EXPORT QgsFileNameWidgetWrapper : public QgsEditorWidgetWrapper
     // QgsEditorWidgetWrapper interface
   public:
     QVariant value() override;
+    bool valid() override;
 
   protected:
     QWidget* createWidget( QWidget* parent ) override;

@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 13.5.2014
     Copyright            : (C) 2014 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -85,8 +85,8 @@ const QString QgsLegacyHelpers::convertEditType( QgsVectorLayer::EditType editTy
            editTypeElement.hasAttribute( "filterAttributeValue" ) )
       {
         filterExpression = QString( "\"%1\"='%2'" )
-                           .arg( editTypeElement.attribute( "filterAttributeColumn" ) )
-                           .arg( editTypeElement.attribute( "filterAttributeValue" ) );
+                           .arg( editTypeElement.attribute( "filterAttributeColumn" ),
+                                 editTypeElement.attribute( "filterAttributeValue" ) );
       }
       else
       {
@@ -140,7 +140,7 @@ const QString QgsLegacyHelpers::convertEditType( QgsVectorLayer::EditType editTy
     {
       widgetType = "TextEdit";
       cfg.insert( "IsMultiline", false );
-      vl->setFieldEditable( vl->pendingFields().fieldNameIndex( name ), false );
+      vl->setFieldEditable( vl->fields().fieldNameIndex( name ), false );
       break;
     }
 

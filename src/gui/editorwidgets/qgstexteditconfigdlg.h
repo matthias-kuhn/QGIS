@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 8.5.2014
     Copyright            : (C) 2014 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,6 +19,10 @@
 #include "ui_qgstexteditconfigdlg.h"
 
 #include "qgseditorconfigwidget.h"
+
+/** \class QgsTextEditConfigDlg
+ * \note not available in Python bindings
+ */
 
 class GUI_EXPORT QgsTextEditConfigDlg : public QgsEditorConfigWidget, private Ui::QgsTextEditConfigDlg
 {

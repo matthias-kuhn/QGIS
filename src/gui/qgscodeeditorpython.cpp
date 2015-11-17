@@ -53,7 +53,7 @@ void QgsCodeEditorPython::setSciLexerPython()
 
   QFont font = getMonospaceFont();
 
-  QsciLexerPython* pyLexer = new QsciLexerPython();
+  QsciLexerPython* pyLexer = new QsciLexerPython( this );
   pyLexer->setDefaultFont( font );
   pyLexer->setFont( font, 1 ); // comment
   pyLexer->setFont( font, 3 ); // singlequotes
@@ -127,7 +127,7 @@ bool QgsCodeEditorPython::loadScript( const QString &script )
 
   QTextStream in( &file );
 
-  setText( in.readAll() );
+  setText( in.readAll().trimmed() );
   file.close();
 
   setSciLexerPython();

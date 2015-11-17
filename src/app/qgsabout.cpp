@@ -17,6 +17,7 @@
 
 #include "qgsabout.h"
 #include "qgsapplication.h"
+#include "qgsauthmethodregistry.h"
 #include "qgsproviderregistry.h"
 #include "qgslogger.h"
 #include <QDesktopServices>
@@ -54,12 +55,17 @@ void QgsAbout::init()
   // check internet connection in order to hide/show the developers map widget
   int DEVELOPERS_MAP_INDEX = 5;
   QTcpSocket socket;
-  socket.connectToHost( "qgis.org", 80 );
+  socket.connectToHost( QgsApplication::QGIS_ORGANIZATION_DOMAIN, 80 );
   if ( socket.waitForConnected( 1000 ) )
+  {
     setDevelopersMap();
+  }
   else
+  {
     mOptionsListWidget->item( DEVELOPERS_MAP_INDEX )->setHidden( true );
-
+    QModelIndex firstItem = mOptionsListWidget->model()->index( 0, 0, QModelIndex() );
+    mOptionsListWidget->setCurrentIndex( firstItem );
+  }
   developersMapView->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
   developersMapView->setContextMenuPolicy( Qt::NoContextMenu );
 
@@ -88,7 +94,7 @@ void QgsAbout::init()
       //ignore the line if it starts with a hash....
       if ( line.left( 1 ) == "#" )
         continue;
-      QStringList myTokens = line.split( "\t", QString::SkipEmptyParts );
+      QStringList myTokens = line.split( '\t', QString::SkipEmptyParts );
       lines << myTokens[0];
     }
     file.close();
@@ -158,7 +164,7 @@ void QgsAbout::init()
       //ignore the line if it starts with a hash....
       if ( sline.left( 1 ) == "#" )
         continue;
-      QStringList myTokens = sline.split( "|", QString::SkipEmptyParts );
+      QStringList myTokens = sline.split( '|', QString::SkipEmptyParts );
       if ( myTokens.size() > 1 )
       {
         website = "<a href=\"" + myTokens[1].remove( ' ' ) + "\">" + myTokens[1] + "</a>";
@@ -220,7 +226,7 @@ void QgsAbout::setLicence()
   }
 }
 
-void QgsAbout::setVersion( QString v )
+void QgsAbout::setVersion( const QString& v )
 {
   txtVersion->setBackgroundRole( QPalette::NoRole );
   txtVersion->setAutoFillBackground( true );
@@ -240,6 +246,8 @@ void QgsAbout::setPluginInfo()
   //provide info about the plugins available
   myString += "<b>" + tr( "Available QGIS Data Provider Plugins" ) + "</b><br>";
   myString += QgsProviderRegistry::instance()->pluginList( true );
+  myString += "<b>" + tr( "Available QGIS Authentication Method Plugins" ) + "</b><br>";
+  myString += QgsAuthMethodRegistry::instance()->pluginList( true );
   //qt database plugins
   myString += "<b>" + tr( "Available Qt Database Plugins" ) + "</b><br>";
   myString += "<ol>\n<li>\n";
@@ -289,7 +297,7 @@ void QgsAbout::openUrl( const QUrl &url )
  * Step 2: Replace all bytes of the UTF-8 above 0x7f with the hexcode in lower case.
  * Step 2: Replace all non [a-z][a-Z][0-9] with underscore (backward compatibility)
  */
-QString QgsAbout::fileSystemSafe( QString fileName )
+QString QgsAbout::fileSystemSafe( const QString& fileName )
 {
   QString result;
   QByteArray utf8 = fileName.toUtf8();

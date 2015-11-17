@@ -1,5 +1,5 @@
 SET(CPACK_PACKAGE_VERSION_MAJOR "2")
-SET(CPACK_PACKAGE_VERSION_MINOR "11")
+SET(CPACK_PACKAGE_VERSION_MINOR "13")
 SET(CPACK_PACKAGE_VERSION_PATCH "0")
 SET(COMPLETE_VERSION ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH})
 SET(RELEASE_NAME "Master")
@@ -307,6 +307,15 @@ ENDIF (WITH_TOUCH)
 
 # search for QScintilla2 (C++ lib)
 FIND_PACKAGE(QScintilla REQUIRED)
+
+# Master password hash and authentication encryption
+FIND_PACKAGE(QCA REQUIRED)
+# Check for runtime dependency of qca-ossl plugin
+# REQUIRED if unit tests are to be run from build directory
+IF(NOT MSVC)
+include(QCAMacros)
+FIND_QCAOSSL_PLUGIN_CPP(ENABLE_TESTS)
+ENDIF(NOT MSVC)
 
 # ModelTest
 SET(ENABLE_MODELTEST FALSE CACHE BOOL "Enable QT ModelTest (not for production)")
@@ -663,25 +672,44 @@ ENDIF (UNIX AND NOT APPLE)
 
 
 #############################################################
+# Python build dependency
+
+IF(ENABLE_QT5)
+  SET(PYTHON_VER 3)
+ELSE(ENABLE_QT5)
+  SET(PYTHON_VER 2)
+ENDIF(ENABLE_QT5)
+
+FIND_PACKAGE(PythonInterp ${PYTHON_VER} REQUIRED)
+
+#############################################################
 # Python bindings
 
 IF (WITH_BINDINGS)
 
-  # python support: check for interpreter, sip, pyqt4
-  FIND_PACKAGE(PythonInterp REQUIRED)
   FIND_PACKAGE(PythonLibrary REQUIRED)
+
+  # python support: check for interpreter, sip, pyqt4
+  IF(ENABLE_QT5)
+    FIND_PACKAGE(PyQt5 REQUIRED)
+    SET(PYQT_SIP_FLAGS ${PYQT5_SIP_FLAGS})
+    SET(PYQT_SIP_DIR ${PYQT5_SIP_DIR})
+  ELSE(ENABLE_QT5)
+    FIND_PACKAGE(PyQt4 REQUIRED)
+    # setup SIP variables
+    SET(PYQT_SIP_FLAGS ${PYQT4_SIP_FLAGS})
+    SET(PYQT_SIP_DIR ${PYQT4_SIP_DIR})
+  ENDIF(ENABLE_QT5)
+  SEPARATE_ARGUMENTS(PYQT_SIP_FLAGS) # convert space separated values to a list
+
   FIND_PACKAGE(SIP REQUIRED)
-  FIND_PACKAGE(PyQt4 REQUIRED)
   FIND_PACKAGE(Qsci REQUIRED)
   INCLUDE(PythonMacros)
+  INCLUDE(PyQtMacros)
   INCLUDE(SIPMacros)
-  INCLUDE(PyQt4Macros)
 
-  # setup SIP variables
-  SEPARATE_ARGUMENTS(PYQT4_SIP_FLAGS) # convert space separated values to a list
-  SET(SIP_INCLUDES ${PYQT4_SIP_DIR} ${CMAKE_SOURCE_DIR}/python)
+  SET(SIP_INCLUDES ${PYQT_SIP_DIR} ${CMAKE_SOURCE_DIR}/python)
   SET(SIP_CONCAT_PARTS 4)
-  SET(SIP_EXTRA_OPTIONS ${PYQT4_SIP_FLAGS})
 
   IF (NOT BINDINGS_GLOBAL_INSTALL)
     SET(PYTHON_SITE_PACKAGES_DIR ${QGIS_DATA_DIR}/python)
@@ -710,43 +738,24 @@ FIND_FILE(GIT_MARKER index PATHS ${CMAKE_SOURCE_DIR}/.git)
 IF (GIT_MARKER)
   FIND_PROGRAM(GITCOMMAND git PATHS c:/cygwin/bin)
   IF(GITCOMMAND)
-    IF(MSVC)
+    IF(WIN32)
       ADD_CUSTOM_COMMAND(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
-        COMMAND for /f \"usebackq tokens=1\" %%a in "(`\"${GITCOMMAND}\" log -n1 --oneline`)" do echo \#define QGSVERSION \"%%a\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
+        COMMAND for /f \"usebackq tokens=1\" %%a in "(`\"${GITCOMMAND}\" log -n1 --oneline`)" do echo \#define QGSVERSION \"%%a\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
+        COMMAND ${CMAKE_COMMAND} -DSRC=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp -DDST=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h -P ${CMAKE_SOURCE_DIR}/cmake/CopyIfChanged.cmake
         MAIN_DEPENDENCY ${GIT_MARKER}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       )
-    ELSE(MSVC)
-      EXECUTE_PROCESS(
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND ${GITCOMMAND} log -n1 --pretty=%h OUTPUT_VARIABLE REVISION
-      )
-      STRING(STRIP "${REVISION}" REVISION)
-      # Get GIT remote and branch
-      EXECUTE_PROCESS(
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND ${GITCOMMAND} name-rev --name-only HEAD OUTPUT_VARIABLE GIT_LOCAL_BRANCH
-      )
-      STRING(STRIP "${GIT_LOCAL_BRANCH}" GIT_LOCAL_BRANCH)
-      EXECUTE_PROCESS(
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND ${GITCOMMAND} config branch.${GIT_LOCAL_BRANCH}.remote OUTPUT_VARIABLE GIT_REMOTE
-      )
-      STRING(STRIP "${GIT_REMOTE}" GIT_REMOTE)
-      EXECUTE_PROCESS(
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND ${GITCOMMAND} config remote.${GIT_REMOTE}.url OUTPUT_VARIABLE GIT_REMOTE_URL
-      )
-      STRING(STRIP "${GIT_REMOTE_URL}" GIT_REMOTE_URL)
+    ELSE(WIN32)
       ADD_CUSTOM_COMMAND(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
-        COMMAND echo \\\#define QGSVERSION \\\"${REVISION}\\\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
-        COMMAND echo \\\#define QGS_GIT_REMOTE_URL \\\"${GIT_REMOTE_URL}\\\" >>${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
+        COMMAND ${GITCOMMAND} log -n1 --pretty=\#define\\ QGSVERSION\\ \\"%h\\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
+        COMMAND ${GITCOMMAND} config remote.$$\(${GITCOMMAND} config branch.$$\(${GITCOMMAND} name-rev --name-only HEAD\).remote\).url | sed -e 's/^/\#define QGS_GIT_REMOTE_URL \"/' -e 's/$$/\"/' >>${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
+        COMMAND ${CMAKE_COMMAND} -DSRC=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp -DDST=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h -P ${CMAKE_SOURCE_DIR}/cmake/CopyIfChanged.cmake
         MAIN_DEPENDENCY ${GIT_MARKER}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       )
-    ENDIF(MSVC)
+    ENDIF(WIN32)
   ELSE(GITCOMMAND)
     MESSAGE(STATUS "git marker, but no git found - version will be unknown")
     SET(REVISION "unknown")
@@ -791,7 +800,11 @@ IF (APPLE)
   # allow QGIS to be run directly from build directory and to run unit tests
   EXECUTE_PROCESS(COMMAND /bin/mkdir -p "${QGIS_OUTPUT_DIRECTORY}/lib")
   EXECUTE_PROCESS(
-    COMMAND /bin/ln -fs ../../Plugins/qgis/qgisgrass.framework lib/
+    COMMAND /bin/ln -fs ../../Plugins/qgis/qgisgrass6.framework lib/
+    WORKING_DIRECTORY "${QGIS_OUTPUT_DIRECTORY}"
+  )
+  EXECUTE_PROCESS(
+    COMMAND /bin/ln -fs ../../Plugins/qgis/qgisgrass7.framework lib/
     WORKING_DIRECTORY "${QGIS_OUTPUT_DIRECTORY}"
   )
 ENDIF (APPLE)

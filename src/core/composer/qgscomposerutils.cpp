@@ -146,7 +146,7 @@ double QgsComposerUtils::snappedAngle( const double angle )
   }
 }
 
-QRectF QgsComposerUtils::largestRotatedRectWithinBounds( const QRectF originalRect, const QRectF boundsRect, const double rotation )
+QRectF QgsComposerUtils::largestRotatedRectWithinBounds( const QRectF &originalRect, const QRectF &boundsRect, const double rotation )
 {
   double originalWidth = originalRect.width();
   double originalHeight = originalRect.height();
@@ -259,7 +259,7 @@ double QgsComposerUtils::relativePosition( const double position, const double b
   return m * position + c;
 }
 
-QgsComposition::PaperOrientation QgsComposerUtils::decodePaperOrientation( const QString orientationString, bool &ok )
+QgsComposition::PaperOrientation QgsComposerUtils::decodePaperOrientation( const QString& orientationString, bool &ok )
 {
   if ( orientationString.compare( "Portrait", Qt::CaseInsensitive ) == 0 )
   {
@@ -275,7 +275,7 @@ QgsComposition::PaperOrientation QgsComposerUtils::decodePaperOrientation( const
   return QgsComposition::Landscape; // default to landscape
 }
 
-bool QgsComposerUtils::decodePresetPaperSize( const QString presetString, double &width, double &height )
+bool QgsComposerUtils::decodePresetPaperSize( const QString& presetString, double &width, double &height )
 {
   QList< QPair< QString, QSizeF > > presets;
   presets << qMakePair( QString( "A5" ), QSizeF( 148, 210 ) );
@@ -365,6 +365,8 @@ void QgsComposerUtils::readDataDefinedProperty( const QgsComposerObject::DataDef
   {
     dd->setActive( false );
   }
+  dd->setField( ddElem.attribute( "field" ) );
+  dd->setExpressionString( ddElem.attribute( "expr" ) );
   QString useExpr = ddElem.attribute( "useExpr" );
   if ( useExpr.compare( "true", Qt::CaseInsensitive ) == 0 )
   {
@@ -374,8 +376,6 @@ void QgsComposerUtils::readDataDefinedProperty( const QgsComposerObject::DataDef
   {
     dd->setUseExpression( false );
   }
-  dd->setField( ddElem.attribute( "field" ) );
-  dd->setExpressionString( ddElem.attribute( "expr" ) );
 }
 
 void QgsComposerUtils::writeDataDefinedPropertyMap( QDomElement &itemElem, QDomDocument &doc, const QMap<QgsComposerObject::DataDefinedProperty, QString> *dataDefinedNames, const QMap<QgsComposerObject::DataDefinedProperty, QgsDataDefined *> *dataDefinedProperties )
@@ -479,6 +479,22 @@ double QgsComposerUtils::textWidthMM( const QFont &font, const QString &text )
   QFont metricsFont = scaledFontPixelSize( font );
   QFontMetricsF fontMetrics( metricsFont );
   return ( fontMetrics.width( text ) / FONT_WORKAROUND_SCALE );
+}
+
+double QgsComposerUtils::textHeightMM( const QFont &font, const QString &text, double multiLineHeight )
+{
+  QStringList multiLineSplit =  text.split( '\n' );
+  int lines = multiLineSplit.size();
+
+  //upscale using FONT_WORKAROUND_SCALE
+  //ref: http://osgeo-org.1560.x6.nabble.com/Multi-line-labels-and-font-bug-td4157152.html
+  QFont metricsFont = scaledFontPixelSize( font );
+  QFontMetricsF fontMetrics( metricsFont );
+
+  double fontHeight = fontMetrics.ascent() + fontMetrics.descent(); // ignore +1 for baseline
+  double textHeight = fontMetrics.ascent() + ( double )(( lines - 1 ) * fontHeight * multiLineHeight );
+
+  return textHeight / FONT_WORKAROUND_SCALE;
 }
 
 void QgsComposerUtils::drawText( QPainter *painter, const QPointF &pos, const QString &text, const QFont &font, const QColor &color )

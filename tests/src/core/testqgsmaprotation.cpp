@@ -27,6 +27,8 @@
 #include "qgsmaplayerregistry.h"
 #include "qgsapplication.h"
 #include "qgsmaprenderer.h"
+#include "qgspallabeling.h"
+#include "qgsfontutils.h"
 
 //qgis unit test includes
 #include <qgsrenderchecker.h>
@@ -44,7 +46,7 @@ class TestQgsMapRotation : public QObject
         , mLinesLayer( 0 )
         , mMapSettings( 0 )
     {
-      mTestDataDir = QString( TEST_DATA_DIR ) + "/";
+      mTestDataDir = QString( TEST_DATA_DIR ) + '/';
     }
 
     ~TestQgsMapRotation();
@@ -61,12 +63,12 @@ class TestQgsMapRotation : public QObject
     // TODO: polygonsLayer
 
   private:
-    bool render( QString theFileName );
+    bool render( const QString& theFileName );
 
     QString mTestDataDir;
     QgsRasterLayer * mRasterLayer;
-    QgsMapLayer * mPointsLayer;
-    QgsMapLayer * mLinesLayer;
+    QgsVectorLayer* mPointsLayer;
+    QgsVectorLayer* mLinesLayer;
     QgsMapSettings *mMapSettings;
     QString mReport;
 };
@@ -113,19 +115,20 @@ void TestQgsMapRotation::initTestCase()
   mMapSettings->setOutputSize( QSize( 256, 256 ) );
 
   mReport += "<h1>Map Rotation Tests</h1>\n";
+
+  QgsFontUtils::loadStandardTestFonts( QStringList() << "Bold" );
 }
 
 TestQgsMapRotation::~TestQgsMapRotation()
 {
-  delete mMapSettings;
+
 }
 
 //runs after all tests
 void TestQgsMapRotation::cleanupTestCase()
 {
+  delete mMapSettings;
   QgsApplication::exitQgis();
-
-  // TODO: delete layers (or is it done by exitQgis ?)
 
   QString myReportFile = QDir::tempPath() + "/qgistest.html";
   QFile myFile( myReportFile );
@@ -203,6 +206,14 @@ void TestQgsMapRotation::linesLayer()
   QString qml = mTestDataDir + "lines_cardinals_arrowed_parallel_label.qml";
   bool success = false;
   mLinesLayer->loadNamedStyle( qml, success );
+
+  //use test font
+  QgsPalLayerSettings palSettings;
+  palSettings.readFromLayer( mLinesLayer );
+  palSettings.textFont = QgsFontUtils::getStandardTestFont( "Bold" );
+  palSettings.textFont.setPointSizeF( 16 );
+  palSettings.writeToLayer( mLinesLayer );
+
   QVERIFY( success );
   mMapSettings->setExtent( mLinesLayer->extent() ); //QgsRectangle(-150,-150,150,150) );
   mMapSettings->setRotation( 45 );
@@ -212,7 +223,7 @@ void TestQgsMapRotation::linesLayer()
   // TODO: curved labels
 }
 
-bool TestQgsMapRotation::render( QString theTestType )
+bool TestQgsMapRotation::render( const QString& theTestType )
 {
   mReport += "<h2>" + theTestType + "</h2>\n";
   mMapSettings->setOutputDpi( 96 );

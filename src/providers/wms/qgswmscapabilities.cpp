@@ -17,7 +17,7 @@ static QString DEFAULT_LATLON_CRS = "CRS:84";
 
 
 
-bool QgsWmsSettings::parseUri( QString uriString )
+bool QgsWmsSettings::parseUri( const QString& uriString )
 {
   QgsDebugMsg( "uriString = " + uriString );
   QgsDataSourceURI uri;
@@ -44,6 +44,12 @@ bool QgsWmsSettings::parseUri( QString uriString )
   mAuth.mPassword = uri.param( "password" );
   QgsDebugMsg( "set password to " + mAuth.mPassword );
 
+  if ( uri.hasParam( "authcfg" ) )
+  {
+    mAuth.mAuthCfg = uri.param( "authcfg" );
+  }
+  QgsDebugMsg( "set authcfg to " + mAuth.mAuthCfg );
+
   mAuth.mReferer = uri.param( "referer" );
   QgsDebugMsg( "set referer to " + mAuth.mReferer );
 
@@ -52,7 +58,7 @@ bool QgsWmsSettings::parseUri( QString uriString )
   QgsDebugMsg( "Entering: layers:" + mActiveSubLayers.join( ", " ) + ", styles:" + mActiveSubStyles.join( ", " ) );
 
   mImageMimeType = uri.param( "format" );
-  QgsDebugMsg( "Setting image encoding to " + mImageMimeType + "." );
+  QgsDebugMsg( "Setting image encoding to " + mImageMimeType + '.' );
 
   mMaxWidth = 0;
   mMaxHeight = 0;
@@ -73,9 +79,9 @@ bool QgsWmsSettings::parseUri( QString uriString )
   if ( uri.hasParam( "tileDimensions" ) )
   {
     mTiled = true;
-    foreach ( QString param, uri.param( "tileDimensions" ).split( ";" ) )
+    Q_FOREACH ( const QString& param, uri.param( "tileDimensions" ).split( ';' ) )
     {
-      QStringList kv = param.split( "=" );
+      QStringList kv = param.split( '=' );
       if ( kv.size() == 1 )
       {
         mTileDimensionValues.insert( kv[0], QString::null );
@@ -156,7 +162,7 @@ bool QgsWmsCapabilities::parseResponse( const QByteArray& response, const QgsWms
   }
 
   // get identify formats
-  foreach ( QString f, mCapabilities.capability.request.getFeatureInfo.format )
+  Q_FOREACH ( const QString& f, mCapabilities.capability.request.getFeatureInfo.format )
   {
     // Don't use mSupportedGetFeatureFormats, there are too many possibilities
     QgsDebugMsg( "supported format = " + f );
@@ -239,10 +245,10 @@ bool QgsWmsCapabilities::parseCapabilitiesDom( QByteArray const &xml, QgsWmsCapa
     mErrorCaption = QObject::tr( "Dom Exception" );
     mErrorFormat = "text/plain";
     mError = QObject::tr( "Could not get WMS capabilities in the expected format (DTD): no %1 or %2 found.\nThis might be due to an incorrect WMS Server URL.\nTag:%3\nResponse was:\n%4" )
-             .arg( "WMS_Capabilities" )
-             .arg( "WMT_MS_Capabilities" )
-             .arg( docElem.tagName() )
-             .arg( QString( xml ) );
+             .arg( "WMS_Capabilities",
+                   "WMT_MS_Capabilities",
+                   docElem.tagName(),
+                   QString( xml ) );
 
     QgsLogger::debug( "Dom Exception: " + mError );
 
@@ -766,7 +772,7 @@ void QgsWmsCapabilities::parseLayer( QDomElement const & e, QgsWmsLayerProperty&
       {
         // CRS can contain several definitions separated by whitespace
         // though this was deprecated in WMS 1.1.1
-        foreach ( QString srs, e1.text().split( QRegExp( "\\s+" ) ) )
+        Q_FOREACH ( const QString& srs, e1.text().split( QRegExp( "\\s+" ) ) )
         {
           layerProperty.crs.push_back( srs );
         }
@@ -1218,7 +1224,7 @@ void QgsWmsCapabilities::parseTileSetProfile( QDomElement const &e )
       }
       else if ( tagName == "Resolutions" )
       {
-        resolutions = e1.text().trimmed().split( " ", QString::SkipEmptyParts );
+        resolutions = e1.text().trimmed().split( ' ', QString::SkipEmptyParts );
       }
       else
       {
@@ -1242,7 +1248,7 @@ void QgsWmsCapabilities::parseTileSetProfile( QDomElement const &e )
   mTileLayersSupported.append( l );
 
   int i = 0;
-  foreach ( QString rS, resolutions )
+  Q_FOREACH ( const QString& rS, resolutions )
   {
     double r = rS.toDouble();
     m.identifier = QString::number( i );
@@ -1290,9 +1296,9 @@ void QgsWmsCapabilities::parseWMTSContents( QDomElement const &e )
       invert = !invert;
 
     QgsDebugMsg( QString( "tilematrix set: %1 (supportedCRS:%2 crs:%3; metersPerUnit:%4 axisInverted:%5)" )
-                 .arg( s.identifier )
-                 .arg( supportedCRS )
-                 .arg( s.crs )
+                 .arg( s.identifier,
+                       supportedCRS,
+                       s.crs )
                  .arg( metersPerUnit, 0, 'f' )
                  .arg( invert ? "yes" : "no" )
                );
@@ -1310,7 +1316,7 @@ void QgsWmsCapabilities::parseWMTSContents( QDomElement const &e )
 
       m.scaleDenom = e1.firstChildElement( "ScaleDenominator" ).text().toDouble();
 
-      QStringList topLeft = e1.firstChildElement( "TopLeftCorner" ).text().split( " " );
+      QStringList topLeft = e1.firstChildElement( "TopLeftCorner" ).text().split( ' ' );
       if ( topLeft.size() == 2 )
       {
         if ( invert )
@@ -1373,8 +1379,8 @@ void QgsWmsCapabilities::parseWMTSContents( QDomElement const &e )
     QDomElement bbox = e0.firstChildElement( "ows:WGS84BoundingBox" );
     if ( !bbox.isNull() )
     {
-      QStringList ll = bbox.firstChildElement( "ows:LowerCorner" ).text().split( " " );
-      QStringList ur = bbox.firstChildElement( "ows:UpperCorner" ).text().split( " " );
+      QStringList ll = bbox.firstChildElement( "ows:LowerCorner" ).text().split( ' ' );
+      QStringList ur = bbox.firstChildElement( "ows:UpperCorner" ).text().split( ' ' );
 
       if ( ll.size() == 2 && ur.size() == 2 )
       {
@@ -1390,8 +1396,8 @@ void QgsWmsCapabilities::parseWMTSContents( QDomElement const &e )
           !bbox.isNull();
           bbox = bbox.nextSiblingElement( "ows:BoundingBox" ) )
     {
-      QStringList ll = bbox.firstChildElement( "ows:LowerCorner" ).text().split( " " );
-      QStringList ur = bbox.firstChildElement( "ows:UpperCorner" ).text().split( " " );
+      QStringList ll = bbox.firstChildElement( "ows:LowerCorner" ).text().split( ' ' );
+      QStringList ur = bbox.firstChildElement( "ows:UpperCorner" ).text().split( ' ' );
 
       if ( ll.size() == 2 && ur.size() == 2 )
       {
@@ -1565,7 +1571,7 @@ void QgsWmsCapabilities::parseWMTSContents( QDomElement const &e )
 
           bool isValid = false;
           int matrixWidth = -1, matrixHeight = -1;
-          foreach ( const QgsWmtsTileMatrix &m, tms.tileMatrices )
+          Q_FOREACH ( const QgsWmtsTileMatrix &m, tms.tileMatrices )
           {
             isValid = m.identifier == id;
             if ( isValid )
@@ -1623,9 +1629,9 @@ void QgsWmsCapabilities::parseWMTSContents( QDomElement const &e )
       if ( format.isEmpty() || resourceType.isEmpty() || tmpl.isEmpty() )
       {
         QgsDebugMsg( QString( "SKIPPING ResourceURL format=%1 resourceType=%2 template=%3" )
-                     .arg( format )
-                     .arg( resourceType )
-                     .arg( tmpl ) );
+                     .arg( format,
+                           resourceType,
+                           tmpl ) );
         continue;
       }
 
@@ -1667,9 +1673,9 @@ void QgsWmsCapabilities::parseWMTSContents( QDomElement const &e )
       else
       {
         QgsDebugMsg( QString( "UNEXPECTED resourceType in ResourcURL format=%1 resourceType=%2 template=%3" )
-                     .arg( format )
-                     .arg( resourceType )
-                     .arg( tmpl ) );
+                     .arg( format,
+                           resourceType,
+                           tmpl ) );
       }
     }
 
@@ -1749,7 +1755,7 @@ void QgsWmsCapabilities::parseTheme( const QDomElement &e, QgsWmtsTheme &t )
   }
 }
 
-QString QgsWmsCapabilities::nodeAttribute( const QDomElement &e, QString name, QString defValue )
+QString QgsWmsCapabilities::nodeAttribute( const QDomElement &e, const QString& name, const QString& defValue )
 {
   if ( e.hasAttribute( name ) )
     return e.attribute( name );
@@ -1794,7 +1800,7 @@ bool QgsWmsCapabilities::detectTileLayerBoundingBox( QgsWmtsTileLayer& l )
                         tm.topLeft.y() - res * tm.tileHeight * tm.matrixHeight );
 
   QgsDebugMsg( QString( "detecting WMTS layer bounding box: tileset %1 matrix %2 crs %3 res %4" )
-               .arg( tmsIt->identifier ).arg( tm.identifier ).arg( tmsIt->crs ).arg( res ) );
+               .arg( tmsIt->identifier, tm.identifier, tmsIt->crs ).arg( res ) );
 
   QgsRectangle extent( tm.topLeft, bottomRight );
   extent.normalize();
@@ -1842,7 +1848,7 @@ int QgsWmsCapabilities::identifyCapabilities() const
 {
   int capability = QgsRasterInterface::NoCapabilities;
 
-  foreach ( QgsRaster::IdentifyFormat f, mIdentifyFormats.keys() )
+  Q_FOREACH ( QgsRaster::IdentifyFormat f, mIdentifyFormats.keys() )
   {
     capability |= QgsRasterDataProvider::identifyFormatToCapability( f );
   }
@@ -1854,24 +1860,56 @@ int QgsWmsCapabilities::identifyCapabilities() const
 
 // -----------------
 
+QgsWmsCapabilitiesDownload::QgsWmsCapabilitiesDownload( QObject *parent )
+    : QObject( parent )
+    , mCapabilitiesReply( 0 )
+    , mIsAborted( false )
+{
+  connectManager();
+}
 
 QgsWmsCapabilitiesDownload::QgsWmsCapabilitiesDownload( const QString& baseUrl, const QgsWmsAuthorization& auth, QObject *parent )
     : QObject( parent )
     , mBaseUrl( baseUrl )
     , mAuth( auth )
-    , mCapabilitiesReply( NULL )
+    , mCapabilitiesReply( 0 )
+    , mIsAborted( false )
 {
+  connectManager();
 }
 
+void QgsWmsCapabilitiesDownload::connectManager()
+{
+  // The instance of this class may live on a thread different from QgsNetworkAccessManager instance's thread,
+  // so we cannot call QgsNetworkAccessManager::get() directly and we must send a signal instead.
+  connect( this, SIGNAL( sendRequest( const QNetworkRequest & ) ),
+           QgsNetworkAccessManager::instance(), SLOT( sendGet( const QNetworkRequest & ) ) );
+  connect( this, SIGNAL( deleteReply( QNetworkReply * ) ),
+           QgsNetworkAccessManager::instance(), SLOT( deleteReply( QNetworkReply * ) ) );
+}
+
+QgsWmsCapabilitiesDownload::~QgsWmsCapabilitiesDownload()
+{
+  abort();
+}
+
+bool QgsWmsCapabilitiesDownload::downloadCapabilities( const QString& baseUrl, const QgsWmsAuthorization& auth )
+{
+  mBaseUrl = baseUrl;
+  mAuth = auth;
+  return downloadCapabilities();
+}
 
 bool QgsWmsCapabilitiesDownload::downloadCapabilities()
 {
   QgsDebugMsg( "entering." );
+  abort(); // cancel previous
+  mIsAborted = false;
 
   QString url = mBaseUrl;
   QgsDebugMsg( "url = " + url );
-  if ( !url.contains( "SERVICE=WMTS" ) &&
-       !url.contains( "/WMTSCapabilities.xml" ) )
+  if ( !url.contains( "SERVICE=WMTS", Qt::CaseInsensitive ) &&
+       !url.contains( "/WMTSCapabilities.xml", Qt::CaseInsensitive ) )
   {
     url += "SERVICE=WMS&REQUEST=GetCapabilities";
   }
@@ -1879,17 +1917,18 @@ bool QgsWmsCapabilitiesDownload::downloadCapabilities()
   mError.clear();
 
   QNetworkRequest request( url );
-  mAuth.setAuthorization( request );
+  if ( !mAuth.setAuthorization( request ) )
+  {
+    mError = tr( "Download of capabilities failed: network request update failed for authentication config" );
+    QgsMessageLog::logMessage( mError, tr( "WMS" ) );
+    return false;
+  }
   request.setAttribute( QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferNetwork );
   request.setAttribute( QNetworkRequest::CacheSaveControlAttribute, true );
 
-  QgsDebugMsg( QString( "getcapabilities: %1" ).arg( url ) );
-  // This is causing Qt warning: "Cannot create children for a parent that is in a different thread."
-  // but it only means that the reply will have no parent
-  mCapabilitiesReply = QgsNetworkAccessManager::instance()->get( request );
-
-  connect( mCapabilitiesReply, SIGNAL( finished() ), this, SLOT( capabilitiesReplyFinished() ), Qt::DirectConnection );
-  connect( mCapabilitiesReply, SIGNAL( downloadProgress( qint64, qint64 ) ), this, SLOT( capabilitiesReplyProgress( qint64, qint64 ) ), Qt::DirectConnection );
+  connect( QgsNetworkAccessManager::instance(), SIGNAL( requestSent( QNetworkReply *, QObject * ) ),
+           SLOT( requestSent( QNetworkReply *, QObject * ) ) );
+  emit sendRequest( request );
 
   QEventLoop loop;
   connect( this, SIGNAL( downloadFinished() ), &loop, SLOT( quit() ) );
@@ -1898,7 +1937,43 @@ bool QgsWmsCapabilitiesDownload::downloadCapabilities()
   return mError.isEmpty();
 }
 
+void QgsWmsCapabilitiesDownload::requestSent( QNetworkReply * reply, QObject *sender )
+{
+  QgsDebugMsg( "Entered" );
+  if ( sender != this ) // it is not our reply
+  {
+    return;
+  }
+  disconnect( QgsNetworkAccessManager::instance(), SIGNAL( requestSent( QNetworkReply *, QObject * ) ),
+              this, SLOT( requestSent( QNetworkReply *, QObject * ) ) );
 
+  if ( !reply )
+  {
+    emit downloadFinished();
+    return;
+  }
+  if ( mIsAborted )
+  {
+    emit deleteReply( reply );
+    emit downloadFinished();
+    return;
+  }
+  // Note: the reply was created on QgsNetworkAccessManager's thread
+  mCapabilitiesReply = reply;
+  connect( mCapabilitiesReply, SIGNAL( finished() ), this, SLOT( capabilitiesReplyFinished() ), Qt::DirectConnection );
+  connect( mCapabilitiesReply, SIGNAL( downloadProgress( qint64, qint64 ) ), this, SLOT( capabilitiesReplyProgress( qint64, qint64 ) ), Qt::DirectConnection );
+}
+
+void QgsWmsCapabilitiesDownload::abort()
+{
+  QgsDebugMsg( "Entered" );
+  mIsAborted = true;
+  if ( mCapabilitiesReply )
+  {
+    emit deleteReply( mCapabilitiesReply );
+    mCapabilitiesReply = 0;
+  }
+}
 
 void QgsWmsCapabilitiesDownload::capabilitiesReplyProgress( qint64 bytesReceived, qint64 bytesTotal )
 {
@@ -1910,57 +1985,73 @@ void QgsWmsCapabilitiesDownload::capabilitiesReplyProgress( qint64 bytesReceived
 void QgsWmsCapabilitiesDownload::capabilitiesReplyFinished()
 {
   QgsDebugMsg( "entering." );
-  if ( mCapabilitiesReply->error() == QNetworkReply::NoError )
+  if ( !mIsAborted && mCapabilitiesReply )
   {
-    QgsDebugMsg( "reply ok" );
-    QVariant redirect = mCapabilitiesReply->attribute( QNetworkRequest::RedirectionTargetAttribute );
-    if ( !redirect.isNull() )
+    if ( mCapabilitiesReply->error() == QNetworkReply::NoError )
     {
-      emit statusChanged( tr( "Capabilities request redirected." ) );
-
-      const QUrl& toUrl = redirect.toUrl();
-      mCapabilitiesReply->request();
-      if ( toUrl == mCapabilitiesReply->url() )
+      QgsDebugMsg( "reply ok" );
+      QVariant redirect = mCapabilitiesReply->attribute( QNetworkRequest::RedirectionTargetAttribute );
+      if ( !redirect.isNull() )
       {
-        mError = tr( "Redirect loop detected: %1" ).arg( toUrl.toString() );
-        QgsMessageLog::logMessage( mError, tr( "WMS" ) );
-        mHttpCapabilitiesResponse.clear();
+        emit statusChanged( tr( "Capabilities request redirected." ) );
+
+        const QUrl& toUrl = redirect.toUrl();
+        mCapabilitiesReply->request();
+        if ( toUrl == mCapabilitiesReply->url() )
+        {
+          mError = tr( "Redirect loop detected: %1" ).arg( toUrl.toString() );
+          QgsMessageLog::logMessage( mError, tr( "WMS" ) );
+          mHttpCapabilitiesResponse.clear();
+        }
+        else
+        {
+          QNetworkRequest request( toUrl );
+          if ( !mAuth.setAuthorization( request ) )
+          {
+            mHttpCapabilitiesResponse.clear();
+            mError = tr( "Download of capabilities failed: network request update failed for authentication config" );
+            QgsMessageLog::logMessage( mError, tr( "WMS" ) );
+            emit downloadFinished();
+            return;
+          }
+          request.setAttribute( QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferNetwork );
+          request.setAttribute( QNetworkRequest::CacheSaveControlAttribute, true );
+
+          mCapabilitiesReply->deleteLater();
+          mCapabilitiesReply = 0;
+
+          QgsDebugMsg( QString( "redirected getcapabilities: %1" ).arg( redirect.toString() ) );
+          //mCapabilitiesReply = QgsNetworkAccessManager::instance()->get( request );
+          connect( QgsNetworkAccessManager::instance(),
+                   SIGNAL( requestSent( QNetworkReply *, QObject * ) ),
+                   SLOT( requestSent( QNetworkReply *, QObject * ) ) );
+          emit sendRequest( request );
+          return;
+        }
       }
       else
       {
-        QNetworkRequest request( toUrl );
-        mAuth.setAuthorization( request );
-        request.setAttribute( QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferNetwork );
-        request.setAttribute( QNetworkRequest::CacheSaveControlAttribute, true );
+        mHttpCapabilitiesResponse = mCapabilitiesReply->readAll();
 
-        mCapabilitiesReply->deleteLater();
-        QgsDebugMsg( QString( "redirected getcapabilities: %1" ).arg( redirect.toString() ) );
-        mCapabilitiesReply = QgsNetworkAccessManager::instance()->get( request );
-
-        connect( mCapabilitiesReply, SIGNAL( finished() ), this, SLOT( capabilitiesReplyFinished() ) );
-        connect( mCapabilitiesReply, SIGNAL( downloadProgress( qint64, qint64 ) ), this, SLOT( capabilitiesReplyProgress( qint64, qint64 ) ) );
-        return;
+        if ( mHttpCapabilitiesResponse.isEmpty() )
+        {
+          mError = tr( "empty of capabilities: %1" ).arg( mCapabilitiesReply->errorString() );
+        }
       }
     }
     else
     {
-      mHttpCapabilitiesResponse = mCapabilitiesReply->readAll();
-
-      if ( mHttpCapabilitiesResponse.isEmpty() )
-      {
-        mError = tr( "empty of capabilities: %1" ).arg( mCapabilitiesReply->errorString() );
-      }
+      mError = tr( "Download of capabilities failed: %1" ).arg( mCapabilitiesReply->errorString() );
+      QgsMessageLog::logMessage( mError, tr( "WMS" ) );
+      mHttpCapabilitiesResponse.clear();
     }
   }
-  else
-  {
-    mError = tr( "Download of capabilities failed: %1" ).arg( mCapabilitiesReply->errorString() );
-    QgsMessageLog::logMessage( mError, tr( "WMS" ) );
-    mHttpCapabilitiesResponse.clear();
-  }
 
-  mCapabilitiesReply->deleteLater();
-  mCapabilitiesReply = 0;
+  if ( mCapabilitiesReply )
+  {
+    mCapabilitiesReply->deleteLater();
+    mCapabilitiesReply = 0;
+  }
 
   emit downloadFinished();
 }

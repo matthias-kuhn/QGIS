@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 5.1.2014
     Copyright            : (C) 2014 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -59,7 +59,7 @@ QVariant QgsTextEditWrapper::value()
       v == QSettings().value( "qgis/nullValue", "NULL" ).toString() )
     return QVariant( field().type() );
 
-  if ( v == defaultValue().toString() )
+  if ( !defaultValue().isNull() && v == defaultValue().toString() )
   {
     return defaultValue();
   }
@@ -128,6 +128,11 @@ void QgsTextEditWrapper::initWidget( QWidget* editor )
     mReadOnlyPalette = mLineEdit->palette();
     mReadOnlyPalette.setColor( QPalette::Text, mWritablePalette.color( QPalette::Disabled, QPalette::Text ) );
   }
+}
+
+bool QgsTextEditWrapper::valid()
+{
+  return mLineEdit || mTextEdit || mPlainTextEdit;
 }
 
 void QgsTextEditWrapper::setValue( const QVariant& val )

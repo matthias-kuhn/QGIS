@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : Sep 7 2012
     Copyright            : (C) 2012 by Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -60,7 +60,7 @@ class TestQgsDiagram : public QObject
     QString mTestDataDir;
     QString mReport;
 
-    bool imageCheck( QString theTestType );
+    bool imageCheck( const QString& theTestType );
 
   private slots:
     // will be called before the first testfunction is executed.
@@ -79,7 +79,7 @@ class TestQgsDiagram : public QObject
       //create a non spatial layer that will be used in all tests...
       //
       QString myDataDir( TEST_DATA_DIR ); //defined in CmakeLists.txt
-      mTestDataDir = myDataDir + "/";
+      mTestDataDir = myDataDir + '/';
 
       //
       //create a point layer that will be used in all tests...
@@ -90,8 +90,7 @@ class TestQgsDiagram : public QObject
                                          myPointFileInfo.completeBaseName(), "ogr" );
 
       // Register the layer with the registry
-      QgsMapLayerRegistry::instance()->addMapLayers(
-        QList<QgsMapLayer *>() << mPointsLayer );
+      QgsMapLayerRegistry::instance()->addMapLayer( mPointsLayer );
 
       // Create map composition to draw on
       mMapSettings->setLayers( QStringList() << mPointsLayer->id() );
@@ -102,8 +101,6 @@ class TestQgsDiagram : public QObject
     // will be called after the last testfunction was executed.
     void cleanupTestCase()
     {
-      QgsApplication::exitQgis();
-
       delete mMapSettings;
 
       QString myReportFile = QDir::tempPath() + "/qgistest.html";
@@ -115,6 +112,7 @@ class TestQgsDiagram : public QObject
         myFile.close();
         //QDesktopServices::openUrl( "file:///" + myReportFile );
       }
+      QgsApplication::exitQgis();
     }
 
     // will be called before each testfunction is executed
@@ -212,7 +210,7 @@ class TestQgsDiagram : public QObject
 
 };
 
-bool TestQgsDiagram::imageCheck( QString theTestType )
+bool TestQgsDiagram::imageCheck( const QString& theTestType )
 {
   //use the QgsRenderChecker test utility class to
   //ensure the rendered output matches our control image

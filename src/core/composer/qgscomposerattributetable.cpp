@@ -181,7 +181,7 @@ void QgsComposerAttributeTable::resetColumns()
   mColumns.clear();
 
   //rebuild columns list from vector layer fields
-  const QgsFields& fields = mVectorLayer->pendingFields();
+  const QgsFields& fields = mVectorLayer->fields();
   for ( int idx = 0; idx < fields.count(); ++idx )
   {
     QString currentAlias = mVectorLayer->attributeDisplayName( idx );
@@ -274,7 +274,7 @@ void QgsComposerAttributeTable::setDisplayAttributes( const QSet<int>& attr, boo
   qDeleteAll( mColumns );
   mColumns.clear();
 
-  const QgsFields& fields = mVectorLayer->pendingFields();
+  const QgsFields& fields = mVectorLayer->fields();
 
   if ( !attr.empty() )
   {
@@ -375,6 +375,9 @@ bool QgsComposerAttributeTable::getFeatureAttributes( QList<QgsAttributeMap> &at
     return false;
   }
 
+  QScopedPointer< QgsExpressionContext > context( createExpressionContext() );
+  context->setFields( mVectorLayer->fields() );
+
   attributeMaps.clear();
 
   //prepare filter expression
@@ -393,7 +396,7 @@ bool QgsComposerAttributeTable::getFeatureAttributes( QList<QgsAttributeMap> &at
   if ( mComposerMap && mShowOnlyVisibleFeatures )
   {
     selectionRect = *mComposerMap->currentMapExtent();
-    if ( mVectorLayer && mComposition->mapSettings().hasCrsTransformEnabled() )
+    if ( mComposition->mapSettings().hasCrsTransformEnabled() )
     {
       //transform back to layer CRS
       QgsCoordinateTransform coordTransform( mVectorLayer->crs(), mComposition->mapSettings().destinationCrs() );
@@ -421,10 +424,11 @@ bool QgsComposerAttributeTable::getFeatureAttributes( QList<QgsAttributeMap> &at
 
   while ( fit.nextFeature( f ) && counter < mMaximumNumberOfFeatures )
   {
+    context->setFeature( f );
     //check feature against filter
     if ( activeFilter && !filterExpression.isNull() )
     {
-      QVariant result = filterExpression->evaluate( &f, mVectorLayer->pendingFields() );
+      QVariant result = filterExpression->evaluate( context.data() );
       // skip this feature if the filter evaluation is false
       if ( !result.toBool() )
       {
@@ -441,15 +445,15 @@ bool QgsComposerAttributeTable::getFeatureAttributes( QList<QgsAttributeMap> &at
       int idx = mVectorLayer->fieldNameIndex(( *columnIt )->attribute() );
       if ( idx != -1 )
       {
-        attributeMaps.last().insert( i, f.attributes()[idx] );
+        attributeMaps.last().insert( i, f.attributes().at( idx ) );
       }
       else
       {
         // Lets assume it's an expression
         QgsExpression* expression = new QgsExpression(( *columnIt )->attribute() );
-        expression->setCurrentRowNumber( counter + 1 );
-        expression->prepare( mVectorLayer->pendingFields() );
-        QVariant value = expression->evaluate( f );
+        context->lastScope()->setVariable( QString( "row_number" ), counter + 1 );
+        expression->prepare( context.data() );
+        QVariant value = expression->evaluate( context.data() );
         attributeMaps.last().insert( i, value.toString() );
       }
 
@@ -472,7 +476,7 @@ bool QgsComposerAttributeTable::getFeatureAttributes( QList<QgsAttributeMap> &at
   return true;
 }
 
-void QgsComposerAttributeTable::removeLayer( QString layerId )
+void QgsComposerAttributeTable::removeLayer( const QString& layerId )
 {
   if ( mVectorLayer )
   {
@@ -497,7 +501,7 @@ void QgsComposerAttributeTable::setSceneRect( const QRectF& rectangle )
   refreshAttributes();
 }
 
-void QgsComposerAttributeTable::setSortAttributes( const QList<QPair<int, bool> > att )
+void QgsComposerAttributeTable::setSortAttributes( const QList<QPair<int, bool> >& att )
 {
   //first, clear existing sort by ranks
   QList<QgsComposerTableColumn*>::iterator columnIt = mColumns.begin();
@@ -684,7 +688,7 @@ bool QgsComposerAttributeTable::readXML( const QDomElement& itemElem, const QDom
   if ( !sortColumnsElem.isNull() && mVectorLayer )
   {
     QDomNodeList columns = sortColumnsElem.elementsByTagName( "column" );
-    const QgsFields& fields = mVectorLayer->pendingFields();
+    const QgsFields& fields = mVectorLayer->fields();
 
     for ( int i = 0; i < columns.size(); ++i )
     {

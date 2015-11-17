@@ -361,11 +361,11 @@ double HeatmapGui::estimateRadius()
 
   double estimate = maxExtent / 30;
 
-  if ( mBufferUnitCombo->currentIndex() == HeatmapGui::Meters )
+  if ( mBufferUnitCombo->currentIndex() == HeatmapGui::LayerUnits )
   {
-    // metres selected, so convert estimate from map units
+    // layer units selected, so convert estimate from map units
     QgsCoordinateReferenceSystem layerCrs = inputLayer->crs();
-    estimate = estimate / mapUnitsOf( 1, layerCrs );
+    estimate /= mapUnitsOf( 1, layerCrs );
   }
 
   // Make estimate pretty by rounding off to first digit only (eg 356->300, 0.567->0.5)
@@ -444,10 +444,10 @@ void HeatmapGui::updateBBox()
   double radiusInMapUnits = 0.0;
   if ( mRadiusFieldCheckBox->isChecked() )
   {
-    int idx = inputLayer->pendingFields().indexFromName( mRadiusFieldCombo->currentField() );
+    int idx = inputLayer->fields().indexFromName( mRadiusFieldCombo->currentField() );
     double maxInField = inputLayer->maximumValue( idx ).toDouble();
 
-    if ( mRadiusFieldUnitCombo->currentIndex() == HeatmapGui::Meters )
+    if ( mRadiusFieldUnitCombo->currentIndex() == HeatmapGui::LayerUnits )
     {
       radiusInMapUnits = mapUnitsOf( maxInField, layerCrs );
     }
@@ -459,7 +459,7 @@ void HeatmapGui::updateBBox()
   else
   {
     double radiusValue = mBufferSizeLineEdit->text().toDouble();
-    if ( mBufferUnitCombo->currentIndex() == HeatmapGui::Meters )
+    if ( mBufferUnitCombo->currentIndex() == HeatmapGui::LayerUnits )
     {
       radiusInMapUnits = mapUnitsOf( radiusValue, layerCrs );
     }
@@ -481,9 +481,9 @@ void HeatmapGui::updateBBox()
   updateSize();
 }
 
-double HeatmapGui::mapUnitsOf( double meters, QgsCoordinateReferenceSystem layerCrs ) const
+double HeatmapGui::mapUnitsOf( double dist, const QgsCoordinateReferenceSystem& layerCrs ) const
 {
-  // converter function to transform metres input to mapunits
+  // converter function to transform layer input to mapunits
   // so that bounding box can be updated
   QgsDistanceArea da;
   da.setSourceCrs( layerCrs.srsid() );
@@ -493,8 +493,8 @@ double HeatmapGui::mapUnitsOf( double meters, QgsCoordinateReferenceSystem layer
     da.setEllipsoidalMode( true );
   }
   double unitDistance = da.measureLine( QgsPoint( 0.0, 0.0 ), QgsPoint( 0.0, 1.0 ) );
-  QgsDebugMsg( QString( "Converted %1 meters to %2 mapunits" ).arg( meters ).arg( meters / unitDistance ) );
-  return  meters / unitDistance;
+  QgsDebugMsg( QString( "Converted %1 layer to %2 map units" ).arg( dist ).arg( dist / unitDistance ) );
+  return  dist / unitDistance;
 }
 /*
  *
@@ -515,7 +515,7 @@ bool HeatmapGui::variableRadius() const
 double HeatmapGui::radius() const
 {
   double radius = mBufferSizeLineEdit->text().toDouble();
-  if ( mBufferUnitCombo->currentIndex() == HeatmapGui::Meters )
+  if ( mBufferUnitCombo->currentIndex() == HeatmapGui::LayerUnits )
   {
     radius = mapUnitsOf( radius, inputVectorLayer()->crs() );
   }
@@ -552,7 +552,7 @@ int HeatmapGui::radiusField() const
   if ( !inputLayer )
     return 0;
 
-  return inputLayer->pendingFields().indexFromName( mRadiusFieldCombo->currentField() );
+  return inputLayer->fields().indexFromName( mRadiusFieldCombo->currentField() );
 }
 
 int HeatmapGui::weightField() const
@@ -561,7 +561,7 @@ int HeatmapGui::weightField() const
   if ( !inputLayer )
     return 0;
 
-  return inputLayer->pendingFields().indexFromName( mWeightFieldCombo->currentField() );
+  return inputLayer->fields().indexFromName( mWeightFieldCombo->currentField() );
 }
 
 bool HeatmapGui::addToCanvas() const
@@ -595,7 +595,7 @@ QString HeatmapGui::outputFilename() const
       // Some drivers don't seem to have any extension at all
       if ( !it.value().isEmpty() )
       {
-        outputFileName.append( "." );
+        outputFileName.append( '.' );
         outputFileName.append( it.value() );
       }
     }

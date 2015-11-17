@@ -48,6 +48,8 @@
 #include "qgscolorschemeregistry.h"
 #include "qgssymbollayerv2utils.h"
 #include "qgscolordialog.h"
+#include "qgsexpressioncontext.h"
+#include "qgsmapoverviewcanvas.h"
 
 //qt includes
 #include <QInputDialog>
@@ -310,7 +312,7 @@ QgsProjectProperties::QgsProjectProperties( QgsMapCanvas* mapCanvas, QWidget *pa
     if ( grpWMSList->isChecked() )
     {
       QStringList list;
-      foreach ( QString value, values )
+      Q_FOREACH ( const QString& value, values )
       {
         list << QString( "EPSG:%1" ).arg( value );
       }
@@ -504,11 +506,11 @@ QgsProjectProperties::QgsProjectProperties( QgsMapCanvas* mapCanvas, QWidget *pa
   mTabRelations->layout()->addWidget( mRelationManagerDlg );
 
   QList<QgsVectorLayer*> vectorLayers;
-  foreach ( QgsMapLayer* mapLayer, mapLayers.values() )
+  Q_FOREACH ( QgsMapLayer* mapLayer, mapLayers.values() )
   {
     if ( QgsMapLayer::VectorLayer == mapLayer->type() )
     {
-      vectorLayers.append( qobject_cast<QgsVectorLayer*> ( mapLayer ) );
+      vectorLayers.append( qobject_cast<QgsVectorLayer*>( mapLayer ) );
     }
   }
   mRelationManagerDlg->setLayers( vectorLayers );
@@ -523,6 +525,11 @@ QgsProjectProperties::QgsProjectProperties( QgsMapCanvas* mapCanvas, QWidget *pa
     // ensure selector is updated if cbxProjectionEnabled->toggled signal not sent
     on_cbxProjectionEnabled_toggled( myProjectionEnabled );
   }
+
+  mVariableEditor->context()->appendScope( QgsExpressionContextUtils::globalScope() );
+  mVariableEditor->context()->appendScope( QgsExpressionContextUtils::projectScope() );
+  mVariableEditor->reloadContext();
+  mVariableEditor->setEditableScopeIndex( 1 );
 
   projectionSelectorInitialized();
   restoreOptionsBaseUi();
@@ -564,7 +571,7 @@ QString QgsProjectProperties::title() const
 void QgsProjectProperties::title( QString const & title )
 {
   titleEdit->setText( title );
-  QgsProject::instance()->title( title );
+  QgsProject::instance()->setTitle( title );
 } // QgsProjectProperties::title( QString const & title )
 
 //when user clicks apply button
@@ -627,7 +634,7 @@ void QgsProjectProperties::apply()
   }
 
   // Set the project title
-  QgsProject::instance()->title( title() );
+  QgsProject::instance()->setTitle( title() );
 
   // set the mouse display precision method and the
   // number of decimal places for the manual option
@@ -677,9 +684,12 @@ void QgsProjectProperties::apply()
   QgsProject::instance()->writeEntry( "Gui", "/CanvasColorGreenPart", myColor.green() );
   QgsProject::instance()->writeEntry( "Gui", "/CanvasColorBluePart", myColor.blue() );
   mMapCanvas->setCanvasColor( myColor );
+  QgisApp::instance()->mapOverviewCanvas()->setBackgroundColor( myColor );
+  QgisApp::instance()->mapOverviewCanvas()->refresh();
 
   //save project scales
   QStringList myScales;
+  myScales.reserve( lstScales->count() );
   for ( int i = 0; i < lstScales->count(); ++i )
   {
     myScales.append( lstScales->item( i )->text() );
@@ -730,10 +740,10 @@ void QgsProjectProperties::apply()
   QgsProject::instance()->writeEntry( "WMSFees", "/", mWMSFees->text() );
   QgsProject::instance()->writeEntry( "WMSAccessConstraints", "/", mWMSAccessConstraints->text() );
   //WMS keyword list
-  QStringList keywordStringList = mWMSKeywordList->text().split( "," );
+  QStringList keywordStringList = mWMSKeywordList->text().split( ',' );
   if ( keywordStringList.size() > 0 )
   {
-    QgsProject::instance()->writeEntry( "WMSKeywordList", "/", mWMSKeywordList->text().split( "," ) );
+    QgsProject::instance()->writeEntry( "WMSKeywordList", "/", mWMSKeywordList->text().split( ',' ) );
   }
   else
   {
@@ -918,6 +928,9 @@ void QgsProjectProperties::apply()
   QgsProject::instance()->writeEntry( "Macros", "/pythonCode", pythonMacros );
 
   QgsProject::instance()->relationManager()->setRelations( mRelationManagerDlg->relations() );
+
+  //save variables
+  QgsExpressionContextUtils::setProjectVariables( mVariableEditor->variablesInActiveScope() );
 
   emit refresh();
 }
@@ -1106,7 +1119,7 @@ void QgsProjectProperties::on_pbnWMSAddSRS_clicked()
 
 void QgsProjectProperties::on_pbnWMSRemoveSRS_clicked()
 {
-  foreach ( QListWidgetItem *item, mWMSList->selectedItems() )
+  Q_FOREACH ( QListWidgetItem *item, mWMSList->selectedItems() )
   {
     delete item;
   }
@@ -1490,7 +1503,7 @@ void QgsProjectProperties::populateEllipsoidList()
   const char   *myTail;
   sqlite3_stmt *myPreparedStatement;
   int           myResult;
-  EllipsoidDefs myItem, i;
+  EllipsoidDefs myItem;
 
   myItem.acronym = GEO_NONE;
   myItem.description =  tr( GEO_NONE_DESC );
@@ -1498,7 +1511,7 @@ void QgsProjectProperties::populateEllipsoidList()
   myItem.semiMinor = 0.0;
   mEllipsoidList.append( myItem );
 
-  myItem.acronym = QString( "PARAMETER:6370997:6370997" );
+  myItem.acronym = QLatin1String( "PARAMETER:6370997:6370997" );
   myItem.description = tr( "Parameters:" );
   myItem.semiMajor = 6370997.0;
   myItem.semiMinor = 6370997.0;
@@ -1558,7 +1571,7 @@ void QgsProjectProperties::populateEllipsoidList()
 
   // Add all items to selector
 
-  foreach ( i, mEllipsoidList )
+  Q_FOREACH ( const EllipsoidDefs& i, mEllipsoidList )
   {
     cmbEllipsoid->addItem( i.description );
   }

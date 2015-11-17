@@ -3,7 +3,7 @@
                           ---------------------------
     begin                : May 27, 2014
     copyright            : (C) 2014 by Matthias Kuhn
-    email                : matthias dot kuhn at gmx dot ch
+    email                : matthias at opengis dot ch
  ***************************************************************************/
 
 /***************************************************************************
@@ -35,7 +35,7 @@ class CORE_EXPORT QgsExpressionFieldBuffer
     typedef struct ExpressionField
     {
       ExpressionField() {}
-      ExpressionField( QString exp, QgsField fld ) : expression( exp ), field( fld ) {}
+      ExpressionField( const QString& exp, const QgsField& fld ) : expression( exp ), field( fld ) {}
 
       QString expression;
       QgsField field;

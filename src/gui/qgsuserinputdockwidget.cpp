@@ -19,7 +19,7 @@
 #include <QBoxLayout>
 
 QgsUserInputDockWidget::QgsUserInputDockWidget( QWidget *parent )
-    : QDockWidget( tr( "User input" ), parent )
+    : QDockWidget( tr( "User Input Panel" ), parent )
     , mLayoutHorizontal( true )
 {
   QWidget* w = new QWidget( 0 );
@@ -27,11 +27,6 @@ QgsUserInputDockWidget::QgsUserInputDockWidget( QWidget *parent )
   mLayout->setAlignment( Qt::AlignLeft | Qt::AlignTop );
   w->setLayout( mLayout );
   setWidget( w );
-
-  QPalette pal = palette();
-  pal.setColor( QPalette::Background, QColor( 231, 245, 254 ) );
-  setPalette( pal );
-  setAutoFillBackground( true );
 
   connect( this, SIGNAL( dockLocationChanged( Qt::DockWidgetArea ) ), this, SLOT( areaChanged( Qt::DockWidgetArea ) ) );
   connect( this, SIGNAL( topLevelChanged( bool ) ), this, SLOT( floatingChanged( bool ) ) );

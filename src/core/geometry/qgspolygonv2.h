@@ -20,7 +20,7 @@
 
 #include "qgscurvepolygonv2.h"
 
-/**\ingroup core
+/** \ingroup core
  * \class QgsPolygonV2
  * \brief Polygon geometry type.
  * \note added in QGIS 2.10
@@ -30,7 +30,7 @@ class CORE_EXPORT QgsPolygonV2: public QgsCurvePolygonV2
 {
   public:
     virtual QString geometryType() const override { return "Polygon"; }
-    virtual QgsAbstractGeometryV2* clone() const override;
+    virtual QgsPolygonV2* clone() const override;
 
     virtual bool fromWkb( const unsigned char* wkb ) override;
     // inherited: bool fromWkt( const QString &wkt );

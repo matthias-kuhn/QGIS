@@ -37,11 +37,13 @@ except ImportError:
 
 import re
 
+
 def classFactory():
     return PostGisDBPlugin
 
 
 class PostGisDBPlugin(DBPlugin):
+
     @classmethod
     def icon(self):
         return QIcon(":/db_manager/postgis/icon")
@@ -61,10 +63,6 @@ class PostGisDBPlugin(DBPlugin):
     @classmethod
     def connectionSettingsKey(self):
         return '/PostgreSQL/connections'
-
-    @classmethod
-    def connectionSettingsFileKey(self):
-        return "database"
 
     def databasesFactory(self, connection, uri):
         return PGDatabase(connection, uri)
@@ -98,11 +96,12 @@ class PostGisDBPlugin(DBPlugin):
 
         try:
             return self.connectToUri(uri)
-        except ConnectionError, e:
+        except ConnectionError as e:
             return False
 
 
 class PGDatabase(Database):
+
     def __init__(self, connection, uri):
         Database.__init__(self, connection, uri)
 
@@ -125,7 +124,6 @@ class PGDatabase(Database):
         from .data_model import PGSqlResultModel
 
         return PGSqlResultModel(self, sql, parent)
-
 
     def registerDatabaseActions(self, mainWindow):
         Database.registerDatabaseActions(self, mainWindow)
@@ -152,12 +150,14 @@ class PGDatabase(Database):
 
 
 class PGSchema(Schema):
+
     def __init__(self, row, db):
         Schema.__init__(self, db)
         self.oid, self.name, self.owner, self.perms, self.comment = row
 
 
 class PGTable(Table):
+
     def __init__(self, row, db, schema=None):
         Table.__init__(self, db, schema)
         self.name, schema_name, self.isView, self.owner, self.estimatedRowCount, self.pages, self.comment = row
@@ -228,6 +228,7 @@ class PGTable(Table):
 
 
 class PGVectorTable(PGTable, VectorTable):
+
     def __init__(self, row, db, schema=None):
         PGTable.__init__(self, row[:-4], db, schema)
         VectorTable.__init__(self, db, schema)
@@ -245,6 +246,7 @@ class PGVectorTable(PGTable, VectorTable):
 
 
 class PGRasterTable(PGTable, RasterTable):
+
     def __init__(self, row, db, schema=None):
         PGTable.__init__(self, row[:-6], db, schema)
         RasterTable.__init__(self, db, schema)
@@ -256,14 +258,15 @@ class PGRasterTable(PGTable, RasterTable):
 
         return PGRasterTableInfo(self)
 
-    def gdalUri(self):
-        uri = self.database().uri()
-        schema = ( u'schema=%s' % self.schemaName() ) if self.schemaName() else ''
-        dbname = ( u'dbname=%s' % uri.database() ) if uri.database() else ''
-        host = ( u'host=%s' % uri.host() ) if uri.host() else ''
-        user = ( u'user=%s' % uri.username() ) if uri.username() else ''
-        passw = ( u'password=%s' % uri.password() ) if uri.password() else ''
-        port = ( u'port=%s' % uri.port() ) if uri.port() else ''
+    def gdalUri(self, uri=None):
+        if not uri:
+            uri = self.database().uri()
+        schema = (u'schema=%s' % self.schemaName()) if self.schemaName() else ''
+        dbname = (u'dbname=%s' % uri.database()) if uri.database() else ''
+        host = (u'host=%s' % uri.host()) if uri.host() else ''
+        user = (u'user=%s' % uri.username()) if uri.username() else ''
+        passw = (u'password=%s' % uri.password()) if uri.password() else ''
+        port = (u'port=%s' % uri.port()) if uri.port() else ''
 
         # Find first raster field
         col = ''
@@ -278,19 +281,37 @@ class PGRasterTable(PGTable, RasterTable):
         return gdalUri
 
     def mimeUri(self):
+        # QGIS has no provider for PGRasters, let's use GDAL
         uri = u"raster:gdal:%s:%s" % (self.name, re.sub(":", "\:", self.gdalUri()))
         return uri
 
     def toMapLayer(self):
-        from qgis.core import QgsRasterLayer, QgsContrastEnhancement
+        from qgis.core import QgsRasterLayer, QgsContrastEnhancement, QgsDataSourceURI, QgsCredentials
 
         rl = QgsRasterLayer(self.gdalUri(), self.name)
+        if not rl.isValid():
+            err = rl.error().summary()
+            uri = QgsDataSourceURI(self.database().uri())
+            conninfo = uri.connectionInfo()
+            username = uri.username()
+            password = uri.password()
+
+            for i in range(3):
+                (ok, username, password) = QgsCredentials.instance().get(conninfo, username, password, err)
+                if ok:
+                    uri.setUsername(username)
+                    uri.setPassword(password)
+                    rl = QgsRasterLayer(self.gdalUri(uri), self.name)
+                    if rl.isValid():
+                        break
+
         if rl.isValid():
             rl.setContrastEnhancement(QgsContrastEnhancement.StretchToMinimumMaximum)
         return rl
 
 
 class PGTableField(TableField):
+
     def __init__(self, row, table):
         TableField.__init__(self, table)
         self.num, self.name, self.dataType, self.charMaxLen, self.modifier, self.notNull, self.hasDefault, self.default, typeStr = row
@@ -313,6 +334,7 @@ class PGTableField(TableField):
 
 
 class PGTableConstraint(TableConstraint):
+
     def __init__(self, row, table):
         TableConstraint.__init__(self, table)
         self.name, constr_type_str, self.isDefferable, self.isDeffered, columns = row[:5]
@@ -334,6 +356,7 @@ class PGTableConstraint(TableConstraint):
 
 
 class PGTableIndex(TableIndex):
+
     def __init__(self, row, table):
         TableIndex.__init__(self, table)
         self.name, columns, self.isUnique = row
@@ -341,12 +364,14 @@ class PGTableIndex(TableIndex):
 
 
 class PGTableTrigger(TableTrigger):
+
     def __init__(self, row, table):
         TableTrigger.__init__(self, table)
         self.name, self.function, self.type, self.enabled = row
 
 
 class PGTableRule(TableRule):
+
     def __init__(self, row, table):
         TableRule.__init__(self, table)
         self.name, self.definition = row

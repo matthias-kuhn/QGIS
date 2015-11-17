@@ -114,7 +114,7 @@ class GUI_EXPORT QgsCollapsibleGroupBoxBasic : public QGroupBox
     /**
      * Named group which synchronizes collapsing action when triangle is clicked while holding alt modifier key
      */
-    void setSyncGroup( QString grp );
+    void setSyncGroup( const QString& grp );
 
     //! Set this to false to not automatically scroll parent QScrollArea to this widget's contents when expanded
     void setScrollOnExpand( bool scroll ) { mScrollOnExpand = scroll; }
@@ -198,7 +198,7 @@ class GUI_EXPORT QgsCollapsibleGroupBox : public QgsCollapsibleGroupBoxBasic
 
     //! set this to false to not save/restore collapsed state
     void setSaveCollapsedState( bool save ) { mSaveCollapsedState = save; }
-    /** set this to true to save/restore checked state
+    /** Set this to true to save/restore checked state
      * @note only turn on mSaveCheckedState for groupboxes NOT used
      * in multiple places or used as options for different parent objects */
     void setSaveCheckedState( bool save ) { mSaveCheckedState = save; }

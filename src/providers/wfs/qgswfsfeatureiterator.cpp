@@ -21,20 +21,17 @@
 QgsWFSFeatureIterator::QgsWFSFeatureIterator( QgsWFSFeatureSource* source, bool ownSource, const QgsFeatureRequest& request )
     : QgsAbstractFeatureIteratorFromSource<QgsWFSFeatureSource>( source, ownSource, request )
 {
-  switch ( request.filterType() )
+  if ( !request.filterRect().isNull() && mSource->mSpatialIndex )
   {
-    case QgsFeatureRequest::FilterRect:
-      if ( mSource->mSpatialIndex )
-      {
-        mSelectedFeatures = mSource->mSpatialIndex->intersects( request.filterRect() );
-      }
-      break;
-    case QgsFeatureRequest::FilterFid:
-      mSelectedFeatures.push_back( request.filterFid() );
-      break;
-    case QgsFeatureRequest::FilterNone:
-    default:
-      mSelectedFeatures = mSource->mFeatures.keys();
+    mSelectedFeatures = mSource->mSpatialIndex->intersects( request.filterRect() );
+  }
+  else if ( request.filterType() == QgsFeatureRequest::FilterFid )
+  {
+    mSelectedFeatures.push_back( request.filterFid() );
+  }
+  else
+  {
+    mSelectedFeatures = mSource->mFeatures.keys();
   }
 
   mFeatureIterator = mSelectedFeatures.constBegin();
@@ -134,8 +131,8 @@ void QgsWFSFeatureIterator::copyFeature( const QgsFeature* f, QgsFeature& featur
   for ( int i = 0; i < mSource->mFields.size(); i++ )
   {
     const QVariant &v = f->attributes().value( i );
-    if ( v.type() != mSource->mFields[i].type() )
-      feature.setAttribute( i, QgsVectorDataProvider::convertValue( mSource->mFields[i].type(), v.toString() ) );
+    if ( v.type() != mSource->mFields.at( i ).type() )
+      feature.setAttribute( i, QgsVectorDataProvider::convertValue( mSource->mFields.at( i ).type(), v.toString() ) );
     else
       feature.setAttribute( i, v );
   }
@@ -164,7 +161,7 @@ QgsWFSFeatureSource::~QgsWFSFeatureSource()
 
 QgsFeatureIterator QgsWFSFeatureSource::getFeatures( const QgsFeatureRequest& request )
 {
-  if ( request.filterType() == QgsFeatureRequest::FilterRect )
+  if ( !request.filterRect().isNull() )
     emit extentRequested( request.filterRect() );
   return QgsFeatureIterator( new QgsWFSFeatureIterator( this, false, request ) );
 }

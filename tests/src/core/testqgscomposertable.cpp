@@ -81,7 +81,7 @@ void TestQgsComposerTable::initTestCase()
   mMapSettings = new QgsMapSettings();
 
   //create maplayers from testdata and add to layer registry
-  QFileInfo vectorFileInfo( QString( TEST_DATA_DIR ) + "/" +  "points.shp" );
+  QFileInfo vectorFileInfo( QString( TEST_DATA_DIR ) + '/' +  "points.shp" );
   mVectorLayer = new QgsVectorLayer( vectorFileInfo.filePath(),
                                      vectorFileInfo.completeBaseName(),
                                      "ogr" );
@@ -104,6 +104,7 @@ void TestQgsComposerTable::initTestCase()
 
 void TestQgsComposerTable::cleanupTestCase()
 {
+  delete mComposerMap;
   delete mComposition;
   delete mMapSettings;
 

@@ -33,7 +33,7 @@ QgsLineStringV2::QgsLineStringV2(): QgsCurveV2()
 QgsLineStringV2::~QgsLineStringV2()
 {}
 
-QgsAbstractGeometryV2 *QgsLineStringV2::clone() const
+QgsLineStringV2 *QgsLineStringV2::clone() const
 {
   return new QgsLineStringV2( *this );
 }
@@ -105,7 +105,7 @@ unsigned char* QgsLineStringV2::asWkb( int& binarySize ) const
 
 QString QgsLineStringV2::asWkt( int precision ) const
 {
-  QString wkt = wktTypeStr() + " ";
+  QString wkt = wktTypeStr() + ' ';
   QList<QgsPointV2> pts;
   points( pts );
   wkt += QgsGeometryUtils::pointsToWKT( pts, precision, is3D(), isMeasure() );
@@ -143,7 +143,7 @@ QString QgsLineStringV2::asJSON( int precision ) const
   QList<QgsPointV2> pts;
   points( pts );
 
-  return "{\"type\": \"LineString\", \"coordinates\": " + QgsGeometryUtils::pointsToJSON( pts, precision ) + "}";
+  return "{\"type\": \"LineString\", \"coordinates\": " + QgsGeometryUtils::pointsToJSON( pts, precision ) + '}';
 }
 
 double QgsLineStringV2::length() const
@@ -294,6 +294,11 @@ void QgsLineStringV2::append( const QgsLineStringV2* line )
     return;
   }
 
+  if ( numPoints() < 1 )
+  {
+    setZMTypeFromSubGeometry( line, QgsWKBTypes::LineString );
+  }
+
   mCoords += line->mCoords;
   mZ += line->mZ;
   mM += line->mM;
@@ -328,9 +333,9 @@ void QgsLineStringV2::drawAsPolygon( QPainter& p ) const
   p.drawPolygon( mCoords );
 }
 
-void QgsLineStringV2::transform( const QgsCoordinateTransform& ct )
+void QgsLineStringV2::transform( const QgsCoordinateTransform& ct, QgsCoordinateTransform::TransformDirection d )
 {
-  ct.transformPolygon( mCoords );
+  ct.transformPolygon( mCoords, d );
 }
 
 void QgsLineStringV2::transform( const QTransform& t )
@@ -353,12 +358,13 @@ bool QgsLineStringV2::insertVertex( const QgsVertexId& position, const QgsPointV
   {
     mM.insert( position.vertex, vertex.m() );
   }
+  mBoundingBox = QgsRectangle(); //set bounding box invalid
   return true;
 }
 
 bool QgsLineStringV2::moveVertex( const QgsVertexId& position, const QgsPointV2& newPos )
 {
-  if ( position.vertex < 0 || position.vertex > mCoords.size() )
+  if ( position.vertex < 0 || position.vertex >= mCoords.size() )
   {
     return false;
   }
@@ -378,7 +384,7 @@ bool QgsLineStringV2::moveVertex( const QgsVertexId& position, const QgsPointV2&
 
 bool QgsLineStringV2::deleteVertex( const QgsVertexId& position )
 {
-  if ( position.vertex > ( mCoords.size() - 1 ) || position.vertex < 0 )
+  if ( position.vertex >= mCoords.size() || position.vertex < 0 )
   {
     return false;
   }
@@ -392,6 +398,7 @@ bool QgsLineStringV2::deleteVertex( const QgsVertexId& position )
   {
     mM.remove( position.vertex );
   }
+  mBoundingBox = QgsRectangle(); //set bounding box invalid
   return true;
 }
 
@@ -411,6 +418,7 @@ void QgsLineStringV2::addVertex( const QgsPointV2& pt )
   {
     mM.append( pt.m() );
   }
+  mBoundingBox = QgsRectangle(); //set bounding box invalid
 }
 
 double QgsLineStringV2::closestSegment( const QgsPointV2& pt, QgsPointV2& segmentPt,  QgsVertexId& vertexAfter, bool* leftOf, double epsilon ) const
@@ -491,4 +499,69 @@ void QgsLineStringV2::close()
     return;
   }
   addVertex( startPoint() );
+}
+
+double QgsLineStringV2::vertexAngle( const QgsVertexId& vertex ) const
+{
+  if ( vertex.vertex == 0 || vertex.vertex >= ( numPoints() - 1 ) )
+  {
+    if ( isClosed() )
+    {
+      QPointF previous = mCoords[numPoints() - 1 ];
+      QPointF current = mCoords[0];
+      QPointF after = mCoords[1];
+      return QgsGeometryUtils::averageAngle( previous.x(), previous.y(), current.x(), current.y(), after.x(), after.y() );
+    }
+    else if ( vertex.vertex == 0 )
+    {
+      return QgsGeometryUtils::linePerpendicularAngle( mCoords[0].x(), mCoords[0].y(), mCoords[1].x(), mCoords[1].y() );
+    }
+    else
+    {
+      int a = numPoints() - 2;
+      int b = numPoints() - 1;
+      return QgsGeometryUtils::linePerpendicularAngle( mCoords[a].x(), mCoords[a].y(), mCoords[b].x(), mCoords[b].y() );
+    }
+  }
+  else
+  {
+    QPointF previous = mCoords[vertex.vertex - 1 ];
+    QPointF current = mCoords[vertex.vertex];
+    QPointF after = mCoords[vertex.vertex + 1];
+    return QgsGeometryUtils::averageAngle( previous.x(), previous.y(), current.x(), current.y(), after.x(), after.y() );
+  }
+}
+
+bool QgsLineStringV2::addZValue( double zValue )
+{
+  if ( QgsWKBTypes::hasZ( mWkbType ) )
+    return false;
+
+  mWkbType = QgsWKBTypes::addZ( mWkbType );
+
+  mZ.clear();
+  int nPoints = numPoints();
+  mZ.reserve( nPoints );
+  for ( int i = 0; i < nPoints; ++i )
+  {
+    mZ << zValue;
+  }
+  return true;
+}
+
+bool QgsLineStringV2::addMValue( double mValue )
+{
+  if ( QgsWKBTypes::hasM( mWkbType ) )
+    return false;
+
+  mWkbType = QgsWKBTypes::addM( mWkbType );
+
+  mM.clear();
+  int nPoints = numPoints();
+  mM.reserve( nPoints );
+  for ( int i = 0; i < nPoints; ++i )
+  {
+    mM << mValue;
+  }
+  return true;
 }

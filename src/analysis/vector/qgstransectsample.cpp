@@ -12,12 +12,13 @@
 #include "mersenne-twister.h"
 #include <limits>
 
-QgsTransectSample::QgsTransectSample( QgsVectorLayer* strataLayer, QString strataIdAttribute, QString minDistanceAttribute, QString nPointsAttribute, DistanceUnits minDistUnits,
-                                      QgsVectorLayer* baselineLayer, bool shareBaseline, QString baselineStrataId, const QString& outputPointLayer,
-                                      const QString& outputLineLayer, const QString& usedBaselineLayer, double minTransectLength ): mStrataLayer( strataLayer ),
+QgsTransectSample::QgsTransectSample( QgsVectorLayer* strataLayer, const QString& strataIdAttribute, const QString& minDistanceAttribute, const QString& nPointsAttribute, DistanceUnits minDistUnits,
+                                      QgsVectorLayer* baselineLayer, bool shareBaseline, const QString& baselineStrataId, const QString& outputPointLayer,
+                                      const QString& outputLineLayer, const QString& usedBaselineLayer, double minTransectLength,
+                                      double baselineBufferDistance, double baselineSimplificationTolerance ): mStrataLayer( strataLayer ),
     mStrataIdAttribute( strataIdAttribute ), mMinDistanceAttribute( minDistanceAttribute ), mNPointsAttribute( nPointsAttribute ), mBaselineLayer( baselineLayer ), mShareBaseline( shareBaseline ),
     mBaselineStrataId( baselineStrataId ), mOutputPointLayer( outputPointLayer ), mOutputLineLayer( outputLineLayer ), mUsedBaselineLayer( usedBaselineLayer ),
-    mMinDistanceUnits( minDistUnits ), mMinTransectLength( minTransectLength )
+    mMinDistanceUnits( minDistUnits ), mMinTransectLength( minTransectLength ), mBaselineBufferDistance( baselineBufferDistance ), mBaselineSimplificationTolerance( baselineSimplificationTolerance )
 {
 }
 
@@ -27,6 +28,8 @@ QgsTransectSample::QgsTransectSample()
     , mShareBaseline( false )
     , mMinDistanceUnits( Meters )
     , mMinTransectLength( 0.0 )
+    , mBaselineBufferDistance( -1.0 )
+    , mBaselineSimplificationTolerance( -1.0 )
 {
 }
 
@@ -52,7 +55,7 @@ int QgsTransectSample::createSample( QProgressDialog* pd )
   QVariant::Type stratumIdType = QVariant::Int;
   if ( !mStrataIdAttribute.isEmpty() )
   {
-    stratumIdType = mStrataLayer->pendingFields().field( mStrataIdAttribute ).type();
+    stratumIdType = mStrataLayer->fields().field( mStrataIdAttribute ).type();
   }
 
   //create vector file writers for output
@@ -115,7 +118,7 @@ int QgsTransectSample::createSample( QProgressDialog* pd )
   mt_srand( QTime::currentTime().msec() );
 
   QgsFeatureRequest fr;
-  fr.setSubsetOfAttributes( QStringList() << mStrataIdAttribute << mMinDistanceAttribute << mNPointsAttribute, mStrataLayer->pendingFields() );
+  fr.setSubsetOfAttributes( QStringList() << mStrataIdAttribute << mMinDistanceAttribute << mNPointsAttribute, mStrataLayer->fields() );
   QgsFeatureIterator strataIt = mStrataLayer->getFeatures( fr );
 
   QgsFeature fet;
@@ -155,11 +158,10 @@ int QgsTransectSample::createSample( QProgressDialog* pd )
     double minDistance = fet.attribute( mMinDistanceAttribute ).toDouble();
     double minDistanceLayerUnits = minDistance;
     //if minDistance is in meters and the data in degrees, we need to apply a rough conversion for the buffer distance
-    double bufferDist = minDistance;
+    double bufferDist = bufferDistance( minDistance );
     if ( mMinDistanceUnits == Meters && mStrataLayer->crs().mapUnits() == QGis::DecimalDegrees )
     {
-      bufferDist = minDistance / 111319.9;
-      minDistanceLayerUnits = bufferDist;
+      minDistanceLayerUnits = minDistance / 111319.9;
     }
 
     QgsGeometry* clippedBaseline = strataGeom->intersection( baselineGeom );
@@ -208,7 +210,7 @@ int QgsTransectSample::createSample( QProgressDialog* pd )
       samplePointFeature.setAttribute( "id", nTotalTransects + 1 );
       samplePointFeature.setAttribute( "station_id", nCreatedTransects + 1 );
       samplePointFeature.setAttribute( "stratum_id", strataId );
-      samplePointFeature.setAttribute( "station_code", strataId.toString() + "_" + QString::number( nCreatedTransects + 1 ) );
+      samplePointFeature.setAttribute( "station_code", strataId.toString() + '_' + QString::number( nCreatedTransects + 1 ) );
       samplePointFeature.setAttribute( "start_lat", latLongSamplePoint.y() );
       samplePointFeature.setAttribute( "start_long", latLongSamplePoint.x() );
 
@@ -257,7 +259,7 @@ int QgsTransectSample::createSample( QProgressDialog* pd )
       }
 
       //cancel if length of lineClipStratum is too small
-      double transectLength = distanceArea.measure( lineClipStratum );
+      double transectLength = distanceArea.measureLength( lineClipStratum );
       if ( transectLength < mMinTransectLength )
       {
         delete lineFarAwayGeom; delete lineClipStratum;
@@ -277,7 +279,7 @@ int QgsTransectSample::createSample( QProgressDialog* pd )
       sampleLineFeature.setAttribute( "id", nTotalTransects + 1 );
       sampleLineFeature.setAttribute( "station_id", nCreatedTransects + 1 );
       sampleLineFeature.setAttribute( "stratum_id", strataId );
-      sampleLineFeature.setAttribute( "station_code", strataId.toString() + "_" + QString::number( nCreatedTransects + 1 ) );
+      sampleLineFeature.setAttribute( "station_code", strataId.toString() + '_' + QString::number( nCreatedTransects + 1 ) );
       sampleLineFeature.setAttribute( "start_lat", latLongSamplePoint.y() );
       sampleLineFeature.setAttribute( "start_long", latLongSamplePoint.x() );
       sampleLineFeature.setAttribute( "bearing", bearing );
@@ -324,14 +326,14 @@ int QgsTransectSample::createSample( QProgressDialog* pd )
   return 0;
 }
 
-QgsGeometry* QgsTransectSample::findBaselineGeometry( QVariant strataId )
+QgsGeometry* QgsTransectSample::findBaselineGeometry( const QVariant& strataId )
 {
   if ( !mBaselineLayer )
   {
     return 0;
   }
 
-  QgsFeatureIterator baseLineIt = mBaselineLayer->getFeatures( QgsFeatureRequest().setSubsetOfAttributes( QStringList( mBaselineStrataId ), mBaselineLayer->pendingFields() ) );
+  QgsFeatureIterator baseLineIt = mBaselineLayer->getFeatures( QgsFeatureRequest().setSubsetOfAttributes( QStringList( mBaselineStrataId ), mBaselineLayer->fields() ) );
   QgsFeature fet;
 
   while ( baseLineIt.nextFeature( fet ) ) //todo: cache this in case there are many baslines
@@ -549,13 +551,30 @@ QgsGeometry* QgsTransectSample::clipBufferLine( const QgsGeometry* stratumGeom, 
     return 0;
   }
 
+  QgsGeometry* usedBaseline = clippedBaseline;
+  if ( mBaselineSimplificationTolerance >= 0 )
+  {
+    //int verticesBefore = usedBaseline->asMultiPolyline().count();
+    usedBaseline = clippedBaseline->simplify( mBaselineSimplificationTolerance );
+    if ( !usedBaseline )
+    {
+      return 0;
+    }
+    //int verticesAfter = usedBaseline->asMultiPolyline().count();
+
+    //debug: write to file
+    /*QgsVectorFileWriter debugWriter( "/tmp/debug.shp", "utf-8", QgsFields(), QGis::WKBLineString, &( mStrataLayer->crs() ) );
+    QgsFeature debugFeature; debugFeature.setGeometry( usedBaseline );
+    debugWriter.addFeature( debugFeature );*/
+  }
+
   double currentBufferDist = tolerance;
   int maxLoops = 10;
 
   for ( int i = 0; i < maxLoops; ++i )
   {
     //loop with tolerance: create buffer, convert buffer to line, clip line by stratum, test if result is (single) line
-    QgsGeometry* clipBaselineBuffer = clippedBaseline->buffer( currentBufferDist, 8 );
+    QgsGeometry* clipBaselineBuffer = usedBaseline->buffer( currentBufferDist, 8 );
     if ( !clipBaselineBuffer )
     {
       delete clipBaselineBuffer;
@@ -595,6 +614,7 @@ QgsGeometry* QgsTransectSample::clipBufferLine( const QgsGeometry* stratumGeom, 
       }
 
       int size = bufferPolygon.size();
+      mpl.reserve( size );
       for ( int j = 0; j < size; ++j )
       {
         mpl.append( bufferPolygon[j] );
@@ -628,6 +648,10 @@ QgsGeometry* QgsTransectSample::clipBufferLine( const QgsGeometry* stratumGeom, 
       if ( bufferLineClippedIntersectsStratum )
       {
         delete clipBaselineBuffer;
+        if ( mBaselineSimplificationTolerance >= 0 )
+        {
+          delete usedBaseline;
+        }
         return bufferLineClipped;
       }
     }
@@ -637,5 +661,25 @@ QgsGeometry* QgsTransectSample::clipBufferLine( const QgsGeometry* stratumGeom, 
     currentBufferDist /= 2;
   }
 
+  if ( mBaselineSimplificationTolerance >= 0 )
+  {
+    delete usedBaseline;
+  }
   return 0; //no solution found even with reduced tolerances
+}
+
+double QgsTransectSample::bufferDistance( double minDistanceFromAttribute ) const
+{
+  double bufferDist = minDistanceFromAttribute;
+  if ( mBaselineBufferDistance >= 0 )
+  {
+    bufferDist = mBaselineBufferDistance;
+  }
+
+  if ( mMinDistanceUnits == Meters && mStrataLayer->crs().mapUnits() == QGis::DecimalDegrees )
+  {
+    bufferDist /= 111319.9;
+  }
+
+  return bufferDist;
 }

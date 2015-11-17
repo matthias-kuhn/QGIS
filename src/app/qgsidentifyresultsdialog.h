@@ -126,7 +126,7 @@ class APP_EXPORT QgsIdentifyResultsDialog: public QDialog, private Ui::QgsIdenti
 
     /** Add add feature from other layer */
     void addFeature( QgsRasterLayer * layer,
-                     QString label,
+                     const QString& label,
                      const QMap< QString, QString > &attributes,
                      const QMap< QString, QString > &derivedAttributes,
                      const QgsFields &fields = QgsFields(),
@@ -134,12 +134,12 @@ class APP_EXPORT QgsIdentifyResultsDialog: public QDialog, private Ui::QgsIdenti
                      const QMap<QString, QVariant> &params = ( QMap<QString, QVariant>() ) );
 
     /** Add feature from identify results */
-    void addFeature( QgsMapToolIdentify::IdentifyResult result );
+    void addFeature( const QgsMapToolIdentify::IdentifyResult& result );
 
-    /** map tool was deactivated */
+    /** Map tool was deactivated */
     void deactivate();
 
-    /** map tool was activated */
+    /** Map tool was activated */
     void activate();
 
   signals:

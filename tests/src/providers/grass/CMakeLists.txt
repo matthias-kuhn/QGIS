@@ -1,6 +1,12 @@
 ADD_DEFINITIONS("-DGRASS_EXPORT=${DLLIMPORT} -DGRASS_LIB_EXPORT=${DLLIMPORT}")
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/providers/grass)
+INCLUDE_DIRECTORIES(
+  ${CMAKE_SOURCE_DIR}/src/providers/grass
+  ${GDAL_INCLUDE_DIR}
+  ${PROJ_INCLUDE_DIR}
+  ${GEOS_INCLUDE_DIR}
+  ${POSTGRES_INCLUDE_DIR}
+)
 
 
 MACRO (ADD_QGIS_GRASS_TEST grass_build_version testname testsrc)
@@ -26,20 +32,17 @@ MACRO (ADD_QGIS_GRASS_TEST grass_build_version testname testsrc)
   IF(WIN32 AND NOT USING_NMAKE)
     FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${testname}.cmake
 "
-SET(ENV{PATH} \"${GRASS_PREFIX${grass_build_version}}/lib;${CMAKE_BINARY_DIR}/output/bin/\${CMAKE_BUILD_TYPE};${CMAKE_BINARY_DIR}/output/plugins/\${CMAKE_BUILD_TYPE};\$ENV{PATH}\")
+SET(ENV{PATH} \"${GRASS_PREFIX${grass_build_version}}/bin;${GRASS_PREFIX${grass_build_version}}/lib;${CMAKE_BINARY_DIR}/output/bin/\${CMAKE_BUILD_TYPE};${CMAKE_BINARY_DIR}/output/plugins/\${CMAKE_BUILD_TYPE};\$ENV{PATH}\")
+SET(ENV{GISBASE} \"${GRASS_PREFIX${grass_build_version}}\")
 MESSAGE(STATUS \"Running ${CMAKE_BINARY_DIR}/output/bin/\${CMAKE_BUILD_TYPE}/qgis_${testname}${grass_build_version}\")
+MESSAGE(STATUS \"PATH:\$ENV{PATH}\")
+MESSAGE(STATUS \"GISBASE:\$ENV{GISBASE}\")
 EXECUTE_PROCESS(
   COMMAND ${CMAKE_BINARY_DIR}/output/bin/\${CMAKE_BUILD_TYPE}/qgis_${testname}${grass_build_version}
   RESULT_VARIABLE import_res
-  OUTPUT_VARIABLE import_output
-  ERROR_VARIABLE  import_output
 )
-# Pass the output back to ctest
-IF(import_output)
-  MESSAGE(" \${import_output} ")
-ENDIF(import_output)
 IF(import_res)
-  MESSAGE(SEND_ERROR " \${import_res} ")
+  MESSAGE(FATAL_ERROR \"Test failed: \${import_res}\")
 ENDIF(import_res)
 "
 )

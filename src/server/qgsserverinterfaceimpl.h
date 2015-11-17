@@ -39,7 +39,7 @@ class QgsServerInterfaceImpl : public QgsServerInterface
   public:
 
     /** Constructor */
-    QgsServerInterfaceImpl( QgsCapabilitiesCache *capCache );
+    explicit QgsServerInterfaceImpl( QgsCapabilitiesCache *capCache );
 
     /** Destructor */
     ~QgsServerInterfaceImpl();
@@ -53,7 +53,8 @@ class QgsServerInterfaceImpl : public QgsServerInterface
     QgsServerFiltersMap filters( ) override { return mFilters; }
     QString getEnv( const QString& name ) const override;
     QString configFilePath( ) override { return mConfigFilePath; }
-    void setConfigFilePath( QString configFilePath ) override;
+    void setConfigFilePath( const QString& configFilePath ) override;
+    void setFilters( QgsServerFiltersMap *filters ) override;
 
   private:
 

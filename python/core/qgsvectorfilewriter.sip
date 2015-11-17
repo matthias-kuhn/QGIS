@@ -36,7 +36,7 @@ class QgsVectorFileWriter
     class SetOption : QgsVectorFileWriter::Option
     {
       public:
-        SetOption( const QString& docString, QStringList values, const QString& defaultValue, bool allowNone = false );
+        SetOption( const QString& docString, const QStringList& values, const QString& defaultValue, bool allowNone = false );
 
         QSet<QString> values;
         QString defaultValue;
@@ -77,7 +77,7 @@ class QgsVectorFileWriter
     {
       MetaData();
 
-      MetaData( QString longName, QString trLongName, QString glob, QString ext, QMap<QString, QgsVectorFileWriter::Option*> driverOptions, QMap<QString, QgsVectorFileWriter::Option*> layerOptions );
+      MetaData( const QString& longName, const QString& trLongName, const QString& glob, const QString& ext, const QMap<QString, QgsVectorFileWriter::Option*>& driverOptions, const QMap<QString, QgsVectorFileWriter::Option*>& layerOptions );
 
       QString longName;
       QString trLongName;
@@ -156,7 +156,7 @@ class QgsVectorFileWriter
                                             const QgsRectangle* filterExtent = 0 // added in 2.4
                                           );
 
-    /** create shapefile and initialize it */
+    /** Create shapefile and initialize it */
     QgsVectorFileWriter( const QString& vectorFileName,
                          const QString& fileEncoding,
                          const QgsFields& fields,
@@ -169,44 +169,44 @@ class QgsVectorFileWriter
                          QgsVectorFileWriter::SymbologyExport symbologyExport = QgsVectorFileWriter::NoSymbology
                        );
 
-    /**Returns map with format filter string as key and OGR format key as value*/
+    /** Returns map with format filter string as key and OGR format key as value*/
     static QMap< QString, QString> supportedFiltersAndFormats();
 
-    /**Returns driver list that can be used for dialogs. It contains all OGR drivers
+    /** Returns driver list that can be used for dialogs. It contains all OGR drivers
      * + some additional internal QGIS driver names to distinguish between more
      * supported formats of the same OGR driver
      */
     static QMap< QString, QString> ogrDriverList();
 
-    /**Returns filter string that can be used for dialogs*/
+    /** Returns filter string that can be used for dialogs*/
     static QString fileFilterString();
 
-    /**Creates a filter for an OGR driver key*/
+    /** Creates a filter for an OGR driver key*/
     static QString filterForDriver( const QString& driverName );
 
-    /**Converts codec name to string passed to ENCODING layer creation option of OGR Shapefile*/
+    /** Converts codec name to string passed to ENCODING layer creation option of OGR Shapefile*/
     static QString convertCodecNameForEncodingOption( const QString &codecName );
 
-    /** checks whether there were any errors in constructor */
+    /** Checks whether there were any errors in constructor */
     WriterError hasError();
 
-    /** retrieves error message */
+    /** Retrieves error message */
     QString errorMessage();
 
-    /** add feature to the currently opened shapefile */
+    /** Add feature to the currently opened shapefile */
     bool addFeature( QgsFeature& feature, QgsFeatureRendererV2* renderer = 0, QGis::UnitType outputUnit = QGis::Meters );
 
     //! @note not available in python bindings
     // QMap<int, int> attrIdxToOgrIdx();
 
-    /** close opened shapefile for writing */
+    /** Close opened shapefile for writing */
     ~QgsVectorFileWriter();
 
     /** Delete a shapefile (and its accompanying shx / dbf / prf)
      * @param theFileName /path/to/file.shp
      * @return bool true if the file was deleted successfully
      */
-    static bool deleteShapeFile( QString theFileName );
+    static bool deleteShapeFile( const QString& theFileName );
 
     SymbologyExport symbologyExport() const;
     void setSymbologyExport( SymbologyExport symExport );

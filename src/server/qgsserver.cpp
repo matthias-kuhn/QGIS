@@ -22,6 +22,7 @@
 #include "qgsconfig.h"
 #include "qgsserver.h"
 
+#include "qgsauthmanager.h"
 #include "qgscapabilitiescache.h"
 #include "qgsfontutils.h"
 #include "qgsgetrequesthandler.h"
@@ -52,9 +53,9 @@
 
 // Static initialisers, default values for fcgi server
 QgsApplication* QgsServer::mQgsApplication = NULL;
-bool QgsServer::mInitialised = FALSE;
+bool QgsServer::mInitialised = false;
 QString QgsServer::mServerName( "qgis_server" );
-bool QgsServer::mCaptureOutput = FALSE;
+bool QgsServer::mCaptureOutput = false;
 char* QgsServer::mArgv[1];
 int QgsServer::mArgc = 1;
 QString QgsServer::mConfigFilePath;
@@ -62,7 +63,7 @@ QgsMapRenderer* QgsServer::mMapRenderer = NULL;
 QgsCapabilitiesCache* QgsServer::mCapabilitiesCache;
 
 #ifdef HAVE_SERVER_PYTHON_PLUGINS
-bool QgsServer::mInitPython = TRUE;
+bool QgsServer::mInitPython = true;
 QgsServerInterfaceImpl* QgsServer::mServerInterface = NULL;
 #endif
 
@@ -107,7 +108,7 @@ void QgsServer::setupNetworkAccessManager()
  * @param captureOutput
  * @return request instance
  */
-QgsRequestHandler* QgsServer::createRequestHandler( const bool captureOutput /*= FALSE*/ )
+QgsRequestHandler* QgsServer::createRequestHandler( const bool captureOutput /*= false*/ )
 {
   QgsRequestHandler* requestHandler = 0;
   char* requestMethod = getenv( "REQUEST_METHOD" );
@@ -172,7 +173,7 @@ void QgsServer::printRequestParameters( const QMap< QString, QString>& parameter
 }
 
 /**
- * @brief QgsServer::printRequestInfos prints debug informations about the request
+ * @brief QgsServer::printRequestInfos prints debug information about the request
  */
 void QgsServer::printRequestInfos()
 {
@@ -288,13 +289,13 @@ bool QgsServer::init()
 {
   if ( mInitialised )
   {
-    return FALSE;
+    return false;
   }
   mArgv[0] = mServerName.toUtf8( ).data( );
   mArgc = 1;
-  mCaptureOutput = TRUE;
+  mCaptureOutput = true;
 #ifdef HAVE_SERVER_PYTHON_PLUGINS
-  mInitPython = FALSE;
+  mInitPython = false;
 #endif
   return init( mArgc , mArgv );
 }
@@ -307,7 +308,7 @@ bool QgsServer::init( int & argc, char ** argv )
 {
   if ( mInitialised )
   {
-    return FALSE;
+    return false;
   }
 
 #ifndef _MSC_VER
@@ -332,7 +333,7 @@ bool QgsServer::init( int & argc, char ** argv )
   QgsApplication::init();
 #if !defined(Q_OS_WIN)
   // init QGIS's paths - true means that all path will be inited from prefix
-  QgsApplication::setPrefixPath( CMAKE_INSTALL_PREFIX, TRUE );
+  QgsApplication::setPrefixPath( CMAKE_INSTALL_PREFIX, true );
 #endif
 
 #if defined(SERVER_SKIP_ECW)
@@ -350,9 +351,16 @@ bool QgsServer::init( int & argc, char ** argv )
   QgsDebugMsg( "Plugin  PATH: " + QgsApplication::pluginPath() );
   QgsDebugMsg( "PkgData PATH: " + QgsApplication::pkgDataPath() );
   QgsDebugMsg( "User DB PATH: " + QgsApplication::qgisUserDbFilePath() );
+  QgsDebugMsg( "Auth DB PATH: " + QgsApplication::qgisAuthDbFilePath() );
   QgsDebugMsg( "SVG PATHS: " + QgsApplication::svgPaths().join( ":" ) );
 
   QgsApplication::createDB(); //init qgis.db (e.g. necessary for user crs)
+
+  // Instantiate authentication system
+  //   creates or uses qgis-auth.db in ~/.qgis2/ or directory defined by QGIS_AUTH_DB_DIR_PATH env variable
+  //   set the master password as first line of file defined by QGIS_AUTH_PASSWORD_FILE env variable
+  //   (QGIS_AUTH_PASSWORD_FILE variable removed from environment after accessing)
+  QgsAuthManager::instance()->init( QgsApplication::pluginPath() );
 
   QString defaultConfigFilePath;
   QFileInfo projectFileInfo = defaultProjectFile(); //try to find a .qgs file in the server directory
@@ -369,6 +377,11 @@ bool QgsServer::init( int & argc, char ** argv )
       defaultConfigFilePath = adminSLDFileInfo.absoluteFilePath();
     }
   }
+  if ( !defaultConfigFilePath.isEmpty() )
+  {
+    mConfigFilePath = defaultConfigFilePath;
+  }
+
   //create cache for capabilities XML
   mCapabilitiesCache = new QgsCapabilitiesCache();
   mMapRenderer =  new QgsMapRenderer;
@@ -397,53 +410,20 @@ bool QgsServer::init( int & argc, char ** argv )
   QgsServerLogger::instance();
 
   QgsEditorWidgetRegistry::initEditors();
-  mInitialised = TRUE;
+  mInitialised = true;
   QgsMessageLog::logMessage( "Server intialised", "Server", QgsMessageLog::INFO );
-  return TRUE;
+  return true;
 }
 
 
-/**
- * Handles the request
- */
-QByteArray QgsServer::handleRequest( const QString queryString /*= QString( )*/ )
-{
-  return handleRequest( queryString, TRUE, TRUE );
-}
-
-/**
- * @brief Handles the request, returning only the body
- * @param queryString
- * @return response body if mCaptureOutput is set, empty QByteArray if not
- */
-QByteArray QgsServer::handleRequestGetBody( const QString queryString /*= QString( )*/ )
-{
-  return handleRequest( queryString, FALSE, TRUE );
-}
-
-/**
- * @brief Handles the request, returning only the headers
- * @param queryString
- * @return response headers if mCaptureOutput is set, empty QByteArray if not
- */
-QByteArray QgsServer::handleRequestGetHeaders( const QString queryString /*= QString( )*/ )
-{
-  return handleRequest( queryString, TRUE, FALSE );
-}
 
 /**
  * @brief Handles the request
  * @param queryString
- * @param returnBody
- * @param returnHeaders
- * @return response body and headers if mCaptureOutput is set and the
- * flags are set, empty QByteArray if not
+ * @return response headers and body
  */
-QByteArray QgsServer::handleRequest( const QString queryString ,
-                                     bool returnHeaders,
-                                     bool returnBody )
+QPair<QByteArray, QByteArray> QgsServer::handleRequest( const QString& queryString /*= QString( )*/ )
 {
-
   // Run init if handleRequest was called without previously initialising
   // the server
   if ( ! mInitialised )
@@ -501,7 +481,6 @@ QByteArray QgsServer::handleRequest( const QString queryString ,
   //Pass the filters to the requestHandler, this is needed for the following reasons:
   // 1. allow core services to access plugin filters and implement thir own plugin hooks
   // 2. allow requestHandler to call sendResponse plugin hook
-
   theRequestHandler->setPluginFilters( mServerInterface->filters() );
 #endif
 
@@ -511,9 +490,9 @@ QByteArray QgsServer::handleRequest( const QString queryString ,
   printRequestParameters( parameterMap, logLevel );
   QMap<QString, QString>::const_iterator paramIt;
   //Config file path
-  mConfigFilePath = configPath( mConfigFilePath, parameterMap );
+  QString configFilePath = configPath( mConfigFilePath, parameterMap );
 #ifdef HAVE_SERVER_PYTHON_PLUGINS
-  mServerInterface->setConfigFilePath( mConfigFilePath );
+  mServerInterface->setConfigFilePath( configFilePath );
 #endif
   //Service parameter
   QString serviceString = theRequestHandler->parameter( "SERVICE" );
@@ -541,40 +520,40 @@ QByteArray QgsServer::handleRequest( const QString queryString ,
   {
     if ( serviceString == "WCS" )
     {
-      QgsWCSProjectParser* p = QgsConfigCache::instance()->wcsConfiguration( mConfigFilePath );
+      QgsWCSProjectParser* p = QgsConfigCache::instance()->wcsConfiguration( configFilePath );
       if ( !p )
       {
         theRequestHandler->setServiceException( QgsMapServiceException( "Project file error", "Error reading the project file" ) );
       }
       else
       {
-        QgsWCSServer wcsServer( mConfigFilePath, parameterMap, p, theRequestHandler.data() );
+        QgsWCSServer wcsServer( configFilePath, parameterMap, p, theRequestHandler.data() );
         wcsServer.executeRequest();
       }
     }
     else if ( serviceString == "WFS" )
     {
-      QgsWFSProjectParser* p = QgsConfigCache::instance()->wfsConfiguration( mConfigFilePath );
+      QgsWFSProjectParser* p = QgsConfigCache::instance()->wfsConfiguration( configFilePath );
       if ( !p )
       {
         theRequestHandler->setServiceException( QgsMapServiceException( "Project file error", "Error reading the project file" ) );
       }
       else
       {
-        QgsWFSServer wfsServer( mConfigFilePath, parameterMap, p, theRequestHandler.data() );
+        QgsWFSServer wfsServer( configFilePath, parameterMap, p, theRequestHandler.data() );
         wfsServer.executeRequest();
       }
     }
     else if ( serviceString == "WMS" )
     {
-      QgsWMSConfigParser* p = QgsConfigCache::instance()->wmsConfiguration( mConfigFilePath, parameterMap );
+      QgsWMSConfigParser* p = QgsConfigCache::instance()->wmsConfiguration( configFilePath, parameterMap );
       if ( !p )
       {
         theRequestHandler->setServiceException( QgsMapServiceException( "WMS configuration error", "There was an error reading the project file or the SLD configuration" ) );
       }
       else
       {
-        QgsWMSServer wmsServer( mConfigFilePath, parameterMap, p, theRequestHandler.data(), mMapRenderer, mCapabilitiesCache );
+        QgsWMSServer wmsServer( configFilePath, parameterMap, p, theRequestHandler.data(), mMapRenderer, mCapabilitiesCache );
         wmsServer.executeRequest();
       }
     }
@@ -601,8 +580,14 @@ QByteArray QgsServer::handleRequest( const QString queryString ,
   {
     QgsMessageLog::logMessage( "Request finished in " + QString::number( time.elapsed() ) + " ms", "Server", QgsMessageLog::INFO );
   }
-  // TODO: if HAVE_SERVER_PYTHON
-  // Returns the response bytestream
-  return theRequestHandler->getResponse( returnHeaders , returnBody );
+  // Returns the header and response bytestreams (to be used in Python bindings)
+  return theRequestHandler->getResponse( );
 }
+
+/* The following code was used to test type conversion in python bindings
+QPair<QByteArray, QByteArray> QgsServer::testQPair(QPair<QByteArray, QByteArray> pair)
+{
+  return pair;
+}
+*/
 

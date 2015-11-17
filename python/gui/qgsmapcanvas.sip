@@ -31,9 +31,9 @@ class QgsMapCanvas : QGraphicsView
 
 %ConvertToSubClassCode
   if (dynamic_cast<QgsMapCanvas*>(sipCpp) != NULL)
-    sipClass = sipClass_QgsMapCanvas;
+    sipType = sipType_QgsMapCanvas;
   else
-    sipClass = NULL;
+    sipType = NULL;
 %End
 
   public:
@@ -182,7 +182,7 @@ class QgsMapCanvas : QGraphicsView
      */
     void unsetMapTool( QgsMapTool* mapTool );
 
-    /**Returns the currently active tool*/
+    /** Returns the currently active tool*/
     QgsMapTool* mapTool();
 
     /** Write property of QColor bgColor. */
@@ -210,14 +210,14 @@ class QgsMapCanvas : QGraphicsView
     //! return list of layers within map canvas.
     QList<QgsMapLayer*> layers() const;
 
-    /*! Freeze/thaw the map canvas. This is used to prevent the canvas from
+    /** Freeze/thaw the map canvas. This is used to prevent the canvas from
      * responding to events while layers are being added/removed etc.
      * @param frz Boolean specifying if the canvas should be frozen (true) or
      * thawed (false). Default is true.
      */
     void freeze( bool frz = true );
 
-    /*! Accessor for frozen status of canvas */
+    /** Accessor for frozen status of canvas */
     bool isFrozen();
 
     //! Flag the canvas as dirty and needed a refresh
@@ -338,16 +338,40 @@ class QgsMapCanvas : QGraphicsView
      */
     void setSnappingUtils( QgsSnappingUtils* utils );
 
+    /** Sets an expression context scope for the map canvas. This scope is injected into the expression
+     * context used for rendering the map, and can be used to apply specific variable overrides for
+     * expression evaluation for the map canvas render. This method will overwrite the existing expression
+     * context scope for the canvas.
+     * @param scope new expression context scope
+     * @note added in QGIS 2.12
+     * @see expressionContextScope()
+     */
+    void setExpressionContextScope( const QgsExpressionContextScope& scope );
+
+    /** Returns a reference to the expression context scope for the map canvas. This scope is injected
+     * into the expression context used for rendering the map, and can be used to apply specific variable
+     * overrides for expression evaluation for the map canvas render.
+     * @note added in QGIS 2.12
+     * @see setExpressionContextScope()
+     */
+    QgsExpressionContextScope& expressionContextScope();
+
+    /** Returns a const reference to the expression context scope for the map canvas.
+     * @note added in QGIS 2.12
+     * @see setExpressionContextScope()
+     */
+    // const QgsExpressionContextScope& expressionContextScope() const;
+
   public slots:
 
-    /**Repaints the canvas map*/
+    /** Repaints the canvas map*/
     void refresh();
 
     //! Receives signal about selection change, and pass it on with layer info
     void selectionChangedSlot();
 
     //! Save the convtents of the map canvas to disk as an image
-    void saveAsImage( QString theFileName, QPixmap * QPixmap = 0, QString = "PNG" );
+    void saveAsImage( const QString& theFileName, QPixmap * QPixmap = 0, const QString& = "PNG" );
 
     //! This slot is connected to the visibility change of one or more layers
     void layerStateChange();
@@ -395,7 +419,7 @@ class QgsMapCanvas : QGraphicsView
     //! @deprecated since 2.4 - already unused in 2.0 anyway
     void setProgress( int, int ) /Deprecated/;
 
-    /** emits current mouse position
+    /** Emits current mouse position
         \note changed in 1.3 */
     void xyCoordinates( const QgsPoint &p );
 

@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 10.2.2013
     Copyright            : (C) 2013 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -13,13 +13,14 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef QGSFEATURELIST_H
-#define QGSFEATURELIST_H
+#ifndef QGSDUALVIEW_H
+#define QGSDUALVIEW_H
 
 #include <QStackedWidget>
 
 #include "ui_qgsdualviewbase.h"
 
+#include "qgsfieldconditionalformatwidget.h"
 #include "qgsattributeeditorcontext.h"
 #include "qgsattributetablefiltermodel.h"
 #include "qgscachedfeatureiterator.h"
@@ -125,7 +126,7 @@ class GUI_EXPORT QgsDualView : public QStackedWidget, private Ui::QgsDualViewBas
      * @param filteredFeatures  A list of feature ids
      *
      */
-    void setFilteredFeatures( QgsFeatureIds filteredFeatures );
+    void setFilteredFeatures( const QgsFeatureIds& filteredFeatures );
 
     QgsFeatureIds filteredFeatures() { return mFilterModel->filteredFeatures(); }
 
@@ -162,12 +163,14 @@ class GUI_EXPORT QgsDualView : public QStackedWidget, private Ui::QgsDualViewBas
      */
     bool saveEditChanges();
 
+    void openConditionalStyles();
+
   signals:
     /**
      * Is emitted, whenever the display expression is successfully changed
      * @param expression The expression that was applied
      */
-    void displayExpressionChanged( const QString expression );
+    void displayExpressionChanged( const QString& expression );
 
     /**
      * Is emitted, whenever the filter changes
@@ -189,9 +192,9 @@ class GUI_EXPORT QgsDualView : public QStackedWidget, private Ui::QgsDualViewBas
 
     void previewColumnChanged( QObject* previewAction );
 
-    void viewWillShowContextMenu( QMenu* menu, QModelIndex atIndex );
+    void viewWillShowContextMenu( QMenu* menu, const QModelIndex& atIndex );
 
-    void previewExpressionChanged( const QString expression );
+    void previewExpressionChanged( const QString& expression );
 
     /**
      * Will be called whenever the currently shown feature form changes.
@@ -271,4 +274,4 @@ class GUI_EXPORT QgsAttributeTableMapLayerAction : public QAction
     QModelIndex mFieldIdx;
 };
 
-#endif // QGSFEATURELIST_H
+#endif // QGSDUALVIEW_H

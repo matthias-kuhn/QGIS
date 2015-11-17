@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 29.4.2013
     Copyright            : (C) 2013 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -55,28 +55,28 @@ class QgsRelation
      *
      * @param id
      */
-    void setRelationId( QString id );
+    void setRelationId( const QString& id );
 
     /**
      * Set a name for this relation
      *
      * @param name
      */
-    void setRelationName( QString name );
+    void setRelationName( const QString& name );
 
     /**
      * Set the referencing layer id. This layer will be searched in the registry.
      *
      * @param id
      */
-    void setReferencingLayer( QString id );
+    void setReferencingLayer( const QString& id );
 
     /**
      * Set the referenced layer id. This layer will be searched in the registry.
      *
      * @param id
      */
-    void setReferencedLayer( QString id );
+    void setReferencedLayer( const QString& id );
 
     /**
      * Add a field pairs which is part of this relation
@@ -86,7 +86,7 @@ class QgsRelation
      * @param referencingField  The field name on the referencing layer (FK)
      * @param referencedField   The field name on the referenced layer  (PK)
      */
-    void addFieldPair( QString referencingField, QString referencedField );
+    void addFieldPair( const QString& referencingField, const QString& referencedField );
 
     /**
      * Add a field pairs which is part of this relation
@@ -118,13 +118,22 @@ class QgsRelation
      */
     QgsFeatureRequest getRelatedFeaturesRequest( const QgsFeature& feature ) const;
 
-    const QString name() const;
+    QgsFeatureRequest getReferencedFeatureRequest( const QgsFeature& feature ) const;
+
+    QgsFeature getReferencedFeature( const QgsFeature& child ) const;
 
     /**
      * The id
      * @return
      */
-    const QString& id() const;
+    QString name() const;
+
+    /**
+     * A (project-wide) unique id for this relation
+     *
+     * @return The id
+     */
+    QString id() const;
 
     /**
      * Access the referencing (child) layer's id
@@ -182,5 +191,4 @@ class QgsRelation
 
   protected:
     void updateRelationStatus();
-    void runChecks();
 };

@@ -3,7 +3,7 @@
     ---------------------
     begin                : September 2012
     copyright            : (C) 2012 by Matthias Kuhn
-    email                : matthias dot kuhn at gmx dot ch
+    email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -80,7 +80,7 @@ class APP_EXPORT QgsFieldsProperties : public QWidget, private Ui_QgsFieldsPrope
     class DragList : public QTableWidget
     {
       public:
-        DragList( QWidget* parent = 0 )
+        explicit DragList( QWidget* parent = 0 )
             : QTableWidget( parent )
         {}
 
@@ -98,11 +98,11 @@ class APP_EXPORT QgsFieldsProperties : public QWidget, private Ui_QgsFieldsPrope
     class DesignerTree : public QTreeWidget
     {
       public:
-        DesignerTree( QWidget* parent = 0 )
+        explicit DesignerTree( QWidget* parent = 0 )
             : QTreeWidget( parent )
         {}
         QTreeWidgetItem* addItem( QTreeWidgetItem* parent, DesignerTreeItemData data );
-        QTreeWidgetItem* addContainer( QTreeWidgetItem* parent, QString title );
+        QTreeWidgetItem* addContainer( QTreeWidgetItem* parent, const QString& title );
 
       protected:
         virtual void dragMoveEvent( QDragMoveEvent *event ) override;
@@ -138,12 +138,12 @@ class APP_EXPORT QgsFieldsProperties : public QWidget, private Ui_QgsFieldsPrope
 
     ~QgsFieldsProperties();
 
-    /**Adds an attribute to the table (but does not commit it yet)
+    /** Adds an attribute to the table (but does not commit it yet)
     @param field the field to add
     @return false in case of a name conflict, true in case of success */
     bool addAttribute( const QgsField &field );
 
-    /**Creates the a proper item to save from the tree
+    /** Creates the a proper item to save from the tree
      * @param item The tree widget item to process
      * @return A widget definition. Containing another container or the final field
      */
@@ -160,6 +160,15 @@ class APP_EXPORT QgsFieldsProperties : public QWidget, private Ui_QgsFieldsPrope
     void loadAttributeEditorTree();
     QTreeWidgetItem *loadAttributeEditorTreeItem( QgsAttributeEditorElement* const widgetDef, QTreeWidgetItem* parent );
 
+    /**
+     * @brief setEditFormInit set the private ui fields
+     * @param editForm
+     * @param editFormInit
+     * @param editFormInitCode
+     * @param editFormInitUseCode
+     */
+    void setEditFormInit( const QString &editForm, const QString &editFormInit, const QString &editFormInitCode, const bool editFormInitUseCode );
+
   signals:
     void toggleEditing();
 
@@ -170,7 +179,7 @@ class APP_EXPORT QgsFieldsProperties : public QWidget, private Ui_QgsFieldsPrope
     void onAttributeSelectionChanged();
     void on_pbnSelectEditForm_clicked();
     void on_mEditorLayoutComboBox_currentIndexChanged( int index );
-
+    void on_leEditFormInitUseCode_toggled( bool checked );
     void attributeAdded( int idx );
     void attributeDeleted( int idx );
     void attributeTypeDialog();
@@ -185,14 +194,14 @@ class APP_EXPORT QgsFieldsProperties : public QWidget, private Ui_QgsFieldsPrope
 
     void updateExpression();
 
-    /** editing of layer was toggled */
+    /** Editing of layer was toggled */
     void editingToggled();
 
   protected:
     void updateButtons();
 
     FieldConfig configForRow( int row );
-    void setConfigForRow( int row, FieldConfig cfg );
+    void setConfigForRow( int row, const FieldConfig& cfg );
 
     QgsVectorLayer* mLayer;
     DesignerTree* mDesignerTree;

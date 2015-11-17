@@ -141,7 +141,7 @@ bool QgsFeatureAction::addFeature( const QgsAttributeMap& defaultAttributes, boo
   QgsDebugMsg( QString( "reuseLastValues: %1" ).arg( reuseLastValues ) );
 
   // add the fields to the QgsFeature
-  const QgsFields& fields = mLayer->pendingFields();
+  const QgsFields& fields = mLayer->fields();
   mFeature.initAttributes( fields.count() );
   for ( int idx = 0; idx < fields.count(); ++idx )
   {
@@ -226,15 +226,15 @@ void QgsFeatureAction::onFeatureSaved( const QgsFeature& feature )
 
   if ( reuseLastValues )
   {
-    QgsFields fields = mLayer->pendingFields();
+    QgsFields fields = mLayer->fields();
     for ( int idx = 0; idx < fields.count(); ++idx )
     {
       QgsAttributes newValues = feature.attributes();
       QgsAttributeMap origValues = sLastUsedValues[ mLayer ];
-      if ( origValues[idx] != newValues[idx] )
+      if ( origValues[idx] != newValues.at( idx ) )
       {
         QgsDebugMsg( QString( "saving %1 for %2" ).arg( sLastUsedValues[ mLayer ][idx].toString() ).arg( idx ) );
-        sLastUsedValues[ mLayer ][idx] = newValues[idx];
+        sLastUsedValues[ mLayer ][idx] = newValues.at( idx );
       }
     }
   }

@@ -58,17 +58,19 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/../core
   ${CMAKE_CURRENT_SOURCE_DIR}/../core/geometry
   ${CMAKE_CURRENT_SOURCE_DIR}/../core/raster
+  ${CMAKE_CURRENT_SOURCE_DIR}/../core/symbology-ng
   ${CMAKE_CURRENT_SOURCE_DIR}/../gui
   ${CMAKE_CURRENT_SOURCE_DIR}/../gui/attributetable
   ${CMAKE_CURRENT_SOURCE_DIR}/../gui/editorwidgets
   ${CMAKE_CURRENT_SOURCE_DIR}/../gui/editorwidgets/core
   ${CMAKE_CURRENT_BINARY_DIR}/../ui
   ${CMAKE_CURRENT_BINARY_DIR}
+)
+INCLUDE_DIRECTORIES(SYSTEM
   ${GEOS_INCLUDE_DIR}
   ${GDAL_INCLUDE_DIR} # remove once raster layer is cleaned up
+  ${SQLITE3_INCLUDE_DIR}
 )
-
-INCLUDE_DIRECTORIES(${SQLITE3_INCLUDE_DIR})
 
 TARGET_LINK_LIBRARIES(qbrowser
   qgis_core

@@ -1,4 +1,4 @@
-﻿/***************************************************************************
+/***************************************************************************
                           qgshistogram.cpp
                           ----------------
     begin                : May 2015
@@ -83,6 +83,7 @@ QList<double> QgsHistogram::binEdges( int bins ) const
   double binWidth = ( mMax - mMin ) / bins;
 
   QList<double> edges;
+  edges.reserve( bins + 1 );
   edges << mMin;
   double current = mMin;
   for ( int i = 0; i < bins; ++i )

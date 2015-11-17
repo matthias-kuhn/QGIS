@@ -24,13 +24,13 @@
 class QListWidgetItem;
 class QgsComposer;
 
-/**Delegate for a line edit for renaming a composer. Prevents entry of duplicate composer names.*/
+/** Delegate for a line edit for renaming a composer. Prevents entry of duplicate composer names.*/
 class QgsComposerNameDelegate : public QItemDelegate
 {
     Q_OBJECT
 
   public:
-    QgsComposerNameDelegate( QObject *parent = 0 );
+    explicit QgsComposerNameDelegate( QObject *parent = 0 );
 
     QWidget *createEditor( QWidget *parent, const QStyleOptionViewItem &option,
                            const QModelIndex &index ) const override;
@@ -43,7 +43,7 @@ class QgsComposerNameDelegate : public QItemDelegate
                                const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
 };
 
-/**A dialog that shows the existing composer instances. Lets the user add new
+/** A dialog that shows the existing composer instances. Lets the user add new
 instances and change title of existing ones*/
 class QgsComposerManager: public QDialog, private Ui::QgsComposerManagerBase
 {
@@ -52,12 +52,14 @@ class QgsComposerManager: public QDialog, private Ui::QgsComposerManagerBase
     QgsComposerManager( QWidget * parent = 0, Qt::WindowFlags f = 0 );
     ~QgsComposerManager();
 
+    void addTemplates( const QMap<QString, QString>& templates );
+
   public slots:
     /** Raise, unminimize and activate this window */
     void activate();
 
   private:
-    /**Stores the relation between items and composer pointers. A 0 pointer for the composer means that
+    /** Stores the relation between items and composer pointers. A 0 pointer for the composer means that
       this composer needs to be created from a default template*/
     QMap<QListWidgetItem*, QgsComposer*> mItemComposerMap;
 
@@ -65,6 +67,9 @@ class QgsComposerManager: public QDialog, private Ui::QgsComposerManagerBase
      * @param fromUser whether to return user templates from ~/.qgis/composer_templates
      */
     QMap<QString, QString> defaultTemplates( bool fromUser = false ) const;
+    QMap<QString, QString> otherTemplates() const;
+
+    QMap<QString, QString> templatesFromPath( const QString& path ) const;
 
     /** Open local directory with user's system, creating it if not present
      */

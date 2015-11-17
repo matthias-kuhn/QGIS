@@ -171,7 +171,7 @@ QgsGrassMapcalc::QgsGrassMapcalc(
   mFunctions.push_back( QgsGrassMapcalcFunction( t, "ewres", 0, tr( "Current east-west resolution" ) ) );
   mFunctions.push_back( QgsGrassMapcalcFunction( t, "exp", 1, tr( "Exponential function of x" ), "exp(x)" ) );
   mFunctions.push_back( QgsGrassMapcalcFunction( t, "exp", 2, tr( "x to the power y" ), "exp(x,y)" ) );
-  mFunctions.push_back( QgsGrassMapcalcFunction( t, "float", 2, tr( "Convert x to single-precision floating point" ), "float(x)" ) );
+  mFunctions.push_back( QgsGrassMapcalcFunction( t, "float", 1, tr( "Convert x to single-precision floating point" ), "float(x)" ) );
   mFunctions.push_back( QgsGrassMapcalcFunction( t, "if", 1, tr( "Decision: 1 if x not zero, 0 otherwise" ), "if(x)" ) );
   mFunctions.push_back( QgsGrassMapcalcFunction( t, "if", 2, tr( "Decision: a if x not zero, 0 otherwise" ), "if(x,a)" ) );
   mFunctions.push_back( QgsGrassMapcalcFunction( t, "if", 3, tr( "Decision: a if x not zero, b otherwise" ), "if(x,a,b)", "if,then,else", false ) );
@@ -481,11 +481,13 @@ QStringList QgsGrassMapcalc::checkRegion()
   QList<QGraphicsItem *> l = mCanvasScene->items();
 
   struct Cell_head currentWindow;
-  if ( !QgsGrass::region( QgsGrass::getDefaultGisdbase(),
-                          QgsGrass::getDefaultLocation(),
-                          QgsGrass::getDefaultMapset(), &currentWindow ) )
+  try
   {
-    QMessageBox::warning( 0, tr( "Warning" ), tr( "Cannot get current region" ) );
+    QgsGrass::region( &currentWindow );
+  }
+  catch ( QgsGrass::Exception &e )
+  {
+    QgsGrass::warning( e );
     return list;
   }
 
@@ -536,11 +538,13 @@ bool QgsGrassMapcalc::inputRegion( struct Cell_head *window, QgsCoordinateRefere
   Q_UNUSED( all );
   QgsDebugMsg( "entered." );
 
-  if ( !QgsGrass::region( QgsGrass::getDefaultGisdbase(),
-                          QgsGrass::getDefaultLocation(),
-                          QgsGrass::getDefaultMapset(), window ) )
+  try
   {
-    QMessageBox::warning( 0, tr( "Warning" ), tr( "Cannot get current region" ) );
+    QgsGrass::region( window );
+  }
+  catch ( QgsGrass::Exception &e )
+  {
+    QgsGrass::warning( e );
     return false;
   }
 

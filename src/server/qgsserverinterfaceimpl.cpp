@@ -49,7 +49,7 @@ void QgsServerInterfaceImpl::setRequestHandler( QgsRequestHandler * requestHandl
   mRequestHandler = requestHandler;
 }
 
-void QgsServerInterfaceImpl::setConfigFilePath( QString configFilePath )
+void QgsServerInterfaceImpl::setConfigFilePath( const QString& configFilePath )
 {
   mConfigFilePath = configFilePath;
 }
@@ -57,4 +57,9 @@ void QgsServerInterfaceImpl::setConfigFilePath( QString configFilePath )
 void QgsServerInterfaceImpl::registerFilter( QgsServerFilter *filter, int priority )
 {
   mFilters.insert( priority, filter );
+}
+
+void QgsServerInterfaceImpl::setFilters( QgsServerFiltersMap* filters )
+{
+  mFilters = *filters;
 }

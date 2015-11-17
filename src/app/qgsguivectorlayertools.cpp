@@ -3,7 +3,7 @@
      --------------------------------------
     Date                 : 30.5.2013
     Copyright            : (C) 2013 Matthias Kuhn
-    Email                : matthias dot kuhn at gmx dot ch
+    Email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -32,7 +32,7 @@ QgsGuiVectorLayerTools::QgsGuiVectorLayerTools()
     : QObject( NULL )
 {}
 
-bool QgsGuiVectorLayerTools::addFeature( QgsVectorLayer* layer, QgsAttributeMap defaultValues, const QgsGeometry& defaultGeometry ) const
+bool QgsGuiVectorLayerTools::addFeature( QgsVectorLayer* layer, const QgsAttributeMap& defaultValues, const QgsGeometry& defaultGeometry ) const
 {
   QgsFeature f;
   f.setGeometry( defaultGeometry );

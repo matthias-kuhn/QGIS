@@ -38,11 +38,11 @@ class GUI_EXPORT QgsDetailedItemDelegate :
   public:
     QgsDetailedItemDelegate( QObject * parent = 0 );
     ~QgsDetailedItemDelegate();
-    /** reimplement for parent class */
+    /** Reimplement for parent class */
     void paint( QPainter * thePainter,
                 const QStyleOptionViewItem & theOption,
                 const QModelIndex & theIndex ) const override;
-    /** reimplement for parent class */
+    /** Reimplement for parent class */
     QSize sizeHint( const QStyleOptionViewItem & theOption,
                     const QModelIndex & theIndex ) const override;
 
@@ -62,8 +62,8 @@ class GUI_EXPORT QgsDetailedItemDelegate :
                         QPainter * thepPainter,
                         int theHeight ) const;
 
-    QStringList wordWrap( QString theString,
-                          QFontMetrics theMetrics,
+    QStringList wordWrap( const QString& theString,
+                          const QFontMetrics& theMetrics,
                           int theWidth ) const;
     void paintManually( QPainter *thePainter,
                         const QStyleOptionViewItem &theOption,

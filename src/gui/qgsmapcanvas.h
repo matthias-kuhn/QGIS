@@ -24,6 +24,7 @@
 #include <memory>
 #include <deque>
 
+#include "qgsexpressioncontext.h"
 #include "qgsrectangle.h"
 #include "qgspoint.h"
 #include "qgis.h"
@@ -102,6 +103,7 @@ class GUI_EXPORT QgsMapCanvasLayer
  * Map canvas is a class for displaying all GIS data types on a canvas.
  */
 
+Q_NOWARN_DEPRECATED_PUSH
 class GUI_EXPORT QgsMapCanvas : public QGraphicsView
 {
     Q_OBJECT
@@ -252,7 +254,7 @@ class GUI_EXPORT QgsMapCanvas : public QGraphicsView
      */
     void unsetMapTool( QgsMapTool* mapTool );
 
-    /**Returns the currently active tool*/
+    /** Returns the currently active tool*/
     QgsMapTool* mapTool();
 
     /** Write property of QColor bgColor. */
@@ -280,14 +282,14 @@ class GUI_EXPORT QgsMapCanvas : public QGraphicsView
     //! return list of layers within map canvas.
     QList<QgsMapLayer*> layers() const;
 
-    /*! Freeze/thaw the map canvas. This is used to prevent the canvas from
+    /** Freeze/thaw the map canvas. This is used to prevent the canvas from
      * responding to events while layers are being added/removed etc.
      * @param frz Boolean specifying if the canvas should be frozen (true) or
      * thawed (false). Default is true.
      */
     void freeze( bool frz = true );
 
-    /*! Accessor for frozen status of canvas */
+    /** Accessor for frozen status of canvas */
     bool isFrozen();
 
     //! Flag the canvas as dirty and needed a refresh
@@ -408,16 +410,40 @@ class GUI_EXPORT QgsMapCanvas : public QGraphicsView
      */
     void setSnappingUtils( QgsSnappingUtils* utils );
 
+    /** Sets an expression context scope for the map canvas. This scope is injected into the expression
+     * context used for rendering the map, and can be used to apply specific variable overrides for
+     * expression evaluation for the map canvas render. This method will overwrite the existing expression
+     * context scope for the canvas.
+     * @param scope new expression context scope
+     * @note added in QGIS 2.12
+     * @see expressionContextScope()
+     */
+    void setExpressionContextScope( const QgsExpressionContextScope& scope ) { mExpressionContextScope = scope; }
+
+    /** Returns a reference to the expression context scope for the map canvas. This scope is injected
+     * into the expression context used for rendering the map, and can be used to apply specific variable
+     * overrides for expression evaluation for the map canvas render.
+     * @note added in QGIS 2.12
+     * @see setExpressionContextScope()
+     */
+    QgsExpressionContextScope& expressionContextScope() { return mExpressionContextScope; }
+
+    /** Returns a const reference to the expression context scope for the map canvas.
+     * @note added in QGIS 2.12
+     * @see setExpressionContextScope()
+     */
+    const QgsExpressionContextScope& expressionContextScope() const { return mExpressionContextScope; }
+
   public slots:
 
-    /**Repaints the canvas map*/
+    /** Repaints the canvas map*/
     void refresh();
 
     //! Receives signal about selection change, and pass it on with layer info
     void selectionChangedSlot();
 
     //! Save the convtents of the map canvas to disk as an image
-    void saveAsImage( QString theFileName, QPixmap * QPixmap = 0, QString = "PNG" );
+    void saveAsImage( const QString& theFileName, QPixmap * QPixmap = 0, const QString& = "PNG" );
 
     //! This slot is connected to the visibility change of one or more layers
     void layerStateChange();
@@ -428,7 +454,7 @@ class GUI_EXPORT QgsMapCanvas : public QGraphicsView
     //! Whether to suppress rendering or not
     void setRenderFlag( bool theFlag );
     //! State of render suppression flag
-    bool renderFlag() {return mRenderFlag;};
+    bool renderFlag() {return mRenderFlag;}
 
     /** A simple helper method to find out if on the fly projections are enabled or not */
     bool hasCrsTransformEnabled();
@@ -476,7 +502,7 @@ class GUI_EXPORT QgsMapCanvas : public QGraphicsView
     //! @deprecated since 2.4 - already unused in 2.0 anyway
     Q_DECL_DEPRECATED void setProgress( int, int );
 
-    /** emits current mouse position
+    /** Emits current mouse position
         \note changed in 1.3 */
     void xyCoordinates( const QgsPoint &p );
 
@@ -607,7 +633,7 @@ class GUI_EXPORT QgsMapCanvas : public QGraphicsView
     QScopedPointer<CanvasProperties> mCanvasProperties;
 
 #if 0
-    /**debugging member
+    /** Debugging member
        invoked when a connect() is made to this object
     */
     void connectNotify( const char * signal ) override;
@@ -697,7 +723,10 @@ class GUI_EXPORT QgsMapCanvas : public QGraphicsView
 
     QgsSnappingUtils* mSnappingUtils;
 
+    QgsExpressionContextScope mExpressionContextScope;
+
 }; // class QgsMapCanvas
+Q_NOWARN_DEPRECATED_POP
 
 
 

@@ -60,25 +60,25 @@ class CORE_EXPORT QgsVectorDataProvider : public QgsDataProvider
      */
     enum Capability
     {
-      /** provider has no capabilities */
+      /** Provider has no capabilities */
       NoCapabilities =                     0,
-      /** allows adding features */
+      /** Allows adding features */
       AddFeatures =                        1,
-      /** allows deletion of features */
+      /** Allows deletion of features */
       DeleteFeatures =               1 <<  1,
-      /** allows modification of attribute values */
+      /** Allows modification of attribute values */
       ChangeAttributeValues =        1 <<  2,
-      /** allows addition of new attributes (fields) */
+      /** Allows addition of new attributes (fields) */
       AddAttributes =                1 <<  3,
-      /** allows deletion of attributes (fields) */
+      /** Allows deletion of attributes (fields) */
       DeleteAttributes =             1 <<  4,
       /** DEPRECATED - do not use */
       SaveAsShapefile =              1 <<  5,
-      /** allows creation of spatial index */
+      /** Allows creation of spatial index */
       CreateSpatialIndex =           1 <<  6,
-      /** fast access to features using their ID */
+      /** Fast access to features using their ID */
       SelectAtId =                   1 <<  7,
-      /** allows modifications of geometries */
+      /** Allows modifications of geometries */
       ChangeGeometries =             1 <<  8,
       /** DEPRECATED - do not use */
       SelectGeometryAtId =           1 <<  9,
@@ -87,17 +87,19 @@ class CORE_EXPORT QgsVectorDataProvider : public QgsDataProvider
       /** DEPRECATED - do not use */
       SequentialSelectGeometryAtId = 1 << 11,
       CreateAttributeIndex =         1 << 12,
-      /** allows user to select encoding */
+      /** Allows user to select encoding */
       SelectEncoding =               1 << 13,
-      /** supports simplification of geometries on provider side according to a distance tolerance */
+      /** Supports simplification of geometries on provider side according to a distance tolerance */
       SimplifyGeometries =           1 << 14,
-      /** supports topological simplification of geometries on provider side according to a distance tolerance */
+      /** Supports topological simplification of geometries on provider side according to a distance tolerance */
       SimplifyGeometriesWithTopologicalValidation = 1 << 15,
-      /** supports transactions*/
-      TransactionSupport = 1 << 16
+      /** Supports transactions*/
+      TransactionSupport = 1 << 16,
+      /** Supports circular geometry types (circularstring, compoundcurve, curvepolygon)*/
+      CircularGeometries = 1 << 17
     };
 
-    /** bitmask of all provider's editing capabilities */
+    /** Bitmask of all provider's editing capabilities */
     const static int EditingCapabilities = AddFeatures | DeleteFeatures |
                                            ChangeAttributeValues | ChangeGeometries | AddAttributes | DeleteAttributes;
 
@@ -105,7 +107,7 @@ class CORE_EXPORT QgsVectorDataProvider : public QgsDataProvider
      * Constructor of the vector provider
      * @param uri  uniform resource locator (URI) for a dataset
      */
-    QgsVectorDataProvider( QString uri = QString() );
+    QgsVectorDataProvider( const QString& uri = QString() );
 
     /**
      * Destructor
@@ -257,7 +259,7 @@ class CORE_EXPORT QgsVectorDataProvider : public QgsDataProvider
      */
     virtual bool createSpatialIndex();
 
-    /**Create an attribute index on the datasource*/
+    /** Create an attribute index on the datasource*/
     virtual bool createAttributeIndex( int field );
 
     /** Returns a bitmask containing the supported capabilities
@@ -314,8 +316,8 @@ class CORE_EXPORT QgsVectorDataProvider : public QgsDataProvider
 
     struct NativeType
     {
-      NativeType( QString typeDesc, QString typeName, QVariant::Type type, int minLen = 0, int maxLen = 0, int minPrec = 0, int maxPrec = 0 ) :
-          mTypeDesc( typeDesc ), mTypeName( typeName ), mType( type ), mMinLen( minLen ), mMaxLen( maxLen ), mMinPrec( minPrec ), mMaxPrec( maxPrec ) {};
+      NativeType( const QString& typeDesc, const QString& typeName, QVariant::Type type, int minLen = 0, int maxLen = 0, int minPrec = 0, int maxPrec = 0 ) :
+          mTypeDesc( typeDesc ), mTypeName( typeName ), mType( type ), mMinLen( minLen ), mMaxLen( maxLen ), mMinPrec( minPrec ), mMaxPrec( maxPrec ) {}
 
       QString mTypeDesc;
       QString mTypeName;
@@ -362,12 +364,23 @@ class CORE_EXPORT QgsVectorDataProvider : public QgsDataProvider
      */
     virtual bool isSaveAndLoadStyleToDBSupported() { return false; }
 
-    static QVariant convertValue( QVariant::Type type, QString value );
+    static QVariant convertValue( QVariant::Type type, const QString& value );
 
     /**
      * Returns the transaction this data provider is included in, if any.
      */
     virtual QgsTransaction* transaction() const { return 0; }
+
+    /**
+     * Forces a reload of the underlying datasource if the provider implements this
+     * method.
+     * In particular on the OGR provider, a pooled connection will be invalidated.
+     * This forces QGIS to reopen a file or connection.
+     * This can be required if the underlying file is replaced.
+     */
+    virtual void forceReload() {
+      emit dataChanged();
+    }
 
   protected:
     void clearMinMaxCache();
@@ -385,16 +398,16 @@ class CORE_EXPORT QgsVectorDataProvider : public QgsDataProvider
     /** The names of the providers native types*/
     QList< NativeType > mNativeTypes;
 
-    void pushError( QString msg );
+    void pushError( const QString& msg );
 
     /** Old-style mapping of index to name for QgsPalLabeling fix */
     QgsAttrPalIndexNameHash mAttrPalIndexName;
 
   private:
-    /** old notation **/
+    /** Old notation **/
     QMap<QString, QVariant::Type> mOldTypeList;
 
-    /** list of errors */
+    /** List of errors */
     QStringList mErrors;
 
     static QStringList smEncodings;

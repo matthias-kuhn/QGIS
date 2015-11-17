@@ -3,7 +3,7 @@
     ---------------------
     begin                : September 2012
     copyright            : (C) 2012 by Matthias Kuhn
-    email                : matthias dot kuhn at gmx dot ch
+    email                : matthias at opengis dot ch
  ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -115,9 +115,6 @@ QgsFieldsProperties::QgsFieldsProperties( QgsVectorLayer *layer, QWidget* parent
   mRelationsList->setHorizontalHeaderItem( RelFieldCol, new QTableWidgetItem( tr( "Field" ) ) );
   mRelationsList->verticalHeader()->hide();
 
-  leEditForm->setText( layer->editForm() );
-  leEditFormInit->setText( layer->editFormInit() );
-
   loadRelations();
 
   updateButtons();
@@ -186,6 +183,38 @@ QTreeWidgetItem *QgsFieldsProperties::loadAttributeEditorTreeItem( QgsAttributeE
   return newWidget;
 }
 
+void QgsFieldsProperties::setEditFormInit( const QString &editForm, const QString &editFormInit, const QString &editFormInitCode, const bool editFormInitUseCode )
+{
+
+  // Python init function and code
+  QString code( editFormInitCode );
+  if ( code.isEmpty( ) )
+  {
+    code.append( tr( "# -*- coding: utf-8 -*-\n\"\"\"\n"
+                     "QGIS forms can have a Python function that is called when the form is\n"
+                     "opened.\n"
+                     "\n"
+                     "Use this function to add extra logic to your forms.\n"
+                     "\n"
+                     "Enter the name of the function in the \"Python Init function\"\n"
+                     "field.\n"
+                     "An example follows:\n"
+                     "\"\"\"\n"
+                     "from PyQt4.QtGui import QWidget\n\n"
+                     "def my_form_open(dialog, layer, feature):\n"
+                     "\tgeom = feature.geometry()\n"
+                     "\tcontrol = dialog.findChild(QWidget, \"MyLineEdit\")\n" ) );
+
+  }
+  leEditForm->setText( editForm );
+  leEditFormInitCode->setText( code );
+  leEditFormInit->setText( editFormInit );
+  leEditFormInitUseCode->setChecked( editFormInitUseCode );
+  // Show or hide as needed
+  mPythonInitCodeGroupBox->setVisible( editFormInitUseCode );
+}
+
+
 void QgsFieldsProperties::loadAttributeEditorTree()
 {
   // tabs and groups info
@@ -205,7 +234,7 @@ void QgsFieldsProperties::loadAttributeEditorTree()
 void QgsFieldsProperties::loadRows()
 {
   disconnect( mFieldsList, SIGNAL( cellChanged( int, int ) ), this, SLOT( attributesListCellChanged( int, int ) ) );
-  const QgsFields &fields = mLayer->pendingFields();
+  const QgsFields &fields = mLayer->fields();
 
   mIndexedWidgets.clear();
   mFieldsList->setRowCount( 0 );
@@ -223,7 +252,7 @@ void QgsFieldsProperties::setRow( int row, int idx, const QgsField& field )
   dataItem->setData( Qt::DisplayRole, idx );
   DesignerTreeItemData itemData( DesignerTreeItemData::Field, field.name() );
   dataItem->setData( DesignerTreeRole, itemData.asQVariant() );
-  switch ( mLayer->pendingFields().fieldOrigin( idx ) )
+  switch ( mLayer->fields().fieldOrigin( idx ) )
   {
     case QgsFields::OriginExpression:
       dataItem->setIcon( QgsApplication::getThemeIcon( "/mIconExpression.svg" ) );
@@ -244,11 +273,12 @@ void QgsFieldsProperties::setRow( int row, int idx, const QgsField& field )
   mFieldsList->setItem( row, attrTypeNameCol, new QTableWidgetItem( field.typeName() ) );
   mFieldsList->setItem( row, attrLengthCol, new QTableWidgetItem( QString::number( field.length() ) ) );
   mFieldsList->setItem( row, attrPrecCol, new QTableWidgetItem( QString::number( field.precision() ) ) );
-  if ( mLayer->pendingFields().fieldOrigin( idx ) == QgsFields::OriginExpression )
+  if ( mLayer->fields().fieldOrigin( idx ) == QgsFields::OriginExpression )
   {
     QWidget* expressionWidget = new QWidget;
     expressionWidget->setLayout( new QHBoxLayout );
     QToolButton* editExpressionButton = new QToolButton;
+    editExpressionButton->setProperty( "Index", mLayer->fields().fieldOriginIndex( idx ) );
     editExpressionButton->setIcon( QgsApplication::getThemeIcon( "/mIconExpression.svg" ) );
     connect( editExpressionButton, SIGNAL( clicked() ), this, SLOT( updateExpression() ) );
     expressionWidget->layout()->setContentsMargins( 0, 0, 0, 0 );
@@ -310,7 +340,7 @@ void QgsFieldsProperties::loadRelations()
     item->setFlags( Qt::ItemIsDragEnabled | Qt::ItemIsEnabled | Qt::ItemIsSelectable );
     mRelationsList->setItem( idx, RelLayerCol, item );
 
-    item = new QTableWidgetItem( relation.fieldPairs().first().referencingField() );
+    item = new QTableWidgetItem( relation.fieldPairs().at( 0 ).referencingField() );
     item->setFlags( Qt::ItemIsDragEnabled | Qt::ItemIsEnabled | Qt::ItemIsSelectable );
     mRelationsList->setItem( idx, RelFieldCol, item );
 
@@ -423,6 +453,11 @@ void QgsFieldsProperties::on_mMoveUpItem_clicked()
   }
 }
 
+void QgsFieldsProperties::on_leEditFormInitUseCode_toggled( bool checked )
+{
+  mPythonInitCodeGroupBox->setVisible( checked );
+}
+
 void QgsFieldsProperties::attributeTypeDialog()
 {
   QPushButton *pb = qobject_cast<QPushButton *>( sender() );
@@ -476,7 +511,7 @@ void QgsFieldsProperties::attributeAdded( int idx )
   if ( sorted )
     mFieldsList->setSortingEnabled( false );
 
-  const QgsFields &fields = mLayer->pendingFields();
+  const QgsFields &fields = mLayer->fields();
   int row = mFieldsList->rowCount();
   mFieldsList->insertRow( row );
   setRow( row, idx, fields[idx] );
@@ -512,7 +547,7 @@ bool QgsFieldsProperties::addAttribute( const QgsField &field )
   else
   {
     mLayer->destroyEditCommand();
-    QMessageBox::critical( this, tr( "Failed to add field" ), tr( "Failed to add field '%1' of type '%2'. Is the field name unique?" ).arg( field.name() ).arg( field.typeName() ) );
+    QMessageBox::critical( this, tr( "Failed to add field" ), tr( "Failed to add field '%1' of type '%2'. Is the field name unique?" ).arg( field.name(), field.typeName() ) );
     return false;
   }
 }
@@ -524,7 +559,7 @@ void QgsFieldsProperties::editingToggled()
 
 QgsFieldsProperties::FieldConfig QgsFieldsProperties::configForRow( int row )
 {
-  foreach ( QTableWidgetItem* wdg, mIndexedWidgets )
+  Q_FOREACH ( QTableWidgetItem* wdg, mIndexedWidgets )
   {
     if ( wdg->row() == row )
     {
@@ -537,9 +572,9 @@ QgsFieldsProperties::FieldConfig QgsFieldsProperties::configForRow( int row )
   return FieldConfig();
 }
 
-void QgsFieldsProperties::setConfigForRow( int row, QgsFieldsProperties::FieldConfig cfg )
+void QgsFieldsProperties::setConfigForRow( int row, const QgsFieldsProperties::FieldConfig& cfg )
 {
-  foreach ( QTableWidgetItem* wdg, mIndexedWidgets )
+  Q_FOREACH ( QTableWidgetItem* wdg, mIndexedWidgets )
   {
     if ( wdg->row() == row )
     {
@@ -574,7 +609,7 @@ void QgsFieldsProperties::on_mDeleteAttributeButton_clicked()
       if ( idx < 0 )
         continue;
 
-      if ( mLayer->pendingFields().fieldOrigin( idx ) == QgsFields::OriginExpression )
+      if ( mLayer->fields().fieldOrigin( idx ) == QgsFields::OriginExpression )
         expressionFields << idx;
       else
         providerFields << idx;
@@ -620,7 +655,7 @@ void QgsFieldsProperties::updateButtons()
       if ( item->column() == 0 )
       {
         int idx = mIndexedWidgets.indexOf( item );
-        if ( mLayer->pendingFields().fieldOrigin( idx ) != QgsFields::OriginExpression )
+        if ( mLayer->fields().fieldOrigin( idx ) != QgsFields::OriginExpression )
         {
           mDeleteAttributeButton->setEnabled( false );
           break;
@@ -637,7 +672,7 @@ void QgsFieldsProperties::attributesListCellChanged( int row, int column )
   {
     int idx = mFieldsList->item( row, attrIdCol )->text().toInt();
 
-    const QgsFields &fields = mLayer->pendingFields();
+    const QgsFields &fields = mLayer->fields();
 
     if ( idx >= fields.count() )
     {
@@ -668,7 +703,11 @@ void QgsFieldsProperties::updateExpression()
 
   const QString exp = mLayer->expressionField( index );
 
-  QgsExpressionBuilderDialog dlg( mLayer, exp );
+  QgsExpressionContext context;
+  context << QgsExpressionContextUtils::globalScope()
+  << QgsExpressionContextUtils::projectScope();
+
+  QgsExpressionBuilderDialog dlg( mLayer, exp, 0, "generic", context );
 
   if ( dlg.exec() )
   {
@@ -838,6 +877,8 @@ void QgsFieldsProperties::apply()
   if ( mEditorLayoutComboBox->currentIndex() == QgsVectorLayer::UiFileLayout )
     mLayer->setEditForm( leEditForm->text() );
   mLayer->setEditFormInit( leEditFormInit->text() );
+  mLayer->setEditFormInitUseCode( leEditFormInitUseCode->isChecked() );
+  mLayer->setEditFormInitCode( leEditFormInitCode->text() );
   mLayer->setFeatureFormSuppress(( QgsVectorLayer::FeatureFormSuppress )mFormSuppressCmbBx->currentIndex() );
 
   mLayer->setExcludeAttributesWMS( excludeAttributesWMS );
@@ -860,8 +901,8 @@ QgsFieldsProperties::FieldConfig::FieldConfig( QgsVectorLayer* layer, int idx )
     : mButton( 0 )
 {
   mEditable = layer->fieldEditable( idx );
-  mEditableEnabled = layer->pendingFields().fieldOrigin( idx ) != QgsFields::OriginJoin
-                     && layer->pendingFields().fieldOrigin( idx ) != QgsFields::OriginExpression;
+  mEditableEnabled = layer->fields().fieldOrigin( idx ) != QgsFields::OriginJoin
+                     && layer->fields().fieldOrigin( idx ) != QgsFields::OriginExpression;
   mLabelOnTop = layer->labelOnTop( idx );
   mEditorWidgetV2Type = layer->editorWidgetV2( idx );
   mEditorWidgetV2Config = layer->editorWidgetV2Config( idx );
@@ -911,7 +952,7 @@ QMimeData* QgsFieldsProperties::DragList::mimeData( const QList<QTableWidgetItem
  * DesignerTree implementation
  */
 
-QTreeWidgetItem* QgsFieldsProperties::DesignerTree::addContainer( QTreeWidgetItem* parent, QString title )
+QTreeWidgetItem* QgsFieldsProperties::DesignerTree::addContainer( QTreeWidgetItem* parent, const QString& title )
 {
   QTreeWidgetItem *newItem = new QTreeWidgetItem( QStringList() << title );
   newItem->setBackground( 0, QBrush( Qt::lightGray ) );

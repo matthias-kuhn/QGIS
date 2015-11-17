@@ -61,7 +61,7 @@ class APP_EXPORT QgsAttributeTableDialog : public QDialog, private Ui::QgsAttrib
      * Sets the filter expression to filter visible features
      * @param filterString filter query string. QgsExpression compatible.
      */
-    void setFilterExpression( QString filterString );
+    void setFilterExpression( const QString& filterString );
 
   public slots:
     /**
@@ -86,6 +86,10 @@ class APP_EXPORT QgsAttributeTableDialog : public QDialog, private Ui::QgsAttrib
      * Saves edits
      */
     void on_mSaveEditsButton_clicked();
+    /**
+     * Reload the data
+     */
+    void on_mReloadButton_clicked();
 
     /**
      * Inverts selection
@@ -152,13 +156,14 @@ class APP_EXPORT QgsAttributeTableDialog : public QDialog, private Ui::QgsAttrib
     void filterEdited();
     void filterQueryChanged( const QString& query );
     void filterQueryAccepted();
+    void openConditionalStyles();
 
     /**
      * update window title
      */
     void updateTitle();
 
-    void updateButtonStatus( QString fieldName, bool isValid );
+    void updateButtonStatus( const QString& fieldName, bool isValid );
 
     /* replace the search widget with a new one */
     void replaceSearchWidget( QWidget* oldw, QWidget* neww );
@@ -195,7 +200,7 @@ class APP_EXPORT QgsAttributeTableDialog : public QDialog, private Ui::QgsAttrib
      */
     void columnBoxInit();
 
-    void runFieldCalculation( QgsVectorLayer* layer, QString fieldName, QString expression, QgsFeatureIds filteredIds = QgsFeatureIds() );
+    void runFieldCalculation( QgsVectorLayer* layer, const QString& fieldName, const QString& expression, const QgsFeatureIds& filteredIds = QgsFeatureIds() );
     void updateFieldFromExpression();
     void updateFieldFromExpressionSelected();
 
@@ -205,6 +210,7 @@ class APP_EXPORT QgsAttributeTableDialog : public QDialog, private Ui::QgsAttrib
 
     QDockWidget* mDock;
     QgsDistanceArea* myDa;
+
 
     QMenu* mFilterColumnsMenu;
     QSignalMapper* mFilterActionMapper;

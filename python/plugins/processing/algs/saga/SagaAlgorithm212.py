@@ -29,6 +29,7 @@ __revision__ = '$Format:%H$'
 import os
 import importlib
 import subprocess
+from PyQt4.QtCore import QCoreApplication
 from PyQt4.QtGui import QIcon
 from processing.core.GeoAlgorithm import GeoAlgorithm
 from processing.core.ProcessingConfig import ProcessingConfig
@@ -73,17 +74,20 @@ class SagaAlgorithm212(GeoAlgorithm):
         if '|' in self.name:
             tokens = self.name.split('|')
             self.name = tokens[0]
+            self.i18n_name = QCoreApplication.translate("SAGAAlgorithm", unicode(self.name))
             self.cmdname = tokens[1]
         else:
             self.cmdname = self.name
+            self.i18n_name = QCoreApplication.translate("SAGAAlgorithm", unicode(self.name))
             self.name = self.name[0].upper() + self.name[1:].lower()
         line = lines.readline().strip('\n').strip()
         self.undecoratedGroup = line
         self.group = SagaGroupNameDecorator.getDecoratedName(self.undecoratedGroup)
+        self.i18n_group = QCoreApplication.translate("SAGAAlgorithm", self.group)
         line = lines.readline().strip('\n').strip()
         while line != '':
             if line.startswith('Hardcoded'):
-                self.hardcodedStrings.append(line[len('Harcoded|') + 1:])
+                self.hardcodedStrings.append(line[len('Hardcoded|'):])
             elif line.startswith('Parameter'):
                 self.addParameter(getParameterFromString(line))
             elif line.startswith('AllowUnmatching'):
@@ -97,7 +101,6 @@ class SagaAlgorithm212(GeoAlgorithm):
                 self.addOutput(getOutputFromString(line))
             line = lines.readline().strip('\n').strip()
         lines.close()
-
 
     def processAlgorithm(self, progress):
         commands = list()
@@ -165,9 +168,7 @@ class SagaAlgorithm212(GeoAlgorithm):
 
         # 2: Set parameters and outputs
         command = self.undecoratedGroup + ' "' + self.cmdname + '"'
-        if self.hardcodedStrings:
-            for s in self.hardcodedStrings:
-                command += ' ' + s
+        command += ' ' + ' '.join(self.hardcodedStrings)
 
         for param in self.parameters:
             if param.value is None:
@@ -194,8 +195,7 @@ class SagaAlgorithm212(GeoAlgorithm):
                 f.write('\t'.join([col for col in param.cols]) + '\n')
                 values = param.value.split(',')
                 for i in range(0, len(values), 3):
-                    s = values[i] + '\t' + values[i + 1] + '\t' + values[i
-                            + 2] + '\n'
+                    s = values[i] + '\t' + values[i + 1] + '\t' + values[i + 2] + '\n'
                     f.write(s)
                 f.close()
                 command += ' -' + param.name + ' "' + tempTableFile + '"'
@@ -207,17 +207,16 @@ class SagaAlgorithm212(GeoAlgorithm):
                 values = param.value.split(',')
                 for i in range(4):
                     command += ' -' + self.extentParamNames[i] + ' ' \
-                        + str(float(values[i]) + offset[i])
+                        + unicode(float(values[i]) + offset[i])
             elif isinstance(param, (ParameterNumber, ParameterSelection)):
-                command += ' -' + param.name + ' ' + str(param.value)
+                command += ' -' + param.name + ' ' + unicode(param.value)
             else:
-                command += ' -' + param.name + ' "' + str(param.value) + '"'
+                command += ' -' + param.name + ' "' + unicode(param.value) + '"'
 
         for out in self.outputs:
             command += ' -' + out.name + ' "' + out.getCompatibleFileName(self) + '"'
 
         commands.append(command)
-
 
         # special treatment for RGB algorithm
         #TODO: improve this and put this code somewhere else
@@ -227,8 +226,7 @@ class SagaAlgorithm212(GeoAlgorithm):
                 filename2 = filename + '.sgrd'
                 if self.cmdname == 'RGB Composite':
                     commands.append('io_grid_image 0 -IS_RGB -GRID:"' + filename2
-                                    + '" -FILE:"' + filename
-                                    + '"')
+                                    + '" -FILE:"' + filename + '"')
 
         # 3: Run SAGA
         commands = self.editCommands(commands)
@@ -246,9 +244,8 @@ class SagaAlgorithm212(GeoAlgorithm):
             for out in self.outputs:
                 if isinstance(out, (OutputVector, OutputRaster)):
                     prjFile = os.path.splitext(out.getCompatibleFileName(self))[0] + ".prj"
-                with open(prjFile, "w") as f:
-                    f.write(self.crs.toWkt())
-
+                    with open(prjFile, "w") as f:
+                        f.write(self.crs.toWkt())
 
     def preProcessInputs(self):
         name = self.commandLineName().replace('.', '_')[len('saga:'):]
@@ -284,7 +281,6 @@ class SagaAlgorithm212(GeoAlgorithm):
                 break
         return cellsize
 
-
     def exportRasterLayer(self, source):
         global sessionExportedLayers
         if source in sessionExportedLayers:
@@ -296,7 +292,7 @@ class SagaAlgorithm212(GeoAlgorithm):
                 del sessionExportedLayers[source]
         layer = dataobjects.getObjectFromUri(source, False)
         if layer:
-            filename = str(layer.name())
+            filename = unicode(layer.name())
         else:
             filename = os.path.basename(source)
         validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:'
@@ -306,7 +302,7 @@ class SagaAlgorithm212(GeoAlgorithm):
         destFilename = getTempFilenameInTempFolder(filename + '.sgrd')
         self.exportedLayers[source] = destFilename
         sessionExportedLayers[source] = destFilename
-        return 'io_gdal 0 -TRANSFORM -INTERPOL 0 -GRIDS "' + destFilename + '" -FILES "' + source +  '"'
+        return 'io_gdal 0 -TRANSFORM -INTERPOL 0 -GRIDS "' + destFilename + '" -FILES "' + source + '"'
 
     def checkParameterValuesBeforeExecuting(self):
         """
@@ -328,7 +324,7 @@ class SagaAlgorithm212(GeoAlgorithm):
                     continue
                 if layer.bandCount() > 1:
                     return self.tr('Input layer %s has more than one band.\n'
-                                   'Multiband layers are not supported by SAGA' % str(layer.name()))
+                                   'Multiband layers are not supported by SAGA' % unicode(layer.name()))
                 if not self.allowUnmatchingGridExtents:
                     if extent is None:
                         extent = (layer.extent(), layer.height(), layer.width())
@@ -336,5 +332,3 @@ class SagaAlgorithm212(GeoAlgorithm):
                         extent2 = (layer.extent(), layer.height(), layer.width())
                         if extent != extent2:
                             return self.tr("Input layers do not have the same grid extent.")
-
-
