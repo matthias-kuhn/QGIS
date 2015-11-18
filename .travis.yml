@@ -1,4 +1,4 @@
-language: generic
+language: cpp
 
 sudo: required
 
@@ -39,8 +39,8 @@ notifications:
     on_failure: always # options: [always|never|change] default: always
     on_start: never # default: never
 
-addons:
-  postgresql: "9.1"
+services:
+  - postgresql
 
 before_install:
   - ./ci/travis/${TRAVIS_OS_NAME}/before_install.sh
