@@ -25,8 +25,6 @@ sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggest
         libgsl0-dev \
         libpq-dev \
         libproj-dev \
-        libqscintilla2-dev \
-        libqwt-dev \
         libspatialindex-dev \
         libspatialite-dev \
         libsqlite3-dev \
@@ -34,10 +32,6 @@ sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggest
         pkg-config \
         poppler-utils \
         python \
-        python-dev \
-        python-sip \
-        python-sip-dev \
-        python-gdal \
         spawn-fcgi \
         txt2tags \
         xauth \
@@ -46,10 +40,13 @@ sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggest
         xfonts-base \
         xfonts-scalable \
         xvfb
-#        postgresql-9.1-postgis-2.1/trusty # from ubuntugis-unstable, not pgdg
 
 if [ ${QT} == 5 ]; then
   sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggests \
+    python3-dev \
+    python3-sip \
+    python3-sip-dev \
+    python3-pyqt5 \
     qtbase5-dev \
     qttools5-dev \
     qt5-default \
@@ -63,6 +60,11 @@ if [ ${QT} == 5 ]; then
     libqt5webkit5-dev
 else
   sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggests \
+    libqscintilla2-dev \
+    python-dev \
+    python-sip \
+    python-sip-dev \
+    libqwt-dev \
     libqca2-dev \
     libqca2-plugin-ossl \
     libqt4-dev \
