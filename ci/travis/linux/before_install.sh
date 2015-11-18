@@ -7,7 +7,7 @@ sudo add-apt-repository ppa:ubuntugis/ppa -y
 sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable -y # For postgresql-9.1-postgis-2.1
 sudo add-apt-repository ppa:smspillaz/cmake-3.0.2 -y
 sudo add-apt-repository ppa:kedazo/doxygen-updates-precise -y # For doxygen 1.8.8
-sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+sudo add-apt-repository ppa:latthias/ppa-qgis-travis -y # For doxygen 1.8.8
 sudo apt-get update -qq
 sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggests \
         bison \
@@ -43,6 +43,7 @@ sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggest
 
 if [ ${QT} == 5 ]; then
   sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggests \
+    qca-qt5 \
     python3-dev \
     python3-sip \
     python3-sip-dev \
