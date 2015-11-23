@@ -1271,6 +1271,48 @@ CMakeLists.txt parts) are still being worked on so that the testing framework
 works in a truly platform way. I will update this document as things
 progress.
 
+== Testing in Python ==
+
+Python tests are written for core QGIS Pyton code as well as Python plugins. We
+use a thin wrapper around Python's excellent [unittest](https://docs.python.org/3/library/unittest.html) library.
+
+An example test looks like this
+
+```
+import qgis
+from utilities import unittest, TestCase
+
+from qgis.someLibrary import MyClass
+from PyQt4.QtGui import SomeHelper
+
+class MyClassTest(unittest.TestCase):
+
+    def test_my_feature(self):
+        assert MyClass.my_feature == 'does the right thing'
+
+# So we can run this test file directly, rather than only as part of
+# the entire test suite.
+if __name__ == '__main__':
+    unittest.main()
+```
+
+To run your test, simply
+
+#FIXME this doesn't work. How do we get the approprite PYTHONPATH?
+
+```
+python tests/src/python/test_my_class.py
+```
+
+Once your test is passing, you need to integrate it into the build, so that we
+can run it as part of our regression suite. To do that, you'll need something
+like the following in the CMakeLists.txt in your test's source directory.
+
+```
+INCLUDE(UsePythonTest)
+
+ADD_PYTHON_TEST(MyClassTest MyClassTest.py)
+```
 
 = Getting up and running with QtCreator and QGIS =
 
