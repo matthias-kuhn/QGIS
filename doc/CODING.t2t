@@ -719,7 +719,7 @@ the details:
    programming advocates suggest that the code should not even be written yet 
    when you start building your tests, and then as you implement your code you can
    immediately validate each new functional part you add with your test. In
-   practive you will probably need to write tests for pre-existing code in QGIS
+   practice you will probably need to write tests for pre-existing code in QGIS
    since we are starting with a testing framework well after much application
    logic has already been implemented.
 
