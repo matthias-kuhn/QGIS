@@ -30,8 +30,6 @@ from processing.tools.general import *
 from processing.tools.vector import *
 from processing.tools.raster import *
 from processing.tools.system import *
-from processing.tests.TestData import loadTestData
-
 
 def classFactory(iface):
     from processing.ProcessingPlugin import ProcessingPlugin
