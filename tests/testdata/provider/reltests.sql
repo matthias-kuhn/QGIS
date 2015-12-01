@@ -1,31 +1,40 @@
-﻿DROP TABLE "qgis_test"."child";
-DROP TABLE "qgis_test"."parent";
-DROP SEQUENCE qgis_test.parent_id_seq;
-DROP SEQUENCE qgis_test.child_id_seq;
+﻿-- Table: qgis_test.authors
 
-CREATE SEQUENCE qgis_test.parent_id_seq
-  INCREMENT 1
-  MINVALUE 1
-  MAXVALUE 9223372036854775807
-  START 1
-  CACHE 1;
+-- DROP TABLE qgis_test.authors;
 
-
-CREATE SEQUENCE qgis_test.child_id_seq
-  INCREMENT 1
-  MINVALUE 1
-  MAXVALUE 9223372036854775807
-  START 1
-  CACHE 1;
-
-CREATE TABLE "qgis_test"."parent" (
-    "pk" integer PRIMARY KEY DEFAULT nextval('qgis_test.parent_id_seq'),
-    "name" CHARACTER VARYING( 255 ) COLLATE "pg_catalog"."default" UNIQUE
+CREATE TABLE qgis_test.authors
+(
+  pk serial NOT NULL,
+  name character varying(255),
+  CONSTRAINT authors_pkey PRIMARY KEY (pk),
+  CONSTRAINT authors_name_key UNIQUE (name)
 );
 
-CREATE TABLE "qgis_test"."child" (
-    "pk" integer PRIMARY KEY DEFAULT nextval('qgis_test.child_id_seq'),
-    "name" CHARACTER VARYING( 255 ) COLLATE "pg_catalog"."default" UNIQUE,
-    "fk" integer,
-    FOREIGN KEY (fk) REFERENCES qgis_test.parent(pk)
+-- Table: qgis_test.books
+
+-- DROP TABLE qgis_test.books;
+
+CREATE TABLE qgis_test.books
+(
+  pk serial NOT NULL,
+  name character varying(255),
+  CONSTRAINT books_pkey PRIMARY KEY (pk),
+  CONSTRAINT books_name_key UNIQUE (name)
+);
+
+-- Table: qgis_test.books_authors
+
+-- DROP TABLE qgis_test.books_authors;
+
+CREATE TABLE qgis_test.books_authors
+(
+  fk_book integer NOT NULL,
+  fk_author integer NOT NULL,
+  CONSTRAINT books_authors_pkey PRIMARY KEY (fk_book, fk_author),
+  CONSTRAINT books_authors_fk_author_fkey FOREIGN KEY (fk_author)
+      REFERENCES qgis_test.authors (pk) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE CASCADE,
+  CONSTRAINT books_authors_fk_book_fkey FOREIGN KEY (fk_book)
+      REFERENCES qgis_test.books (pk) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE CASCADE
 );
