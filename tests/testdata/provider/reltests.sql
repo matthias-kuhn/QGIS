@@ -38,3 +38,24 @@ CREATE TABLE qgis_test.books_authors
       REFERENCES qgis_test.books (pk) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE CASCADE
 );
+
+INSERT INTO qgis_test.authors(name)
+	    VALUES 
+              ('Erich Gamma'),
+              ('Richard Helm'),
+              ('Ralph Johnson'),
+              ('John Vlissides'),
+              ('Douglas Adams'),
+              ('Ken Follett'),
+              ('Gabriel García Márquez');
+
+INSERT INTO qgis_test.books(name)
+	    VALUES
+              ('Design Patterns. Elements of Reusable Object-Oriented Software');
+
+INSERT INTO qgis_test.books_authors(fk_book, fk_author)
+	    VALUES 
+              (1, 1),
+              (1, 2),
+              (1, 3),
+              (1, 4);
