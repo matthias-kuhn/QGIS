@@ -51,7 +51,13 @@ class CORE_EXPORT QgsSymbolLayerV2
     virtual ~QgsSymbolLayerV2();
 
     // not necessarily supported by all symbol layers...
+    /**
+     * The fill color. May not be implemented by every symbol layer.
+     */
     virtual QColor color() const { return mColor; }
+    /**
+     * The fill color. May not be implemented by every symbol layer.
+     */
     virtual void setColor( const QColor& color ) { mColor = color; }
 
     /** Set outline color. Supported by marker and fill layers.
@@ -70,11 +76,18 @@ class CORE_EXPORT QgsSymbolLayerV2
      * @note added in 2.1 */
     virtual QColor fillColor() const { return QColor(); }
 
+    /**
+     * Returns a string that represents this layer type. Used for serialization.
+     * Should match with the string used to register this symbo layer in the registry.
+     */
     virtual QString layerType() const = 0;
 
     virtual void startRender( QgsSymbolV2RenderContext& context ) = 0;
     virtual void stopRender( QgsSymbolV2RenderContext& context ) = 0;
 
+    /**
+     * Shall be reimplemented by subclasses to create a deep copy of the instance.
+     */
     virtual QgsSymbolLayerV2* clone() const = 0;
 
     virtual void toSld( QDomDocument &doc, QDomElement &element, const QgsStringMap& props ) const
@@ -82,6 +95,11 @@ class CORE_EXPORT QgsSymbolLayerV2
 
     virtual QString ogrFeatureStyle( double mmScaleFactor, double mapUnitScaleFactor ) const { Q_UNUSED( mmScaleFactor ); Q_UNUSED( mapUnitScaleFactor ); return QString(); }
 
+    /**
+     * Should be reimplemented by subclasses to return a string map that
+     * contains the configuration information for the symbol layer. This
+     * is used to serialize a symbol layer perstistently.
+     */
     virtual QgsStringMap properties() const = 0;
 
     virtual void drawPreviewIcon( QgsSymbolV2RenderContext& context, QSize size ) = 0;
