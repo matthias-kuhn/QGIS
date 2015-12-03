@@ -27,7 +27,7 @@ class CORE_EXPORT QgsPolygonGeneratorSymbolLayer : public QgsFillSymbolLayerV2
 
     QString geometryModifier() const { return mExpression->expression(); }
 
-    virtual QgsSymbolV2* subSymbol() const override { return mSymbol; }
+    virtual QgsSymbolV2* subSymbol() override { return mSymbol; }
 
     virtual bool setSubSymbol( QgsSymbolV2* symbol ) override;
 
