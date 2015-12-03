@@ -102,9 +102,6 @@ QgsRelationEditorWidget::QgsRelationEditorWidget( QWidget* parent )
   // add buttons layout
   topLayout->addLayout( buttonLayout );
 
-  // Set initial state for add/remove etc. buttons
-  updateButtons();
-
   mRelationLayout = new QGridLayout();
   mRelationLayout->setContentsMargins( 0, 0, 0, 0 );
   topLayout->addLayout( mRelationLayout );
@@ -124,6 +121,10 @@ QgsRelationEditorWidget::QgsRelationEditorWidget( QWidget* parent )
   connect( mDeleteFeatureButton, SIGNAL( clicked() ), this, SLOT( deleteFeature() ) );
   connect( mLinkFeatureButton, SIGNAL( clicked() ), this, SLOT( linkFeature() ) );
   connect( mUnlinkFeatureButton, SIGNAL( clicked() ), this, SLOT( unlinkFeature() ) );
+  connect( mFeatureSelectionMgr, SIGNAL( selectionChanged( QgsFeatureIds, QgsFeatureIds, bool ) ), this, SLOT( updateButtons() ) );
+
+  // Set initial state for add/remove etc. buttons
+  updateButtons();
 }
 
 void QgsRelationEditorWidget::setRelationFeature( const QgsRelation& relation, const QgsFeature& feature )
@@ -248,6 +249,8 @@ void QgsRelationEditorWidget::updateButtons()
 {
   bool editable = false;
   bool linkable = false;
+  bool selectionNotEmpty = mFeatureSelectionMgr->selectedFeatureCount();
+
   if ( mRelation.isValid() )
   {
     editable = mRelation.referencingLayer()->isEditable();
@@ -261,8 +264,8 @@ void QgsRelationEditorWidget::updateButtons()
 
   mAddFeatureButton->setEnabled( editable );
   mLinkFeatureButton->setEnabled( linkable );
-  mDeleteFeatureButton->setEnabled( editable );
-  mUnlinkFeatureButton->setEnabled( linkable );
+  mDeleteFeatureButton->setEnabled( editable && selectionNotEmpty );
+  mUnlinkFeatureButton->setEnabled( linkable && selectionNotEmpty );
   mToggleEditingButton->setChecked( editable );
   mSaveEditsButton->setEnabled( editable );
 }
@@ -283,7 +286,7 @@ void QgsRelationEditorWidget::addFeature()
       QgsFeature flink( mRelation.referencingLayer()->fields() ); // Linking feature
 
       flink.setAttribute( mRelation.fieldPairs().first().first, mFeature.attribute( mRelation.fieldPairs().first().second ) );
-      flink.setAttribute( mNmRelation.fieldPairs().first().first, f.attribute( mNmRelation.fieldPairs().first().second ) );
+      flink.setAttribute( mNmRelation.referencingFields().first(), f.attribute( mNmRelation.referencedFields().first() ) );
 
       mRelation.referencingLayer()->addFeature( flink );
 
