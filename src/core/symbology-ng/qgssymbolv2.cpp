@@ -652,6 +652,11 @@ void QgsSymbolV2::renderUsingLayer( QgsSymbolLayerV2* layer, QgsSymbolV2RenderCo
       case Marker:
         static_cast<QgsMarkerSymbolLayerV2*>( layer )->renderPoint( nullPoint, context );
         break;
+
+      case Hybrid:
+        Q_ASSERT( false );
+        // Layers should only be registered as accepting hybrid input but always return a defined output
+        break;
     }
 
     effect->end( context.renderContext() );
@@ -672,6 +677,11 @@ void QgsSymbolV2::renderUsingLayer( QgsSymbolLayerV2* layer, QgsSymbolV2RenderCo
 
       case Marker:
         static_cast<QgsMarkerSymbolLayerV2*>( layer )->renderPoint( nullPoint, context );
+        break;
+
+      case Hybrid:
+        Q_ASSERT( false );
+        // Layers should only be registered as accepting hybrid input but always return a defined output
         break;
     }
   }
@@ -905,9 +915,16 @@ void QgsSymbolV2::renderFeature( const QgsFeature& feature, QgsRenderContext& co
 
 
 QgsSymbolV2RenderContext::QgsSymbolV2RenderContext( QgsRenderContext& c, QgsSymbolV2::OutputUnit u, qreal alpha, bool selected, int renderHints, const QgsFeature* f, const QgsFields* fields, const QgsMapUnitScale& mapUnitScale )
-    : mRenderContext( c ), mOutputUnit( u ), mMapUnitScale( mapUnitScale ), mAlpha( alpha ), mSelected( selected ), mRenderHints( renderHints ), mFeature( f ), mFields( fields )
+    : mRenderContext( c ),
+    mOutputUnit( u ),
+    mMapUnitScale( mapUnitScale ),
+    mAlpha( alpha ),
+    mSelected( selected ),
+    mRenderHints( renderHints ),
+    mFeature( f ),
+    mFields( fields ),
+    mExpressionContext( c.expressionContext() )
 {
-
 }
 
 QgsSymbolV2RenderContext::~QgsSymbolV2RenderContext()

@@ -270,6 +270,8 @@ class CORE_EXPORT QgsSymbolV2RenderContext
     QgsRenderContext& renderContext() { return mRenderContext; }
     const QgsRenderContext& renderContext() const { return mRenderContext; }
 
+    const QgsExpressionContext& expressionContext() const { return mExpressionContext; }
+
     /** Sets the original value variable value for data defined symbology
      * @param value value for original value variable. This usually represents the symbol property value
      * before any data defined overrides have been applied.
@@ -319,6 +321,7 @@ class CORE_EXPORT QgsSymbolV2RenderContext
     int mRenderHints;
     const QgsFeature* mFeature; //current feature
     const QgsFields* mFields;
+    QgsExpressionContext mExpressionContext;
 };
 
 

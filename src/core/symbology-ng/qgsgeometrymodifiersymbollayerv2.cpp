@@ -8,8 +8,8 @@ QgsSymbolLayerV2* QgsPolygonGeneratorSymbolLayer::create( const QgsStringMap& pr
 
 QgsPolygonGeneratorSymbolLayer::QgsPolygonGeneratorSymbolLayer( QgsFillSymbolV2* symbol, const QgsStringMap& properties )
     : QgsFillSymbolLayerV2( QgsSymbolV2::Fill )
-    , mSymbol( symbol )
     , mExpression( new QgsExpression( properties.value( "geometryModifier" ) ) )
+    , mSymbol( symbol )
 {
 }
 
@@ -20,8 +20,7 @@ QString QgsPolygonGeneratorSymbolLayer::layerType() const
 
 void QgsPolygonGeneratorSymbolLayer::startRender( QgsSymbolV2RenderContext& context )
 {
-  // TODO prepare expression context
-  mExpression->prepare( *context.fields() );
+  mExpression->prepare( &context.expressionContext() );
 
   subSymbol()->startRender( context.renderContext() );
 }
@@ -64,15 +63,9 @@ bool QgsPolygonGeneratorSymbolLayer::setSubSymbol( QgsSymbolV2* symbol )
   return true;
 }
 
-QgsExpressionContext* QgsPolygonGeneratorSymbolLayer::expressionContext()
-{
-
-}
-
 QSet<QString> QgsPolygonGeneratorSymbolLayer::usedAttributes() const
 {
-  // TODO combine with attributes used by expression
-  return mSymbol->usedAttributes();
+  return mSymbol->usedAttributes() + mExpression->referencedColumns().toSet();
 }
 
 bool QgsPolygonGeneratorSymbolLayer::isCompatibleWithSymbol( QgsSymbolV2* symbol )
@@ -86,7 +79,7 @@ void QgsPolygonGeneratorSymbolLayer::renderPolygon( const QPolygonF& points, QLi
   Q_UNUSED( points )
   Q_UNUSED( rings )
 
-  QgsGeometry geom = mExpression->evaluate( context.feature() ).value<QgsGeometry>();
+  QgsGeometry geom = mExpression->evaluate( &context.renderContext().expressionContext() ).value<QgsGeometry>();
   if ( context.feature() )
   {
     QgsFeature f = *context.feature();
