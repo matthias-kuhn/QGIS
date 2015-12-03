@@ -344,6 +344,8 @@ void QgsRelationEditorWidget::linkFeature()
       }
 
       mRelation.referencingLayer()->addFeatures( newFeatures );
+
+      updateUi();
     }
     else
     {
@@ -492,16 +494,18 @@ void QgsRelationEditorWidget::updateUi()
       QgsFeatureIterator it = mRelation.referencingLayer()->getFeatures( myRequest );
 
       QgsFeature fet;
-      QgsFeatureIds ids;
+
+      QStringList filters;
 
       while ( it.nextFeature( fet ) )
       {
-        ids << fet.id();
+        QString filter = mNmRelation.getReferencedFeatureRequest( fet ).filterExpression()->expression();
+        filters << filter.prepend( '(' ).append( ')' );
       }
 
       QgsFeatureRequest nmRequest;
 
-      nmRequest.setFilterFids( ids );
+      nmRequest.setFilterExpression( filters.join( " OR " ) );
 
       mDualView->init( mNmRelation.referencedLayer(), 0, nmRequest, mEditorContext );
     }
