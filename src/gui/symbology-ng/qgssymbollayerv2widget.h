@@ -614,7 +614,7 @@ class GUI_EXPORT QgsCentroidFillSymbolLayerV2Widget : public QgsSymbolLayerV2Wid
 
 #include "ui_widget_geometrymodifier.h"
 
-class QgsPolygonGeneratorSymbolLayer;
+class QgsPolygonGeneratorSymbolLayerV2;
 
 class GUI_EXPORT QgsPolygonGeneratorSymbolLayerWidget : public QgsSymbolLayerV2Widget, private Ui::WidgetGeometryModifier
 {
@@ -630,7 +630,7 @@ class GUI_EXPORT QgsPolygonGeneratorSymbolLayerWidget : public QgsSymbolLayerV2W
     virtual QgsSymbolLayerV2* symbolLayer() override;
 
   protected:
-    QgsPolygonGeneratorSymbolLayer* mLayer;
+    QgsPolygonGeneratorSymbolLayerV2* mLayer;
 
   private slots:
     void updateConfig();

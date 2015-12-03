@@ -40,7 +40,7 @@ SET(QGIS_CORE_SRCS
   symbology-ng/qgspointdisplacementrenderer.cpp
   symbology-ng/qgsvectorfieldsymbollayer.cpp
   symbology-ng/qgscolorbrewerpalette.cpp
-  symbology-ng/qgsgeometrymodifiersymbollayerv2.cpp
+  symbology-ng/qgspolygongeneratorsymbollayerv2.cpp
 
   diagram/qgsdiagram.cpp
   diagram/qgspiediagram.cpp
@@ -752,7 +752,7 @@ SET(QGIS_CORE_HDRS
   symbology-ng/qgssymbolv2.h
   symbology-ng/qgsvectorcolorrampv2.h
   symbology-ng/qgsvectorfieldsymbollayer.h
-  symbology-ng/qgsgeometrymodifiersymbollayerv2.h
+  symbology-ng/qgspolygongeneratorsymbollayerv2.h
 
   layertree/qgslayertree.h
   layertree/qgslayertreeutils.h

@@ -19,7 +19,7 @@
 #include "qgslinesymbollayerv2.h"
 #include "qgsmarkersymbollayerv2.h"
 #include "qgsfillsymbollayerv2.h"
-#include "qgsgeometrymodifiersymbollayerv2.h"
+#include "qgspolygongeneratorsymbollayerv2.h"
 #include "qgssymbolslistwidget.h"
 
 #include "characterwidget.h"
@@ -3076,7 +3076,7 @@ QgsPolygonGeneratorSymbolLayerWidget::QgsPolygonGeneratorSymbolLayerWidget( cons
 
 void QgsPolygonGeneratorSymbolLayerWidget::setSymbolLayer( QgsSymbolLayerV2* l )
 {
-  mLayer = static_cast<QgsPolygonGeneratorSymbolLayer*>( l );
+  mLayer = static_cast<QgsPolygonGeneratorSymbolLayerV2*>( l );
   Q_ASSERT( mLayer );
 
   modificationExpressionSelector->setExpressionText( mLayer->geometryModifier() );

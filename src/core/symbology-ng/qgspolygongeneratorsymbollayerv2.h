@@ -1,15 +1,29 @@
-#ifndef QGSGEOMETRYMODIFIEDSYMBOLLAYERV2_H
-#define QGSGEOMETRYMODIFIEDSYMBOLLAYERV2_H
+/***************************************************************************
+ qgspolygongeneratorsymbollayerv2.h
+ ---------------------
+ begin                : November 2015
+ copyright            : (C) 2015 by Matthias Kuhn
+ email                : matthias at opengis dot ch
+ ***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+#ifndef QGSPOLYGONGENERATORSYMBOLLAYERV2_H
+#define QGSPOLYGONGENERATORSYMBOLLAYERV2_H
 
 #include "qgssymbollayerv2.h"
 
-// template
-class CORE_EXPORT QgsPolygonGeneratorSymbolLayer : public QgsFillSymbolLayerV2
+class CORE_EXPORT QgsPolygonGeneratorSymbolLayerV2 : public QgsFillSymbolLayerV2
 {
   public:
     static QgsSymbolLayerV2* create( const QgsStringMap& properties = QgsStringMap() );
 
-    QgsPolygonGeneratorSymbolLayer( QgsFillSymbolV2* symbol, const QgsStringMap& properties = QgsStringMap() );
+    QgsPolygonGeneratorSymbolLayerV2( QgsFillSymbolV2* symbol, const QgsStringMap& properties = QgsStringMap() );
 
     QString layerType() const override;
 
@@ -31,8 +45,6 @@ class CORE_EXPORT QgsPolygonGeneratorSymbolLayer : public QgsFillSymbolLayerV2
 
     virtual bool setSubSymbol( QgsSymbolV2* symbol ) override;
 
-    QgsExpressionContext* expressionContext();
-
     virtual QSet<QString> usedAttributes() const override;
 
     //! Will always return true.
@@ -47,4 +59,4 @@ class CORE_EXPORT QgsPolygonGeneratorSymbolLayer : public QgsFillSymbolLayerV2
     QgsFillSymbolV2* mSymbol;
 };
 
-#endif // QGSGEOMETRYMODIFIEDSYMBOLLAYERV2_H
+#endif // QGSPOLYGONGENERATORSYMBOLLAYERV2_H

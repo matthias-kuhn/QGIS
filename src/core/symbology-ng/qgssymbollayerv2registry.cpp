@@ -20,7 +20,7 @@
 #include "qgslinesymbollayerv2.h"
 #include "qgsfillsymbollayerv2.h"
 #include "qgsvectorfieldsymbollayer.h"
-#include "qgsgeometrymodifiersymbollayerv2.h"
+#include "qgspolygongeneratorsymbollayerv2.h"
 
 QgsSymbolLayerV2Registry::QgsSymbolLayerV2Registry()
 {
@@ -59,7 +59,7 @@ QgsSymbolLayerV2Registry::QgsSymbolLayerV2Registry()
                       QgsPointPatternFillSymbolLayer::create, QgsPointPatternFillSymbolLayer::createFromSld ) );
 
   addSymbolLayerType( new QgsSymbolLayerV2Metadata( "PolygonGenerator", QObject::tr( "Polygon Generator" ), QgsSymbolV2::Hybrid,
-                      QgsPolygonGeneratorSymbolLayer::create ) );
+                      QgsPolygonGeneratorSymbolLayerV2::create ) );
 #if 0
   addSymbolLayerType( new QgsSymbolLayerV2Metadata( "LineGenerator", QObject::tr( "Line Generator" ), QgsSymbolV2::Line,
                       QgsPolygonGeneratorSymbolLayer::create ) );
