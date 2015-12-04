@@ -1,15 +1,10 @@
 export DEBIAN_FRONTEND=noninteractive
-
-wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
-sudo add-apt-repository 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.7 main' -y
-
-sudo add-apt-repository ppa:ubuntugis/ppa -y
-sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable -y # For postgresql-9.1-postgis-2.1
+sudo add-apt-repository ppa:grass/grass-stable -y
 sudo add-apt-repository ppa:smspillaz/cmake-3.0.2 -y
 sudo add-apt-repository ppa:kedazo/doxygen-updates-precise -y # For doxygen 1.8.8
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
 sudo apt-get update -qq
-sudo apt-get install --force-yes --no-install-recommends --no-install-suggests \
+sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggests \
         bison \
         cmake \
         cmake-data \
@@ -25,13 +20,7 @@ sudo apt-get install --force-yes --no-install-recommends --no-install-suggests \
         libgsl0-dev \
         libpq-dev \
         libproj-dev \
-        libqca2-dev \
-        libqca2-plugin-ossl \
         libqscintilla2-dev \
-        libqt4-dev \
-        libqt4-opengl-dev \
-        libqt4-sql-sqlite \
-        libqtwebkit-dev \
         libqwt-dev \
         libspatialindex-dev \
         libspatialite-dev \
@@ -39,12 +28,8 @@ sudo apt-get install --force-yes --no-install-recommends --no-install-suggests \
         lighttpd \
         pkg-config \
         poppler-utils \
-        pyqt4-dev-tools \
         python \
         python-dev \
-        python-qt4 \
-        python-qt4-dev \
-        python-qt4-sql \
         python-sip \
         python-sip-dev \
         python-gdal \
@@ -56,12 +41,37 @@ sudo apt-get install --force-yes --no-install-recommends --no-install-suggests \
         xfonts-base \
         xfonts-scalable \
         xvfb \
-        postgresql-9.1-postgis-2.1/precise # from ubuntugis-unstable, not pgdg
+        postgresql \
+        postgresql-contrib \
+        postgis
+#        postgresql-9.1-postgis-2.1/trusty # from ubuntugis-unstable, not pgdg
 
-#update clang
-sudo apt-get install --force-yes llvm-3.7 llvm-3.7-dev clang-3.7 libstdc++-4.9-dev
-export CXX="clang++-3.7" 
-export CC="clang-3.7"
+if [ ${QT} == 5 ]; then
+  sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggests \
+    qtbase5-dev \
+    qttools5-dev \
+    qt5-default \
+    libqt5gui5 \
+    qttools5-dev-tools \
+    qtscript5-dev \
+    qtpositioning5-dev \
+    libqt5xmlpatterns5-dev \
+    libqt5svg5-dev \
+    libqt5scintilla2-dev \
+    libqt5webkit5-dev
+else
+  sudo apt-get install --force-yes -y --no-install-recommends --no-install-suggests \
+    libqca2-dev \
+    libqca2-plugin-ossl \
+    libqt4-dev \
+    libqt4-opengl-dev \
+    libqt4-sql-sqlite \
+    python-qt4 \
+    python-qt4-dev \
+    python-qt4-sql \
+    libqtwebkit-dev \
+    pyqt4-dev-tools
+fi
 
 cmake --version
 clang --version
