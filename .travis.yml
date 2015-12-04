@@ -1,23 +1,18 @@
 language: generic
 
-sudo: required
-dist: precise
-group: edge
-
-os:
-  - linux
-  - osx
-
-dist: trusty
-
-env:
-  - QT=4
-  - QT=5
-
 matrix:
-  exclude:
-    - os: osx
+  include:
+    - os: linux
+      env: QT=4
+      dist: precise
+      group: edge
+      sudo: required
+    - os: linux
       env: QT=5
+      dist: trusty
+      group: edge
+      sudo: required
+    - os: osx
 
 compiler:
   - clang
