@@ -61,7 +61,7 @@ from utilities import (unitTestDataPath,
 QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
 
 
-class TestQgsTextEditWidget(TestCase):
+class PyQgsRElationEditWidget(TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -70,7 +70,7 @@ class TestQgsTextEditWidget(TestCase):
         :return:
         """
         QgsEditorWidgetRegistry.initEditors()
-        cls.dbconn = u'dbname=\'qgis_test\' host=localhost port=5432 user=\'postgres\' password=\'postgres\''
+        cls.dbconn = u'service=\'qgis_test\''
         if 'QGIS_PGTEST_DB' in os.environ:
             cls.dbconn = os.environ['QGIS_PGTEST_DB']
         # Create test layer

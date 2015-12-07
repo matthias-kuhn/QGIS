@@ -1,4 +1,8 @@
-﻿-- Table: qgis_test.authors
+
+
+CREATE SCHEMA IF NOT EXISTS qgis_test;
+
+-- Table: qgis_test.authors
 
 -- DROP TABLE qgis_test.authors;
 
