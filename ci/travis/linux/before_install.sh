@@ -1,5 +1,11 @@
 export DEBIAN_FRONTEND=noninteractive
 
+# Get CMake 3.1
+wget https://github.com/Viq111/travis-container-packets/releases/download/cmake-3.1.2/cmake.tar.bz2
+tar -xjf cmake.tar.bz2
+rm cmake.tar.bz2
+export PATH=$(pwd)/cmake/bin:$PATH
+
 cmake --version
 clang --version
 
