@@ -14,7 +14,10 @@ git:
   depth: 30
 
 
-cache: apt
+cache:
+  apt
+  directories:
+    - $HOME/deps
 
 addons:
   postgresql: "9.4"
