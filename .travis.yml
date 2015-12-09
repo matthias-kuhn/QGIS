@@ -47,7 +47,6 @@ addons:
       - libqtwebkit-dev
       - libqwt-dev
       - libspatialindex-dev
-      - libspatialite-dev
       - libsqlite3-dev
       - pkg-config
       - poppler-utils

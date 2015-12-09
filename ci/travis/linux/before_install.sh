@@ -24,6 +24,16 @@ make -j2 > make.log
 make install
 popd
 
+# Build spatialite
+wget http://www.gaia-gis.it/gaia-sins/libspatialite-sources/libspatialite-4.3.0a.tar.gz
+tar xvf libspatialite-4.3.0a.tar.gz
+pushd libspatialite-4.3.0a
+./configure --prefix=${HOME}/deps \
+  --with-geosconfig=${HOME}/deps/bin/geos-config
+make -j2 > make.log
+make install
+popd
+
 # Build gdal
 wget http://download.osgeo.org/gdal/2.0.1/gdal-2.0.1.tar.gz
 tar xvf gdal-2.0.1.tar.gz
