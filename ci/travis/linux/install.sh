@@ -1,5 +1,9 @@
 mkdir build
 cd build
+
+export INCLUDE="$HOME/deps/include"
+export LIB_DIR="$HOME/deps/lib"
+
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
       -DWITH_SERVER=ON \
       -DWITH_STAGED_PLUGINS=OFF \
