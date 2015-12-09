@@ -9,14 +9,14 @@ export PATH=$(pwd)/cmake/bin:$PATH
 cmake --version
 clang --version
 
-mkdir -p $HOME/deps/src
-pushd $HOME/deps/src
+mkdir -p ${HOME}/deps/src
+pushd ${HOME}/deps/src
 
 wget http://download.osgeo.org/gdal/2.0.1/gdal-2.0.1.tar.gz
 tar xvf gdal-2.0.1.tar.gz
 pushd gdal-2.0.1
-./configure --prefix=$HOME/deps --with-python
-make -j2
+./configure --prefix=${HOME}/deps --with-python
+make -j2 2> make.log
 make install
 popd
 
@@ -26,18 +26,20 @@ tar xvf qca-2.1.0.tar.gz
 mkdir build-qca
 pushd build-qca
 cmake \
-  -DCMAKE_INSTALL_PREFIX:PATH=$HOME/deps \
+  -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
   ../qca-2.1.0
-make -j2
+make -j2 2> make.log
 make install
 popd
 
 # Build QWT
 wget http://downloads.sourceforge.net/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
 tar xjf qwt-6.1.2.tar.bz2
+# Patch install path
+sed -i "s|QWT_INSTALL_PREFIX *=.*$|QWT_INSTALL_PREFIX = ${HOME}/deps|" qwt-6.1.2/qwtconfig.pri
 mkdir build-qwt
 pushd build-qwt
-sed -i "s|QWT_INSTALL_PREFIX *=.*$|QWT_INSTALL_PREFIX = ${HOME}/deps|" qwtconfig.pri
+cat qwtconfig.pri
 qmake ../qwt-6.1.2
 make -j2
 make install
@@ -49,7 +51,7 @@ popd
 #  mkdir grass-build
 #  pushd grass-build
 #  cmake \
-#    -DCMAKE_INSTALL_PREFIX:PATH=$HOME/deps \
+#    -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
 #    ../grass-7.0.2
 #  make -j2
 #  make install
