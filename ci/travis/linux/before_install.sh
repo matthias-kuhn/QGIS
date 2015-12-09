@@ -29,6 +29,16 @@ make -j2 > make.log
 make install
 popd
 
+# Build freexl
+
+wget http://www.gaia-gis.it/gaia-sins/freexl-sources/freexl-1.0.0e.tar.gz
+tar xvf freexl-1.0.0e.tar.gz > /dev/null
+pushd freexl-1.0.0e
+./configure --prefix=${HOME}/deps
+make -j2 > make.log
+make install
+popd
+
 # Build spatialite
 wget http://www.gaia-gis.it/gaia-sins/libspatialite-sources/libspatialite-4.3.0a.tar.gz
 tar xvf libspatialite-4.3.0a.tar.gz > /dev/null

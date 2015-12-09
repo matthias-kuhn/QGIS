@@ -68,7 +68,6 @@ addons:
       - xvfb
       - python-pip
       - flip
-      - libfreexl1
       - libfreexl-dev
 
 #notifications:
