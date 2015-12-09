@@ -12,6 +12,19 @@ clang --version
 mkdir -p ${HOME}/deps/src
 pushd ${HOME}/deps/src
 
+# Build geos
+http://download.osgeo.org/geos/geos-3.4.2.tar.bz2
+tar xjf geos-3.4.2.tar.bz2
+mkdir build-geos
+pushd build-geos
+cmake \
+  -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
+  ../geos-3.4.2
+make -j2 # > make.log
+make install
+popd
+
+
 wget http://download.osgeo.org/gdal/2.0.1/gdal-2.0.1.tar.gz
 tar xvf gdal-2.0.1.tar.gz
 pushd gdal-2.0.1
