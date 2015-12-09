@@ -12,4 +12,5 @@ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
       -DWITH_ASTYLE=ON \
       -DWITH_PYSPATIALITE=ON \
       -DGRASS_PREFIX7=/usr/lib/grass70 \
+      -DGDAL_CONFIG=/home/travis/deps/bin/gdal-config \
       -DGRASS_INCLUDE_DIR7=/usr/lib/grass70/include ..
