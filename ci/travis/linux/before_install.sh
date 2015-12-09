@@ -20,7 +20,7 @@ pushd build-geos
 cmake \
   -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
   ../geos-3.4.2
-make -j2 # > make.log
+make -j2 > make.log
 make install
 popd
 
