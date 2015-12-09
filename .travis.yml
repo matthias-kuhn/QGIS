@@ -34,7 +34,6 @@ addons:
       - grass-dev
       - libexpat1-dev
       - libfcgi-dev
-      - libgdal1-dev
       - libgeos-dev
       - libgsl0-dev
       - libpq-dev
@@ -60,7 +59,6 @@ addons:
       - python-qt4-sql
       - python-sip
       - python-sip-dev
-      - python-gdal
       - spawn-fcgi
       - txt2tags
       - xauth
