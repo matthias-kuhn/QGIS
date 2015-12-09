@@ -1,6 +1,7 @@
 mkdir build
 cd build
 
+export INCLUDE="${HOME}/deps/include"
 export LIB_DIR="${HOME}/deps"
 export PATH="${HOME}/deps/bin:${PATH}"
 
