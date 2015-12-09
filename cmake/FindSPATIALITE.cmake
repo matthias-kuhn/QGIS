@@ -42,12 +42,14 @@ IF (APPLE)
 ENDIF (APPLE)
 
 FIND_PATH(SPATIALITE_INCLUDE_DIR spatialite.h
+  /usr/include
   "$ENV{INCLUDE}"
   "$ENV{LIB_DIR}/include"
   "$ENV{LIB_DIR}/include/spatialite"
   )
 
 FIND_LIBRARY(SPATIALITE_LIBRARY NAMES spatialite spatialite_i PATHS
+  /usr/lib
   $ENV{LIB}
   $ENV{LIB_DIR}/lib
   )
