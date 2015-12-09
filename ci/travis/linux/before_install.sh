@@ -13,13 +13,13 @@ mkdir -p ${HOME}/deps/src
 pushd ${HOME}/deps/src
 
 # Build geos
-wget http://download.osgeo.org/geos/geos-3.5.0.tar.bz2
-tar xjf geos-3.5.0.tar.bz2
+wget http://download.osgeo.org/geos/geos-3.4.2.tar.bz2
+tar xjf geos-3.4.2.tar.bz2
 mkdir build-geos
 pushd build-geos
 cmake \
   -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
-  ../geos-3.5.0
+  ../geos-3.4.2
 make -j2 # > make.log
 make install
 popd
