@@ -32,6 +32,17 @@ make -j2
 make install
 popd
 
+# Build QWT
+wget http://downloads.sourceforge.net/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
+tar xjf qwt-6.1.2.tar.bz2
+mkdir build-qwt
+pushd build-qwt
+sed -i "s|^QWT_INSTALL_PREFIX =.*$|QWT_INSTALL_PREFIX = ${HOME/deps}|" qwtconfig.pri
+qmake ../qwt-6.1.2
+make -j2
+make install
+popd
+
   # Build grass
 #  wget https://grass.osgeo.org/grass70/source/grass-7.0.2.tar.gz
 #  tar xvf grass-7.0.2.tar.gz
