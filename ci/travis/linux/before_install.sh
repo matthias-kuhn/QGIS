@@ -1,5 +1,11 @@
 export DEBIAN_FRONTEND=noninteractive
 
+##################################################
+#
+# Get precompiled dependencies
+#
+##################################################
+
 # Get CMake 3.1
 wget https://github.com/Viq111/travis-container-packets/releases/download/cmake-3.1.2/cmake.tar.bz2
 tar -xjf cmake.tar.bz2 > /dev/null
@@ -10,6 +16,14 @@ export PATH=$(pwd)/cmake/bin:$PATH
 wget ftp://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.10.linux.bin.tar.gz
 tar xvf doxygen-1.8.10.linux.bin.tar.gz > /dev/null
 export PATH=$(pwd)/doxygen-1.8.10.linux.bin/bin:$PATH
+
+##################################################
+#
+# Compile further dependencies in cached directory
+#
+##################################################
+
+export LD_LIBRARY_PATH=${HOME}/deps/lib
 
 cmake --version
 clang --version
@@ -29,15 +43,15 @@ make -j2 > make.log
 make install
 popd
 
-# Build freexl
-
-wget http://www.gaia-gis.it/gaia-sins/freexl-sources/freexl-1.0.0e.tar.gz
-tar xvf freexl-1.0.0e.tar.gz > /dev/null
-pushd freexl-1.0.0e
-./configure --prefix=${HOME}/deps
-make -j2 > make.log
-make install
-popd
+# # Build freexl
+#
+# wget http://www.gaia-gis.it/gaia-sins/freexl-sources/freexl-1.0.0e.tar.gz
+# tar xvf freexl-1.0.0e.tar.gz > /dev/null
+# pushd freexl-1.0.0e
+# ./configure --prefix=${HOME}/deps
+# make -j2 > make.log
+# make install
+# popd
 
 # Build spatialite
 wget http://www.gaia-gis.it/gaia-sins/libspatialite-sources/libspatialite-4.3.0a.tar.gz
