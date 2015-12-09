@@ -15,6 +15,7 @@ git:
 
 
 cache:
+  apt: true
   directories:
     - $HOME/deps
 
