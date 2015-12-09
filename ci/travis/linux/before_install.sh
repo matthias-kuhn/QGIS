@@ -44,6 +44,7 @@ wget http://www.gaia-gis.it/gaia-sins/libspatialite-sources/libspatialite-4.3.0a
 tar xvf libspatialite-4.3.0a.tar.gz > /dev/null
 pushd libspatialite-4.3.0a
 ./configure --prefix=${HOME}/deps \
+  --enable-freexl=no \
   --with-geosconfig=${HOME}/deps/bin/geos-config
 make -j2 > make.log
 make install
