@@ -28,9 +28,10 @@ INSTALL(FILES ${QGIS_DOC_FILES} DESTINATION ${QGIS_DATA_DIR}/doc)
 INSTALL(FILES ../images/icons/qgis-icon-60x60.png DESTINATION ${QGIS_DATA_DIR}/doc/images)
 
 IF(WITH_APIDOC)
-  FIND_PACKAGE(Doxygen)
-  IF(DOXYGEN_FOUND)
-
+  IF(NOT DOXYGEN_EXECUTABLE)
+    FIND_PACKAGE(Doxygen)
+  ENDIF(NOT DOXYGEN_EXECUTABLE)
+  IF(DOXYGEN_EXECUTABLE)
     FIND_FILE(QT_TAG_FILE
       NAMES qt4.tags qt4.tag qt.tags qt.tag
       PATHS "${QT_DOC_DIR}"
@@ -48,9 +49,9 @@ IF(WITH_APIDOC)
             COMMENT "Generating API documentation" VERBATIM)
     INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/api/html/ DESTINATION ${QGIS_DATA_DIR}/doc/api)
     INSTALL(FILES ../images/icons/qgis-icon-60x60.png DESTINATION ${QGIS_DATA_DIR}/doc/api)
-  ELSE(DOXYGEN_FOUND)
+  ELSE(DOXYGEN_EXECUTABLE)
     MESSAGE(STATUS "QGIS api documentation not built - Doxygen not found")
-  ENDIF(DOXYGEN_FOUND)
+  ENDIF(DOXYGEN_EXECUTABLE)
 ENDIF(WITH_APIDOC)
 
 #SUBDIRS (images plugins install_guide)
