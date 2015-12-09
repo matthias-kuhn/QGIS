@@ -67,7 +67,6 @@ addons:
       - xvfb
       - python-pip
       - flip
-      - clang-3.7
 
 #notifications:
 #  irc: "chat.freenode.net#qgis-test"
