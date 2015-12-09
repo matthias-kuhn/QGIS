@@ -24,11 +24,13 @@ make -j2 # > make.log
 make install
 popd
 
-
+# Build gdal
 wget http://download.osgeo.org/gdal/2.0.1/gdal-2.0.1.tar.gz
 tar xvf gdal-2.0.1.tar.gz
 pushd gdal-2.0.1
-./configure --prefix=${HOME}/deps --with-python
+./configure --prefix=${HOME}/deps \
+  --with-python \
+  --with-geos=${HOME}/deps/bin/geos-config
 make -j2 > make.log
 make install
 popd
