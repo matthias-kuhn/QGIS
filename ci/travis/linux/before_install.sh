@@ -31,16 +31,18 @@ mkdir -p ${HOME}/deps/src
 pushd ${HOME}/deps/src
 
 # Build geos
-wget http://download.osgeo.org/geos/geos-3.4.2.tar.bz2
-tar xjf geos-3.4.2.tar.bz2 > /dev/null
-mkdir build-geos
-pushd build-geos
-cmake \
-  -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
-  ../geos-3.4.2
-make -j2 > make.log
-make install
-popd
+if [ ! -f geos-3.4.2.tar.bz2 ]; then
+  wget http://download.osgeo.org/geos/geos-3.4.2.tar.bz2
+  tar xjf geos-3.4.2.tar.bz2 > /dev/null
+  mkdir build-geos
+  pushd build-geos
+  cmake \
+    -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
+    ../geos-3.4.2
+  make -j2 > make.log
+  make install
+  popd
+fi
 
 # # Build freexl
 #
@@ -53,51 +55,59 @@ popd
 # popd
 
 # Build spatialite
-wget http://www.gaia-gis.it/gaia-sins/libspatialite-sources/libspatialite-4.3.0a.tar.gz
-tar xvf libspatialite-4.3.0a.tar.gz > /dev/null
-pushd libspatialite-4.3.0a
-./configure --prefix=${HOME}/deps \
-  --enable-freexl=no \
-  --with-geosconfig=${HOME}/deps/bin/geos-config
-make -j2 > make.log
-make install
-popd
+if [ ! -f libspatialite-4.3.0a.tar.gz ]; then
+  wget http://www.gaia-gis.it/gaia-sins/libspatialite-sources/libspatialite-4.3.0a.tar.gz
+  tar xvf libspatialite-4.3.0a.tar.gz > /dev/null
+  pushd libspatialite-4.3.0a
+  ./configure --prefix=${HOME}/deps \
+    --enable-freexl=no \
+    --with-geosconfig=${HOME}/deps/bin/geos-config
+  make -j2 > make.log
+  make install
+  popd
+fi
 
 # Build gdal
-wget http://download.osgeo.org/gdal/2.0.1/gdal-2.0.1.tar.gz
-tar xvf gdal-2.0.1.tar.gz > /dev/null
-pushd gdal-2.0.1
-./configure --prefix=${HOME}/deps \
-  --with-python \
-  --with-geos=${HOME}/deps/bin/geos-config
-make -j2 > make.log
-make install
-popd
+if [ ! -f gdal-2.0.1.tar.gz ]; then
+  wget http://download.osgeo.org/gdal/2.0.1/gdal-2.0.1.tar.gz
+  tar xvf gdal-2.0.1.tar.gz > /dev/null
+  pushd gdal-2.0.1
+  ./configure --prefix=${HOME}/deps \
+    --with-python \
+    --with-geos=${HOME}/deps/bin/geos-config
+  make -j2 > make.log
+  make install
+  popd
+fi
 
 # Build QCA
-wget http://delta.affinix.com/download/qca/2.0/qca-2.1.0.tar.gz
-tar xvf qca-2.1.0.tar.gz > /dev/null
-mkdir build-qca
-pushd build-qca
-cmake \
-  -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
-  ../qca-2.1.0
-make -j2 > make.log
-make install
-popd
+if [ ! -f qca-2.1.0.tar.gz ]; then
+  wget http://delta.affinix.com/download/qca/2.0/qca-2.1.0.tar.gz
+  tar xvf qca-2.1.0.tar.gz > /dev/null
+  mkdir build-qca
+  pushd build-qca
+  cmake \
+    -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
+    ../qca-2.1.0
+  make -j2 > make.log
+  make install
+  popd
+fi
 
 # Build QWT
-wget http://downloads.sourceforge.net/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
-tar xjf qwt-6.1.2.tar.bz2 > /dev/null
-# Patch install path
-sed -i "s|QWT_INSTALL_PREFIX *=.*$|QWT_INSTALL_PREFIX = ${HOME}/deps|" qwt-6.1.2/qwtconfig.pri
-mkdir build-qwt
-pushd build-qwt
-cat qwtconfig.pri
-qmake ../qwt-6.1.2
-make -j2
-make install
-popd
+if [ ! -f qwt-6.1.2.tar.bz2 ]; then
+  wget http://downloads.sourceforge.net/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
+  tar xjf qwt-6.1.2.tar.bz2 > /dev/null
+  # Patch install path
+  sed -i "s|QWT_INSTALL_PREFIX *=.*$|QWT_INSTALL_PREFIX = ${HOME}/deps|" qwt-6.1.2/qwtconfig.pri
+  mkdir build-qwt
+  pushd build-qwt
+  cat qwtconfig.pri
+  qmake ../qwt-6.1.2
+  make -j2
+  make install
+  popd
+fi
 
   # Build grass
 #  wget https://grass.osgeo.org/grass70/source/grass-7.0.2.tar.gz
