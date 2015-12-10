@@ -5,8 +5,9 @@ export INCLUDE="${HOME}/deps/include"
 export LIB_DIR="${HOME}/deps"
 export PATH="${HOME}/deps/bin:${PATH}"
 
-cmake \
+# Include this line for debug reasons
 #      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+cmake \
       -DWITH_SERVER=ON \
       -DWITH_STAGED_PLUGINS=OFF \
       -DWITH_GRASS=ON \
