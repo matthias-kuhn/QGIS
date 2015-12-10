@@ -19,5 +19,5 @@ cmake \
       -DWITH_ASTYLE=ON \
       -DWITH_PYSPATIALITE=ON \
       -DGDAL_CONFIG=/home/travis/deps/bin/gdal-config \
-      -DDOXYGEN_EXECUTABLE=${HOME}/doxygen-1.8.10/bin/doxygen \
+      -DDOXYGEN_EXECUTABLE=${HOME}/deps/doxygen-1.8.10/bin/doxygen \
       ..

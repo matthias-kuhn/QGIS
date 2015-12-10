@@ -13,8 +13,10 @@ rm cmake.tar.bz2
 export PATH=$(pwd)/cmake/bin:$PATH
 
 # Get doxygen 1.8.10
-wget ftp://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.10.linux.bin.tar.gz
-tar xvf doxygen-1.8.10.linux.bin.tar.gz > /dev/null
+if [ ! -d ${HOME}/deps/doxygen-1.8.10 ]; then
+  wget ftp://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.10.linux.bin.tar.gz
+  tar xvf doxygen-1.8.10.linux.bin.tar.gz -C ${HOME}/deps > /dev/null
+fi
 
 ##################################################
 #
