@@ -29,7 +29,6 @@ addons:
       - cmake
       - bison
       - cmake-data
-      - doxygen
       - flex
       - graphviz
       - grass-dev
@@ -68,7 +67,8 @@ addons:
       - xvfb
       - python-pip
       - flip
-      - libfreexl-dev
+#      - libfreexl-dev
+#      - doxygen
 
 #notifications:
 #  irc: "chat.freenode.net#qgis-test"
