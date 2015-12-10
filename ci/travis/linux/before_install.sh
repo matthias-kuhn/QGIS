@@ -103,7 +103,9 @@ fi
   pushd grass-7.0.2
   ./configure --prefix=${HOME}/deps \
     --with-cxx \
-    --with-sqlite
+    --with-sqlite \
+    --with-gdal=${HOME}/deps/bin/gdal-config \
+    --with-geos=${HOME}/deps/bin/geos-config
   make -j2
   make install
   popd
