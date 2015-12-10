@@ -64,6 +64,7 @@ addons:
       - xvfb
       - python-pip
       - flip
+      - fftw-dev
 #      - libfreexl-dev
 #      - doxygen
 
