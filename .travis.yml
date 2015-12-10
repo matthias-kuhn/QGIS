@@ -61,9 +61,6 @@ addons:
       - spawn-fcgi
       - txt2tags
       - xauth
-      - xfonts-100dpi
-      - xfonts-75dpi
-      - xfonts-base
       - xvfb
       - python-pip
       - flip
