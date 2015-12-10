@@ -111,4 +111,6 @@ fi
   popd
 # fi
 
+ls -al ${HOME}/deps
+
 popd
