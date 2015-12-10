@@ -95,21 +95,21 @@ if [ ! -f qca-2.1.0.tar.gz ]; then
 fi
 
 # Build QWT
-if [ ! -f qwt-6.1.2.tar.bz2 ]; then
-  wget http://downloads.sourceforge.net/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
-  tar xjf qwt-6.1.2.tar.bz2 > /dev/null
-  # Patch install path
-  sed -i "s|QWT_INSTALL_PREFIX *=.*$|QWT_INSTALL_PREFIX = ${HOME}/deps|" qwt-6.1.2/qwtconfig.pri
-  mkdir build-qwt
-  pushd build-qwt
-  cat qwtconfig.pri
-  qmake ../qwt-6.1.2
-  make -j2
-  make install
-  popd
-fi
+# if [ ! -f qwt-6.1.2.tar.bz2 ]; then
+#   wget http://downloads.sourceforge.net/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
+#   tar xjf qwt-6.1.2.tar.bz2 > /dev/null
+#   # Patch install path
+#   sed -i "s|QWT_INSTALL_PREFIX *=.*$|QWT_INSTALL_PREFIX = ${HOME}/deps|" qwt-6.1.2/qwtconfig.pri
+#   mkdir build-qwt
+#   pushd build-qwt
+#   cat qwtconfig.pri
+#   qmake ../qwt-6.1.2
+#   make -j2
+#   make install
+#   popd
+# fi
 
-  # Build grass
+# Build grass
 #  wget https://grass.osgeo.org/grass70/source/grass-7.0.2.tar.gz
 #  tar xvf grass-7.0.2.tar.gz
 #  mkdir grass-build
