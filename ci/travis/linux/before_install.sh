@@ -46,15 +46,16 @@ if [ ! -f geos-3.4.2.tar.bz2 ]; then
   popd
 fi
 
-# # Build freexl
-#
-# wget http://www.gaia-gis.it/gaia-sins/freexl-sources/freexl-1.0.0e.tar.gz
-# tar xvf freexl-1.0.0e.tar.gz > /dev/null
-# pushd freexl-1.0.0e
-# ./configure --prefix=${HOME}/deps
-# make -j2 > make.log
-# make install
-# popd
+# Build proj
+if [ ! -f http://download.osgeo.org/proj/proj-4.9.0b2.tar.gz ]; then
+  wget http://download.osgeo.org/proj/proj-4.9.0b2.tar.gz
+  tar xvf proj-4.9.0b2.tar.gz > /dev/null
+  pushd proj-4.9.0b2
+  ./configure --prefix=${HOME}/deps
+  make -j2 > make.log
+  make install
+  popd
+fi
 
 # Build spatialite
 if [ ! -f libspatialite-4.3.0a.tar.gz ]; then
@@ -63,7 +64,9 @@ if [ ! -f libspatialite-4.3.0a.tar.gz ]; then
   pushd libspatialite-4.3.0a
   ./configure --prefix=${HOME}/deps \
     --enable-freexl=no \
-    --with-geosconfig=${HOME}/deps/bin/geos-config
+    --with-geosconfig=${HOME}/deps/bin/geos-config \
+    CFLAGS="-I$HOME/deps/include" \
+    LDFLAGS="-L${HOME}/deps/lib"
   make -j2 > make.log
   make install
   popd
