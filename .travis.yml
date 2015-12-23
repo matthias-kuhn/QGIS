@@ -26,9 +26,7 @@ addons:
     sources:
       - llvm-toolchain-precise-3.7
     packages:
-      - cmake
       - bison
-      - cmake-data
       - flex
       - graphviz
       - grass-dev
