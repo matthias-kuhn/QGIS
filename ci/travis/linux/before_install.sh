@@ -47,10 +47,10 @@ if [ ! -f geos-3.4.2.tar.bz2 ]; then
 fi
 
 # Build proj
-if [ ! -f http://download.osgeo.org/proj/proj-4.9.0b2.tar.gz ]; then
+if [ ! -f proj-4.9.0b2.tar.gz ]; then
   wget http://download.osgeo.org/proj/proj-4.9.0b2.tar.gz
   tar xvf proj-4.9.0b2.tar.gz > /dev/null
-  pushd proj-4.9.0b2
+  pushd proj-4.9.0
   ./configure --prefix=${HOME}/deps
   make -j2 > make.log
   make install
