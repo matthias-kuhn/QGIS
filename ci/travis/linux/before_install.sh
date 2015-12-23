@@ -100,8 +100,8 @@ if [ ! -f qca-2.1.0.tar.gz ]; then
 fi
 
 # Build grass 7
-# if [ ! -f grass-7.0.2.tar.gz ]; then
-#  wget https://grass.osgeo.org/grass70/source/grass-7.0.2.tar.gz
+if [ ! -f grass-7.0.2.tar.gz ]; then
+  wget https://grass.osgeo.org/grass70/source/grass-7.0.2.tar.gz
   tar xvf grass-7.0.2.tar.gz
   pushd grass-7.0.2
   ./configure --prefix=${HOME}/deps \
@@ -112,7 +112,7 @@ fi
   make -j2
   make install
   popd
-# fi
+fi
 
 ls -al ${HOME}/deps
 
