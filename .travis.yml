@@ -24,8 +24,8 @@ addons:
   postgresql: "9.4"
   apt:
     sources:
-      - llvm-toolchain-precise-3.7
-      - ubuntu-toolchain-r-test
+#      - llvm-toolchain-precise-3.7
+#      - ubuntu-toolchain-r-test
     packages:
       - bison
       - flex
@@ -64,10 +64,10 @@ addons:
       - flip
       - fftw-dev
       - libfreexl-dev
-      - clang-3.7
-      - llvm-3.7
-      - llvm-3.7-dev
-      - libstdc++-4.9-dev
+#      - clang-3.7
+#      - llvm-3.7
+#      - llvm-3.7-dev
+#      - libstdc++-4.9-dev
 #      - doxygen
 
 #notifications:
