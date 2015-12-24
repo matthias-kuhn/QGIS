@@ -1,5 +1,9 @@
 export DEBIAN_FRONTEND=noninteractive
 
+export CC=clang-3.7
+export CXX=clang++-3.7
+
+
 ##################################################
 #
 # Get precompiled dependencies
@@ -64,6 +68,7 @@ if [ ! -f libspatialite-4.3.0a.tar.gz ]; then
   pushd libspatialite-4.3.0a
   ./configure --prefix=${HOME}/deps \
     --enable-freexl=no \
+    --enable-libxml2=no \
     --with-geosconfig=${HOME}/deps/bin/geos-config \
     CFLAGS="-I$HOME/deps/include" \
     LDFLAGS="-L${HOME}/deps/lib"
