@@ -45,7 +45,7 @@ if [ ! -f geos-3.4.2.tar.bz2 ]; then
   cmake \
     -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
     ../geos-3.4.2
-  make -j2 > make.log
+  make -j2
   make install
   popd
 fi
@@ -72,7 +72,7 @@ if [ ! -f libspatialite-4.3.0a.tar.gz ]; then
     --with-geosconfig=${HOME}/deps/bin/geos-config \
     CFLAGS="-I$HOME/deps/include" \
     LDFLAGS="-L${HOME}/deps/lib"
-  make -j2 > make.log
+  make -j2
   make install
   popd
 fi
@@ -85,7 +85,7 @@ if [ ! -f gdal-2.0.1.tar.gz ]; then
   ./configure --prefix=${HOME}/deps \
     --with-python \
     --with-geos=${HOME}/deps/bin/geos-config
-  make -j2 > make.log
+  make -j2
   make install
   popd
 fi
@@ -99,7 +99,7 @@ if [ ! -f qca-2.1.0.tar.gz ]; then
   cmake \
     -DCMAKE_INSTALL_PREFIX:PATH=${HOME}/deps \
     ../qca-2.1.0
-  make -j2 > make.log
+  make -j2
   make install
   popd
 fi
