@@ -9,4 +9,11 @@ ENV CC=clang
 ENV CXX=clang++
 ENV LD_LIBRARY_PATH=/home/travis/deps/lib
 COPY travis/linux /linux
+RUN apt-get install -y python-software-properties
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test
+RUN wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key| apt-key add -
+RUN echo "deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.7 main" > /etc/apt/sources.list.d/llvm.list
+RUN echo "deb-src http://llvm.org/apt/precise/ llvm-toolchain-precise-3.7 main" >> /etc/apt/sources.list.d/llvm.list
+RUN apt-get update
+RUN apt-get install -y llvm-3.7 llvm-3.7-dev clang-3.7 libstdc++-4.9-dev
 RUN bash /linux/before_install.sh
