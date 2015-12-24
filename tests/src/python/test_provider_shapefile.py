@@ -46,7 +46,7 @@ class TestPyQgsShapefileProvider(TestCase, ProviderTestCase):
         cls.basetestfile = os.path.join(cls.basetestpath, 'shapefile.shp')
         cls.repackfile = os.path.join(cls.repackfilepath, 'shapefile.shp')
         cls.vl = QgsVectorLayer(u'{}|layerid=0'.format(cls.basetestfile), u'test', u'ogr')
-        assert (cls.vl.isValid())
+        assert(cls.vl.isValid())
         cls.provider = cls.vl.dataProvider()
 
     @classmethod
@@ -66,12 +66,12 @@ class TestPyQgsShapefileProvider(TestCase, ProviderTestCase):
 
         ids = [f.id() for f in vl.getFeatures(QgsFeatureRequest().setFilterExpression('pk=1'))]
         vl.setSelectedFeatures(ids)
-        assert vl.selectedFeaturesIds() == ids, vl.selectedFeaturesIds()
-        assert vl.pendingFeatureCount() == 5, vl.pendingFeatureCount()
-        assert vl.startEditing()
-        assert vl.deleteFeature(3)
-        assert vl.commitChanges()
-        assert vl.selectedFeatureCount() == 0 or vl.selectedFeatures()[0]['pk'] == 1
+        self.assertEquals(vl.selectedFeaturesIds(), ids)
+        self.assertEquals(vl.pendingFeatureCount(), 5)
+        self.assertTrue(vl.startEditing())
+        self.assertTrue(vl.deleteFeature(3))
+        self.assertTrue(vl.commitChanges())
+        self.assertTrue(vl.selectedFeatureCount() == 0 or vl.selectedFeatures()[0]['pk'] == 1)
 
 
 if __name__ == '__main__':

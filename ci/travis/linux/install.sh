@@ -1,13 +1,15 @@
 mkdir build
 cd build
 
-export CXX="clang++-3.7"
-export CC="clang-3.7"
+export INCLUDE="${HOME}/deps/include"
+export LIB_DIR="${HOME}/deps"
+export PATH="${HOME}/deps/bin:${PATH}"
 
-cmake --version
-${CC} --version
-
-cmake -DWITH_SERVER=ON \
+# Include this line for debug reasons
+#      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+cmake \
+      -DCMAKE_BUILD_TYPE=Debug \
+      -DWITH_SERVER=ON \
       -DWITH_STAGED_PLUGINS=OFF \
       -DWITH_GRASS=ON \
       -DSUPPRESS_QT_WARNINGS=ON \
@@ -17,5 +19,6 @@ cmake -DWITH_SERVER=ON \
       -DWITH_APIDOC=ON \
       -DWITH_ASTYLE=ON \
       -DWITH_PYSPATIALITE=ON \
-      -DGRASS_PREFIX7=/usr/lib/grass70 \
-      -DGRASS_INCLUDE_DIR7=/usr/lib/grass70/include ..
+      -DGDAL_CONFIG=/home/travis/deps/bin/gdal-config \
+      -DDOXYGEN_EXECUTABLE=${HOME}/deps/doxygen-1.8.10/bin/doxygen \
+      ..

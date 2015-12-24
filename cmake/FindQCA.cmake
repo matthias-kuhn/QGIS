@@ -31,7 +31,7 @@ else(QCA_INCLUDE_DIR AND QCA_LIBRARY)
     PATHS
       ${LIB_DIR}
       $ENV{LIB}
-      "$ENV{LIB_DIR}"
+      "$ENV{LIB_DIR}/lib"
       /usr/local/lib
   )
 
