@@ -47,9 +47,6 @@ if [ ! -f geos-3.4.2.tar.bz2 ]; then
   popd
 fi
 
-export CC=clang-3.7
-export CXX=clang++-3.7
-
 # Build proj
 if [ ! -f proj-4.9.0b2.tar.gz ]; then
   wget http://download.osgeo.org/proj/proj-4.9.0b2.tar.gz
