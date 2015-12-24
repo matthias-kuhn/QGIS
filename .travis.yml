@@ -65,6 +65,9 @@ addons:
       - fftw-dev
       - libfreexl-dev
       - clang-3.7
+      - llvm-3.7
+      - llvm-3.7-dev
+      - libstdc++-4.9-dev
 #      - doxygen
 
 #notifications:
