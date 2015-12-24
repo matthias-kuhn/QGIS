@@ -8,6 +8,7 @@ export PATH="${HOME}/deps/bin:${PATH}"
 # Include this line for debug reasons
 #      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 cmake \
+      -DCMAKE_BUILD_TYPE=Debug \
       -DWITH_SERVER=ON \
       -DWITH_STAGED_PLUGINS=OFF \
       -DWITH_GRASS=ON \
