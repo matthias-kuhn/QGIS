@@ -24,7 +24,7 @@ from PyQt4.QtCore import Qt, QPointF, QThreadPool
 from PyQt4.QtGui import QFont
 
 from qgis.core import QgsPalLayerSettings
-from unittest import skip
+
 from utilities import (
     svgSymbolsPath,
     getTempfilePath,
