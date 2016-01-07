@@ -7,3 +7,4 @@ PLUGIN_INSTALL(processing tests/data ${TEST_DATA_FILES})
 INCLUDE(UsePythonTest)
 
 ADD_PYTHON_TEST(ProcessingParametersTest ParametersTest.py)
+ADD_PYTHON_TEST(ProcessingAlgorithmsTest AlgorithmsTest.py)
