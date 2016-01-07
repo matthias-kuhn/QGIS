@@ -164,7 +164,7 @@ QgsVectorLayer::QgsVectorLayer( const QString& vectorLayerPath,
 
   // Default simplify drawing settings
   QSettings settings;
-  mSimplifyMethod.setSimplifyHints(( QgsVectorSimplifyMethod::SimplifyHints ) settings.value( "/qgis/simplifyDrawingHints", ( int ) mSimplifyMethod.simplifyHints() ).toInt() );
+  mSimplifyMethod.setSimplifyHints( static_cast< QgsVectorSimplifyMethod::SimplifyHints >( settings.value( "/qgis/simplifyDrawingHints", static_cast< int>( mSimplifyMethod.simplifyHints() ) ).toInt() ) );
   mSimplifyMethod.setThreshold( settings.value( "/qgis/simplifyDrawingTol", mSimplifyMethod.threshold() ).toFloat() );
   mSimplifyMethod.setForceLocalOptimization( settings.value( "/qgis/simplifyLocal", mSimplifyMethod.forceLocalOptimization() ).toBool() );
   mSimplifyMethod.setMaximumScale( settings.value( "/qgis/simplifyMaxScale", mSimplifyMethod.maximumScale() ).toFloat() );
@@ -409,7 +409,7 @@ void QgsVectorLayer::drawVertexMarker( double x, double y, QPainter& p, QgsVecto
   }
 }
 
-void QgsVectorLayer::select( const QgsFeatureId& fid )
+void QgsVectorLayer::select( QgsFeatureId fid )
 {
   mSelectedFeatureIds.insert( fid );
 
@@ -577,7 +577,7 @@ QGis::GeometryType QgsVectorLayer::geometryType() const
   if ( mValid && mDataProvider )
   {
     QGis::WkbType type = mDataProvider->geometryType();
-    return ( QGis::GeometryType )( QgsWKBTypes::geometryType(( QgsWKBTypes::Type )type ) );
+    return static_cast< QGis::GeometryType >( QgsWKBTypes::geometryType( static_cast< QgsWKBTypes::Type >( type ) ) );
   }
   else
   {
@@ -1493,8 +1493,7 @@ bool QgsVectorLayer::setDataProvider( QString const & provider )
   //XXX - This was a dynamic cast but that kills the Windows
   //      version big-time with an abnormal termination error
   delete mDataProvider;
-  mDataProvider =
-    ( QgsVectorDataProvider* )( QgsProviderRegistry::instance()->provider( provider, mDataSource ) );
+  mDataProvider = ( QgsVectorDataProvider* )( QgsProviderRegistry::instance()->provider( provider, mDataSource ) );
 
   if ( !mDataProvider )
   {
@@ -1621,6 +1620,16 @@ bool QgsVectorLayer::writeXml( QDomNode & layer_node,
   //save joins
   mJoinBuffer->writeXml( layer_node, document );
 
+  // dependencies
+  QDomElement dependenciesElement = document.createElement( "layerDependencies" );
+  foreach ( QString layerId, layerDependencies() )
+  {
+    QDomElement depElem = document.createElement( "layer" );
+    depElem.setAttribute( "id", layerId );
+    dependenciesElement.appendChild( depElem );
+  }
+  layer_node.appendChild( dependenciesElement );
+
   // save expression fields
   mExpressionFieldBuffer->writeXml( layer_node, document );
 
@@ -1677,7 +1686,7 @@ bool QgsVectorLayer::readSymbology( const QDomNode& node, QString& errorMessage 
     if ( !blendModeNode.isNull() )
     {
       QDomElement e = blendModeNode.toElement();
-      setBlendMode( QgsMapRenderer::getCompositionMode(( QgsMapRenderer::BlendMode ) e.text().toInt() ) );
+      setBlendMode( QgsMapRenderer::getCompositionMode( static_cast< QgsMapRenderer::BlendMode >( e.text().toInt() ) ) );
     }
 
     // get and set the feature blend mode if it exists
@@ -1685,7 +1694,7 @@ bool QgsVectorLayer::readSymbology( const QDomNode& node, QString& errorMessage 
     if ( !featureBlendModeNode.isNull() )
     {
       QDomElement e = featureBlendModeNode.toElement();
-      setFeatureBlendMode( QgsMapRenderer::getCompositionMode(( QgsMapRenderer::BlendMode ) e.text().toInt() ) );
+      setFeatureBlendMode( QgsMapRenderer::getCompositionMode( static_cast< QgsMapRenderer::BlendMode >( e.text().toInt() ) ) );
     }
 
     // get and set the layer transparency if it exists
@@ -1706,7 +1715,7 @@ bool QgsVectorLayer::readSymbology( const QDomNode& node, QString& errorMessage 
     }
 
     // get the simplification drawing settings
-    mSimplifyMethod.setSimplifyHints(( QgsVectorSimplifyMethod::SimplifyHints ) e.attribute( "simplifyDrawingHints", "1" ).toInt() );
+    mSimplifyMethod.setSimplifyHints( static_cast< QgsVectorSimplifyMethod::SimplifyHints >( e.attribute( "simplifyDrawingHints", "1" ).toInt() ) );
     mSimplifyMethod.setThreshold( e.attribute( "simplifyDrawingTol", "1" ).toFloat() );
     mSimplifyMethod.setForceLocalOptimization( e.attribute( "simplifyLocal", "1" ).toInt() );
     mSimplifyMethod.setMaximumScale( e.attribute( "simplifyMaxScale", "1" ).toFloat() );
@@ -3332,7 +3341,7 @@ void QgsVectorLayer::readSldLabeling( const QDomNode& node )
     setCustomProperty( "labeling/textColorR", textColor.red() );
     setCustomProperty( "labeling/textColorG", textColor.green() );
     setCustomProperty( "labeling/textColorB", textColor.blue() );
-    setCustomProperty( "labeling/textTransp", 100 - ( int )( 100 * textColor.alphaF() ) );
+    setCustomProperty( "labeling/textTransp", 100 - static_cast< int >( 100 * textColor.alphaF() ) );
   }
 
   // Halo
@@ -3359,7 +3368,7 @@ void QgsVectorLayer::readSldLabeling( const QDomNode& node )
       setCustomProperty( "labeling/bufferColorR", bufferColor.red() );
       setCustomProperty( "labeling/bufferColorG", bufferColor.green() );
       setCustomProperty( "labeling/bufferColorB", bufferColor.blue() );
-      setCustomProperty( "labeling/bufferTransp", 100 - ( int )( 100 * bufferColor.alphaF() ) );
+      setCustomProperty( "labeling/bufferTransp", 100 - static_cast< int >( 100 * bufferColor.alphaF() ) );
     }
   }
 
@@ -3684,7 +3693,7 @@ void QgsVectorLayer::onJoinedFieldsChanged()
   updateFields();
 }
 
-void QgsVectorLayer::onFeatureDeleted( const QgsFeatureId& fid )
+void QgsVectorLayer::onFeatureDeleted( QgsFeatureId fid )
 {
   if ( mEditCommandActive )
     mDeletedFids << fid;
@@ -3781,7 +3790,7 @@ int QgsVectorLayer::listStylesInDatabase( QStringList &ids, QStringList &names, 
     msgError = QObject::tr( "Unable to load %1 provider" ).arg( mProviderKey );
     return -1;
   }
-  listStyles_t* listStylesExternalMethod = ( listStyles_t * ) cast_to_fptr( myLib->resolve( "listStyles" ) );
+  listStyles_t* listStylesExternalMethod = reinterpret_cast< listStyles_t * >( cast_to_fptr( myLib->resolve( "listStyles" ) ) );
 
   if ( !listStylesExternalMethod )
   {
@@ -3802,7 +3811,7 @@ QString QgsVectorLayer::getStyleFromDatabase( const QString& styleId, QString &m
     msgError = QObject::tr( "Unable to load %1 provider" ).arg( mProviderKey );
     return QObject::tr( "" );
   }
-  getStyleById_t* getStyleByIdMethod = ( getStyleById_t * ) cast_to_fptr( myLib->resolve( "getStyleById" ) );
+  getStyleById_t* getStyleByIdMethod = reinterpret_cast< getStyleById_t * >( cast_to_fptr( myLib->resolve( "getStyleById" ) ) );
 
   if ( !getStyleByIdMethod )
   {
@@ -3827,7 +3836,7 @@ void QgsVectorLayer::saveStyleToDatabase( const QString& name, const QString& de
     msgError = QObject::tr( "Unable to load %1 provider" ).arg( mProviderKey );
     return;
   }
-  saveStyle_t* saveStyleExternalMethod = ( saveStyle_t * ) cast_to_fptr( myLib->resolve( "saveStyle" ) );
+  saveStyle_t* saveStyleExternalMethod = reinterpret_cast< saveStyle_t * >( cast_to_fptr( myLib->resolve( "saveStyle" ) ) );
 
   if ( !saveStyleExternalMethod )
   {
@@ -3871,7 +3880,7 @@ QString QgsVectorLayer::loadNamedStyle( const QString &theURI, bool &theResultFl
     QLibrary *myLib = pReg->providerLibrary( mProviderKey );
     if ( myLib )
     {
-      loadStyle_t* loadStyleExternalMethod = ( loadStyle_t * ) cast_to_fptr( myLib->resolve( "loadStyle" ) );
+      loadStyle_t* loadStyleExternalMethod = reinterpret_cast< loadStyle_t * >( cast_to_fptr( myLib->resolve( "loadStyle" ) ) );
       if ( loadStyleExternalMethod )
       {
         QString qml, errorMsg;
@@ -3911,4 +3920,13 @@ bool QgsAttributeEditorRelation::init( QgsRelationManager* relationManager )
 {
   mRelation = relationManager->relation( mRelationId );
   return mRelation.isValid();
+}
+
+QSet<QString> QgsVectorLayer::layerDependencies() const
+{
+  if ( mDataProvider )
+  {
+    return mDataProvider->layerDependencies();
+  }
+  return QSet<QString>();
 }

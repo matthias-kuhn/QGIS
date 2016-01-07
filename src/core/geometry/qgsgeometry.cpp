@@ -232,7 +232,7 @@ QgsGeometry* QgsGeometry::fromRect( const QgsRectangle& rect )
   return fromPolygon( polygon );
 }
 
-void QgsGeometry::fromWkb( unsigned char *wkb, size_t length )
+void QgsGeometry::fromWkb( unsigned char *wkb, int length )
 {
   Q_UNUSED( length );
 
@@ -262,7 +262,7 @@ const unsigned char *QgsGeometry::asWkb() const
   return d->mWkb;
 }
 
-size_t QgsGeometry::wkbSize() const
+int QgsGeometry::wkbSize() const
 {
   if ( !d->geometry )
   {
@@ -1555,7 +1555,7 @@ QgsGeometry *QgsGeometry::unaryUnion( const QList<QgsGeometry*> &geometryList )
 {
   QgsGeos geos( nullptr );
 
-  QList<const QgsAbstractGeometryV2*> geomV2List;
+  QList<QgsAbstractGeometryV2*> geomV2List;
   QList<QgsGeometry*>::const_iterator it = geometryList.constBegin();
   for ( ; it != geometryList.constEnd(); ++it )
   {

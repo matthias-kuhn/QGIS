@@ -56,12 +56,12 @@ const double QgsDecorationNorthArrow::TOL = 1e-8;
  */
 QgsDecorationNorthArrow::QgsDecorationNorthArrow( QObject* parent )
     : QgsDecorationItem( parent )
+    , mRotationInt( 0 )
+    , mAutomatic( true )
+    , mMarginHorizontal( 0 )
+    , mMarginVertical( 0 )
 {
-  mRotationInt = 0;
-  mAutomatic = true;
-  mPlacementLabels << tr( "Bottom Left" ) << tr( "Top Left" )
-  << tr( "Top Right" ) << tr( "Bottom Right" );
-
+  mPlacement = BottomLeft;
   setName( "North Arrow" );
   projectRead();
 }
@@ -74,27 +74,25 @@ void QgsDecorationNorthArrow::projectRead()
 {
   QgsDecorationItem::projectRead();
   mRotationInt = QgsProject::instance()->readNumEntry( mNameConfig, "/Rotation", 0 );
-  mPlacementIndex = QgsProject::instance()->readNumEntry( mNameConfig, "/Placement", 0 );
   mAutomatic = QgsProject::instance()->readBoolEntry( mNameConfig, "/Automatic", true );
+  mMarginHorizontal = QgsProject::instance()->readNumEntry( mNameConfig, "/MarginH", 0 );
+  mMarginVertical = QgsProject::instance()->readNumEntry( mNameConfig, "/MarginV", 0 );
 }
 
 void QgsDecorationNorthArrow::saveToProject()
 {
   QgsDecorationItem::saveToProject();
   QgsProject::instance()->writeEntry( mNameConfig, "/Rotation", mRotationInt );
-  QgsProject::instance()->writeEntry( mNameConfig, "/Placement", mPlacementIndex );
   QgsProject::instance()->writeEntry( mNameConfig, "/Automatic", mAutomatic );
+  QgsProject::instance()->writeEntry( mNameConfig, "/MarginH", mMarginHorizontal );
+  QgsProject::instance()->writeEntry( mNameConfig, "/MarginV", mMarginVertical );
 }
 
 // Slot called when the buffer menu item is activated
 void QgsDecorationNorthArrow::run()
 {
   QgsDecorationNorthArrowDialog dlg( *this, QgisApp::instance() );
-
-  if ( dlg.exec() )
-  {
-    update();
-  }
+  dlg.exec();
 }
 
 void QgsDecorationNorthArrow::render( QPainter * theQPainter )
@@ -140,28 +138,34 @@ void QgsDecorationNorthArrow::render( QPainter * theQPainter )
 
       //QgsDebugMsg("Rendering north arrow at " + mPlacementLabels.at(mPlacementIndex));
 
+      // Calculate the margin percentage values
+      int myPercentageWidth = int((( float( myWidth ) - float( myQPixmap.width() ) )
+                                   / 100. ) * float( mMarginHorizontal ) );
+      int myPercentageHeight = int((( float( myHeight ) - float( myQPixmap.height() ) )
+                                    / 100. ) * float( mMarginVertical ) );
+
       //Determine placement of label from form combo box
-      switch ( mPlacementIndex )
+      switch ( mPlacement )
       {
-        case 0: // Bottom Left
-          theQPainter->translate( 0, myHeight - myQPixmap.height() );
+        case BottomLeft:
+          theQPainter->translate( myPercentageWidth, myHeight - myPercentageHeight - myQPixmap.height() );
           break;
-        case 1: // Top Left
-          //no need to translate for TL corner because we're already at the origin
-          theQPainter->translate( 0, 0 );
+        case TopLeft:
+          theQPainter->translate( myPercentageWidth, myPercentageHeight );
           break;
-        case 2: // Top Right
-          theQPainter->translate( myWidth - myQPixmap.width(), 0 );
+        case TopRight:
+          theQPainter->translate( myWidth - myPercentageWidth - myQPixmap.width(), myPercentageHeight );
           break;
-        case 3: // Bottom Right
-          theQPainter->translate( myWidth - myQPixmap.width(),
-                                  myHeight - myQPixmap.height() );
+        case BottomRight:
+          theQPainter->translate( myWidth - myPercentageWidth - myQPixmap.width(),
+                                  myHeight - myPercentageHeight - myQPixmap.height() );
           break;
         default:
         {
           //QgsDebugMsg("Unable to determine where to put north arrow so defaulting to top left");
         }
       }
+
       //rotate the canvas by the north arrow rotation amount
       theQPainter->rotate( mRotationInt );
       //Now we can actually do the drawing, and draw a smooth north arrow even when rotated

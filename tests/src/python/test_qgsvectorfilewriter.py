@@ -13,22 +13,24 @@ __copyright__ = 'Copyright 2012, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import qgis
+from qgis.core import (
+    QgsVectorLayer,
+    QgsFeature,
+    QgsGeometry,
+    QgsPoint
+)
 
-from qgis.core import (QgsVectorLayer,
-                       QgsFeature,
-                       QgsGeometry,
-                       QgsPoint
-                       )
+from qgis.testing import (
+    start_app,
+    unittest
+)
 
-from utilities import (getQgisTestApp,
-                       TestCase,
-                       unittest,
-                       writeShape
-                       )
-QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
+from utilities import writeShape
+
+start_app()
 
 
-class TestQgsVectorLayer(TestCase):
+class TestQgsVectorLayer(unittest.TestCase):
 
     mMemoryLayer = None
 

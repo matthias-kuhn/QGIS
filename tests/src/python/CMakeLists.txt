@@ -67,6 +67,7 @@ ADD_PYTHON_TEST(PyQgsZonalStatistics test_qgszonalstatistics.py)
 ADD_PYTHON_TEST(PyQgsMapLayerRegistry test_qgsmaplayerregistry.py)
 ADD_PYTHON_TEST(PyQgsVirtualLayerProvider test_provider_virtual.py)
 ADD_PYTHON_TEST(PyQgsVirtualLayerDefinition test_qgsvirtuallayerdefinition.py)
+ADD_PYTHON_TEST(PyQgsLayerDefinition test_qgslayerdefinition.py)
 
 IF (NOT WIN32)
   ADD_PYTHON_TEST(PyQgsLogger test_qgslogger.py)
@@ -92,16 +93,7 @@ ENDIF (ENABLE_MSSQLTEST)
 
 IF (WITH_APIDOC)
   ADD_PYTHON_TEST(PyQgsDocCoverage test_qgsdoccoverage.py)
-  #SIP coverage test relies on API doc parsing to identify members which should be in bindings
-  SET(MISSING_SIP_CLASSES 0)
-  SET(MISSING_SIP_MEMBERS 0)
-
-  IF(NOT QSCI_SIP_DIR)
-    MATH(EXPR MISSING_SIP_CLASSES "${MISSING_SIP_CLASSES}+2") # QgsCodeEditor, QgsCodeEditorPython
-  ENDIF(NOT QSCI_SIP_DIR)
-
   ADD_PYTHON_TEST(PyQgsSipCoverage test_qgssipcoverage.py)
-  SET_PROPERTY(TEST PyQgsSipCoverage PROPERTY ENVIRONMENT "MISSING_SIP_CLASSES=${MISSING_SIP_CLASSES}" "MISSING_SIP_MEMBERS=${MISSING_SIP_MEMBERS}")
 ENDIF (WITH_APIDOC)
 
 IF (WITH_SERVER)

@@ -27,6 +27,16 @@ class APP_EXPORT QgsDecorationItem: public QObject
 {
     Q_OBJECT
   public:
+
+    //! Item placements
+    enum Placement
+    {
+      BottomLeft = 0,
+      TopLeft,
+      TopRight,
+      BottomRight,
+    };
+
     //! Constructor
     QgsDecorationItem( QObject* parent = nullptr );
     //! Destructor
@@ -35,7 +45,15 @@ class APP_EXPORT QgsDecorationItem: public QObject
     void setEnabled( bool enabled ) { mEnabled = enabled; }
     bool enabled() const { return mEnabled; }
 
-    void update();
+    /** Returns the current placement for the item.
+     * @see setPlacement()
+     */
+    Placement placement() const { return mPlacement; }
+
+    /** Sets the placement of the item.
+     * @see placement()
+     */
+    void setPlacement( Placement placement ) { mPlacement = placement; }
 
   signals:
     void toggled( bool t );
@@ -54,10 +72,16 @@ class APP_EXPORT QgsDecorationItem: public QObject
     virtual void setName( const char *name );
     virtual QString name() { return mName; }
 
+    //! Redraws the decoration
+    void update();
+
   protected:
 
     /** True if decoration item has to be displayed*/
     bool mEnabled;
+
+    //! Placement of the decoration
+    Placement mPlacement;
 
     QString mName;
     QString mNameConfig;

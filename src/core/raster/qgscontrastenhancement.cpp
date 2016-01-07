@@ -103,7 +103,6 @@ double QgsContrastEnhancement::maximumValuePossible( QGis::DataType theDataType 
       return std::numeric_limits<unsigned int>::max();
     case QGis::Int32:
       return std::numeric_limits<int>::max();
-      break;
     case QGis::Float32:
       return std::numeric_limits<float>::max();
     case QGis::Float64:
@@ -218,7 +217,7 @@ bool QgsContrastEnhancement::generateLookupTable()
 
   for ( int myIterator = 0; myIterator <= mRasterDataTypeRange; myIterator++ )
   {
-    mLookupTable[myIterator] = mContrastEnhancementFunction->enhance(( double )myIterator - mLookupTableOffset );
+    mLookupTable[myIterator] = mContrastEnhancementFunction->enhance( static_cast< double >( myIterator ) - mLookupTableOffset );
   }
 
   return true;
@@ -248,7 +247,7 @@ bool QgsContrastEnhancement::isValueInDisplayableRange( double theValue )
 */
 void QgsContrastEnhancement::setContrastEnhancementAlgorithm( ContrastEnhancementAlgorithm theAlgorithm, bool generateTable )
 {
-  QgsDebugMsg( "called algorithm: " + QString::number(( int )theAlgorithm ) + " generate lookup table: " + QString::number(( int )generateTable ) );
+  QgsDebugMsg( "called algorithm: " + QString::number( static_cast< int >( theAlgorithm ) ) + " generate lookup table: " + QString::number( static_cast< int >( generateTable ) ) );
 
   if ( theAlgorithm != mContrastEnhancementAlgorithm )
   {
@@ -311,7 +310,7 @@ void QgsContrastEnhancement::setContrastEnhancementFunction( QgsContrastEnhancem
 */
 void QgsContrastEnhancement::setMaximumValue( double theValue, bool generateTable )
 {
-  QgsDebugMsg( "called value: " + QString::number( theValue ) + " generate lookup table: " + QString::number(( int )generateTable ) );
+  QgsDebugMsg( "called value: " + QString::number( theValue ) + " generate lookup table: " + QString::number( static_cast< int >( generateTable ) ) );
 
   if ( theValue > maximumValuePossible( mRasterDataType ) )
   {
@@ -343,7 +342,7 @@ void QgsContrastEnhancement::setMaximumValue( double theValue, bool generateTabl
 */
 void QgsContrastEnhancement::setMinimumValue( double theValue, bool generateTable )
 {
-  QgsDebugMsg( "called value: " + QString::number( theValue ) + " generate lookup table: " + QString::number(( int )generateTable ) );
+  QgsDebugMsg( "called value: " + QString::number( theValue ) + " generate lookup table: " + QString::number( static_cast< int >( generateTable ) ) );
 
   if ( theValue < minimumValuePossible( mRasterDataType ) )
   {

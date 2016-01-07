@@ -442,6 +442,11 @@ class QgsVectorLayer : QgsMapLayer
     const QList<QgsVectorJoinInfo> vectorJoins() const;
 
     /**
+     * Get the list of layer ids on which this layer depends. This in particular determines the order of layer loading.
+     */
+    virtual QSet<QString> layerDependencies() const;
+
+    /**
      * Add a new field which is calculated by the expression specified
      *
      * @param exp The expression which calculates the field
@@ -1444,7 +1449,7 @@ class QgsVectorLayer : QgsMapLayer
      *
      * @see select(QgsFeatureIds)
      */
-    void select( const QgsFeatureId &featureId );
+    void select( QgsFeatureId featureId );
 
     /**
      * Select features by their ID
@@ -1661,7 +1666,7 @@ class QgsVectorLayer : QgsMapLayer
   private slots:
     void onRelationsLoaded();
     void onJoinedFieldsChanged();
-    void onFeatureDeleted( const QgsFeatureId& fid );
+    void onFeatureDeleted( QgsFeatureId fid );
 
   protected:
     /** Set the extent */

@@ -12,11 +12,13 @@ __copyright__ = 'Copyright 2015, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from os import path, environ
+print 'CTEST_FULL_OUTPUT'
+
+import os
 from shutil import copyfile
 from math import sqrt
 from subprocess import check_output
-from unittest import TestCase, main
+from qgis.testing import unittest
 from utilities import unitTestDataPath
 from osgeo import gdal
 from osgeo.gdalconst import GA_ReadOnly
@@ -25,6 +27,7 @@ from qgis.core import QgsRenderChecker
 from PyQt4.QtCore import QSize
 import tempfile
 import urllib
+import base64
 
 
 XML_NS = \
@@ -152,27 +155,30 @@ accesscontrol = RestrictedAccessControl(server_iface)
 server_iface.registerAccessControl(accesscontrol, 100)
 
 
-class TestQgsServerAccessControl(TestCase):
+class TestQgsServerAccessControl(unittest.TestCase):
 
     def setUp(self):
         self.testdata_path = unitTestDataPath("qgis_server_accesscontrol")
 
-        copyfile(path.join(self.testdata_path, "helloworld.db"), path.join(self.testdata_path, "_helloworld.db"))
+        dataFile = os.path.join(self.testdata_path, "helloworld.db")
+        self.assertTrue(os.path.isfile(dataFile), 'Could not find data file "{}"'.format(dataFile))
+        copyfile(dataFile, os.path.join(self.testdata_path, "_helloworld.db"))
 
         for k in ["QUERY_STRING", "QGIS_PROJECT_FILE"]:
-            if k in environ:
-                del environ[k]
+            if k in os.environ:
+                del os.environ[k]
 
-        self.projectPath = urllib.quote(path.join(self.testdata_path, "project.qgs"))
+        self.projectPath = os.path.join(self.testdata_path, "project.qgs")
+        self.assertTrue(os.path.isfile(self.projectPath), 'Could not find project file "{}"'.format(self.projectPath))
 
     def tearDown(self):
-        copyfile(path.join(self.testdata_path, "_helloworld.db"), path.join(self.testdata_path, "helloworld.db"))
+        copyfile(os.path.join(self.testdata_path, "_helloworld.db"), os.path.join(self.testdata_path, "helloworld.db"))
 
 # # WMS # # WMS # # WMS # #
 
     def test_wms_getcapabilities(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetCapabilities"
@@ -196,7 +202,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wms_describelayer_hello(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "DescribeLayer",
@@ -216,7 +222,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wms_describelayer_country(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "DescribeLayer",
@@ -236,7 +242,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wms_getlegendgraphic_hello(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetLegendGraphic",
@@ -252,7 +258,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wms_getlegendgraphic_country(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetLegendGraphic",
@@ -274,7 +280,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wms_getmap(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetMap",
@@ -291,7 +297,7 @@ class TestQgsServerAccessControl(TestCase):
         self._img_diff_error(response, headers, "WMS_GetMap")
 
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetMap",
@@ -307,7 +313,7 @@ class TestQgsServerAccessControl(TestCase):
         self._img_diff_error(response, headers, "Restricted_WMS_GetMap")
 
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetMap",
@@ -330,7 +336,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wms_getfeatureinfo_hello(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetFeatureInfo",
@@ -369,7 +375,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wms_getfeatureinfo_hello2(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetFeatureInfo",
@@ -399,7 +405,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wms_getfeatureinfo_country(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetFeatureInfo",
@@ -431,7 +437,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wfs_getcapabilities(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WFS",
             "VERSION": "1.1.0",
             "REQUEST": "GetCapabilities"
@@ -455,7 +461,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wfs_describefeaturetype_hello(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WFS",
             "VERSION": "1.1.0",
             "REQUEST": "DescribeFeatureType",
@@ -474,7 +480,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wfs_describefeaturetype_country(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WFS",
             "VERSION": "1.1.0",
             "REQUEST": "DescribeFeatureType",
@@ -562,7 +568,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wcs_getcapabilities(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WCS",
             "VERSION": "1.0.0",
             "REQUEST": "GetCapabilities",
@@ -579,7 +585,7 @@ class TestQgsServerAccessControl(TestCase):
             "No dem layer in WCS/GetCapabilities\n%s" % response)
 
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WCS",
             "VERSION": "1.0.0",
             "REQUEST": "GetCapabilities",
@@ -593,7 +599,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wcs_describecoverage(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WCS",
             "VERSION": "1.0.0",
             "REQUEST": "DescribeCoverage",
@@ -611,7 +617,7 @@ class TestQgsServerAccessControl(TestCase):
             "No dem layer in DescribeCoverage\n%s" % response)
 
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WCS",
             "VERSION": "1.0.0",
             "REQUEST": "DescribeCoverage",
@@ -626,7 +632,7 @@ class TestQgsServerAccessControl(TestCase):
 
     def test_wcs_getcoverage(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WCS",
             "VERSION": "1.0.0",
             "REQUEST": "GetCoverage",
@@ -655,7 +661,7 @@ class TestQgsServerAccessControl(TestCase):
             "Image for GetCoverage is wrong")
 
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WCS",
             "VERSION": "1.0.0",
             "REQUEST": "GetCoverage",
@@ -822,7 +828,7 @@ class TestQgsServerAccessControl(TestCase):
 # # WMS # # WMS # # WMS # #
     def test_wms_getmap_subsetstring(self):
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetMap",
@@ -839,7 +845,7 @@ class TestQgsServerAccessControl(TestCase):
         self._img_diff_error(response, headers, "WMS_GetMap")
 
         query_string = "&".join(["%s=%s" % i for i in {
-            "MAP": self.projectPath,
+            "MAP": urllib.quote(self.projectPath),
             "SERVICE": "WMS",
             "VERSION": "1.1.1",
             "REQUEST": "GetMap",
@@ -872,7 +878,7 @@ class TestQgsServerAccessControl(TestCase):
             "INFO_FORMAT": "application/vnd.ogc.gml",
             "X": "56",
             "Y": "144",
-            "MAP": self.projectPath
+            "MAP": urllib.quote(self.projectPath)
         }.items()])
 
         response, headers = self._get_fullaccess(query_string)
@@ -908,7 +914,7 @@ class TestQgsServerAccessControl(TestCase):
             "INFO_FORMAT": "application/vnd.ogc.gml",
             "X": "146",
             "Y": "160",
-            "MAP": self.projectPath
+            "MAP": urllib.quote(self.projectPath)
         }.items()])
 
         response, headers = self._get_fullaccess(query_string)
@@ -990,40 +996,41 @@ class TestQgsServerAccessControl(TestCase):
         return data[1], headers
 
     def _get_fullaccess(self, query_string):
-        environ["REQUEST_METHOD"] = "GET"
+        server.putenv("REQUEST_METHOD", "GET")
         result = self._handle_request(False, query_string)
-        del environ["REQUEST_METHOD"]
+        server.putenv("REQUEST_METHOD", '')
         return result
 
     def _get_restricted(self, query_string):
-        environ["REQUEST_METHOD"] = "GET"
+        server.putenv("REQUEST_METHOD", "GET")
         result = self._handle_request(True, query_string)
-        del environ["REQUEST_METHOD"]
+        server.putenv("REQUEST_METHOD", '')
         return result
 
     def _post_fullaccess(self, data, query_string=None):
-        environ["REQUEST_METHOD"] = "POST"
-        environ["REQUEST_BODY"] = data
-        environ["QGIS_PROJECT_FILE"] = self.projectPath
+        server.putenv("REQUEST_METHOD", "POST")
+        server.putenv("REQUEST_BODY", data)
+        server.putenv("QGIS_PROJECT_FILE", self.projectPath)
         result = self._handle_request(False, query_string)
-        del environ["REQUEST_METHOD"]
-        del environ["REQUEST_BODY"]
-        del environ["QGIS_PROJECT_FILE"]
+        server.putenv("REQUEST_METHOD", '')
+        server.putenv("REQUEST_BODY", '')
+        server.putenv("QGIS_PROJECT_FILE", '')
         return result
 
     def _post_restricted(self, data, query_string=None):
-        environ["REQUEST_METHOD"] = "POST"
-        environ["REQUEST_BODY"] = data
-        environ["QGIS_PROJECT_FILE"] = self.projectPath
+        server.putenv("REQUEST_METHOD", "POST")
+        server.putenv("REQUEST_BODY", data)
+        server.putenv("QGIS_PROJECT_FILE", self.projectPath)
         result = self._handle_request(True, query_string)
-        del environ["REQUEST_METHOD"]
-        del environ["REQUEST_BODY"]
-        del environ["QGIS_PROJECT_FILE"]
+        server.putenv("REQUEST_METHOD", '')
+        server.putenv("REQUEST_BODY", '')
+        server.putenv("QGIS_PROJECT_FILE", '')
         return result
 
     def _img_diff(self, image, control_image, max_diff, max_size_diff=QSize()):
-        temp_image = path.join(tempfile.gettempdir(), "%s_result.png" % control_image)
-        with open(temp_image, "w") as f:
+        temp_image = os.path.join(tempfile.gettempdir(), "%s_result.png" % control_image)
+
+        with open(temp_image, "wb") as f:
             f.write(image)
 
         control = QgsRenderChecker()
@@ -1040,31 +1047,36 @@ class TestQgsServerAccessControl(TestCase):
             "Content type is wrong: %s" % headers.get("Content-Type"))
         test, report = self._img_diff(response, image, max_diff, max_size_diff)
 
-        result_img = check_output(["base64", path.join(tempfile.gettempdir(), image + "_result.png")])
-        message = "Image is wrong\n%s\nImage:\necho '%s' | base64 -d >%s/%s_result.png" % (
-            report, result_img.strip(), tempfile.gettempdir(), image
-        )
-
-        if path.isfile(path.join(tempfile.gettempdir(), image + "_result_diff.png")):
-            diff_img = check_output(["base64", path.join(tempfile.gettempdir(), image + "_result_diff.png")])
-            message += "\nDiff:\necho '%s' | base64 -d > %s/%s_result_diff.png" % (
-                diff_img.strip(), tempfile.gettempdir(), image
+        with open(os.path.join(tempfile.gettempdir(), image + "_result.png"), "rb") as rendered_file:
+            encoded_rendered_file = base64.b64encode(rendered_file.read())
+            message = "Image is wrong\n%s\nImage:\necho '%s' | base64 -d >%s/%s_result.png" % (
+                report, encoded_rendered_file.strip(), tempfile.gettempdir(), image
             )
+
+        with open(os.path.join(tempfile.gettempdir(), image + "_result_diff.png"), "rb") as diff_file:
+            encoded_diff_file = base64.b64encode(diff_file.read())
+            message += "\nDiff:\necho '%s' | base64 -d > %s/%s_result_diff.png" % (
+                encoded_diff_file.strip(), tempfile.gettempdir(), image
+            )
+
         self.assertTrue(test, message)
 
     def _geo_img_diff(self, image_1, image_2):
+        if os.name == 'nt':
+            # Not supported on Windows due to #13061
+            return 0
 
-        with open(path.join(tempfile.gettempdir(), image_2), "w") as f:
+        with open(os.path.join(tempfile.gettempdir(), image_2), "wb") as f:
             f.write(image_1)
-        image_1 = gdal.Open(path.join(tempfile.gettempdir(), image_2), GA_ReadOnly)
+        image_1 = gdal.Open(os.path.join(tempfile.gettempdir(), image_2), GA_ReadOnly)
         assert image_1, "No output image written: " + image_2
 
-        image_2 = gdal.Open(path.join(self.testdata_path, "results", image_2), GA_ReadOnly)
+        image_2 = gdal.Open(os.path.join(self.testdata_path, "results", image_2), GA_ReadOnly)
         assert image_1, "No expected image found:" + image_2
 
-        if image_1.RasterXSize != image_2.RasterXSize:
-            return 1000  # wrong size
-        if image_1.RasterYSize != image_2.RasterYSize:
+        if image_1.RasterXSize != image_2.RasterXSize or image_1.RasterYSize != image_2.RasterYSize:
+            image_1 = None
+            image_2 = None
             return 1000  # wrong size
 
         square_sum = 0
@@ -1072,6 +1084,9 @@ class TestQgsServerAccessControl(TestCase):
             for y in range(image_1.RasterYSize):
                 square_sum += (image_1.ReadAsArray()[x][y] - image_2.ReadAsArray()[x][y]) ** 2
 
+        # Explicitly close GDAL datasets
+        image_1 = None
+        image_2 = None
         return sqrt(square_sum)
 
     def _test_colors(self, colors):
@@ -1090,4 +1105,4 @@ class TestQgsServerAccessControl(TestCase):
                 "Wrong color in result\n%s" % response)
 
 if __name__ == "__main__":
-    main()
+    unittest.main()

@@ -3,6 +3,7 @@
 #include "qgsvirtuallayerblob.h"
 
 #include <QRegExp>
+#include <QtDebug>
 
 namespace QgsVirtualLayerQueryParser
 {
@@ -21,8 +22,8 @@ namespace QgsVirtualLayerQueryParser
 
     while ( true )
     {
-      char *errMsg = 0;
-      int r = sqlite3_exec( db.get(), query.toLocal8Bit().constData(), NULL, NULL, &errMsg );
+      char *errMsg = nullptr;
+      int r = sqlite3_exec( db.get(), query.toLocal8Bit().constData(), nullptr, nullptr, &errMsg );
       QString err = errMsg;
       if ( r && err.startsWith( noSuchError ) )
       {
@@ -31,7 +32,7 @@ namespace QgsVirtualLayerQueryParser
 
         // create a dummy table to skip this error
         QString createStr = QString( "CREATE TABLE \"%1\" (id int)" ).arg( tableName.replace( "\"", "\"\"" ) );
-        sqlite3_exec( db.get(), createStr.toLocal8Bit().constData(), NULL, NULL, NULL );
+        ( void )sqlite3_exec( db.get(), createStr.toLocal8Bit().constData(), nullptr, NULL, NULL );
       }
       else
       {
@@ -157,7 +158,7 @@ namespace QgsVirtualLayerQueryParser
 
         if ( !isValidColumnName( columnName ) )
         {
-          std::cout << "Invalid name: " << columnName.toLocal8Bit().constData() << std::endl;
+          qWarning() << "Invalid name: " << columnName;
           hasInvalidName = true;
 
           // add an unnamed column
@@ -208,7 +209,7 @@ namespace QgsVirtualLayerQueryParser
           qs += ", ";
       }
       qs += " FROM _tview LIMIT 1";
-      std::cout << qs.toLocal8Bit().constData() << std::endl;
+      qWarning() << qs;
 
       Sqlite::Query q( db, qs );
       if ( q.step() == SQLITE_ROW )

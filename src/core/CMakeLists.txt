@@ -120,6 +120,7 @@ SET(QGIS_CORE_SRCS
   qgslayerdefinition.cpp
   qgslabel.cpp
   qgslabelattributes.cpp
+  qgslabelfeature.cpp
   qgslabelingenginev2.cpp
   qgslabelsearchtree.cpp
   qgslegacyhelpers.cpp
@@ -184,6 +185,7 @@ SET(QGIS_CORE_SRCS
   qgsstatisticalsummary.cpp
   qgsstringutils.cpp
   qgstransaction.cpp
+  qgstextlabelfeature.cpp
   qgstolerance.cpp
   qgsvectordataprovider.cpp
   qgsvectorfilewriter.cpp
@@ -409,7 +411,11 @@ IF(NOT MSVC)
   SET_SOURCE_FILES_PROPERTIES(qgsexpressionparser.cpp PROPERTIES COMPILE_FLAGS -w)
 ELSE(NOT MSVC)
   # -wd4702 unreachable code
-  SET_SOURCE_FILES_PROPERTIES(geometry/qgsgeos.cpp PROPERTIES COMPILE_FLAGS -wd4702)
+  SET_SOURCE_FILES_PROPERTIES(
+    geometry/qgsgeos.cpp
+    pal/feature.cpp
+    pal/pointset.cpp
+    PROPERTIES COMPILE_FLAGS -wd4702)
 ENDIF(NOT MSVC)
 
 SET(QGIS_CORE_MOC_HDRS
@@ -604,6 +610,7 @@ SET(QGIS_CORE_HDRS
   qgslayerdefinition.h
   qgslabel.h
   qgslabelattributes.h
+  qgslabelfeature.h
   qgslabelingenginev2.h
   qgslabelsearchtree.h
   qgslegacyhelpers.h
@@ -623,7 +630,6 @@ SET(QGIS_CORE_HDRS
   qgsogcutils.h
   qgsowsconnection.h
   qgspaintenginehack.h
-  qgspalgeometry.h
   qgspallabeling.h
   qgspluginlayerregistry.h
   qgspoint.h
@@ -651,6 +657,7 @@ SET(QGIS_CORE_HDRS
   qgssqlexpressioncompiler.h
   qgsstatisticalsummary.h
   qgsstringutils.h
+  qgstextlabelfeature.h
   qgstolerance.h
 
   qgsvectordataprovider.h

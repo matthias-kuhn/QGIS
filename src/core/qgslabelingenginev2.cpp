@@ -32,6 +32,38 @@ static bool _palIsCancelled( void* ctx )
   return ( reinterpret_cast< QgsRenderContext* >( ctx ) )->renderingStopped();
 }
 
+// helper class for sorting labels into correct draw order
+class QgsLabelSorter
+{
+  public:
+
+    QgsLabelSorter( const QgsMapSettings& mapSettings )
+        : mMapSettings( mapSettings )
+    {}
+
+    bool operator()( pal::LabelPosition* lp1, pal::LabelPosition* lp2 ) const
+    {
+      QgsLabelFeature* lf1 = lp1->getFeaturePart()->feature();
+      QgsLabelFeature* lf2 = lp2->getFeaturePart()->feature();
+
+      if ( !qgsDoubleNear( lf1->zIndex(), lf2->zIndex() ) )
+        return lf1->zIndex() < lf2->zIndex();
+
+      //equal z-index, so fallback to respecting layer render order
+      int layer1Pos = mMapSettings.layers().indexOf( lf1->provider()->layerId() );
+      int layer2Pos = mMapSettings.layers().indexOf( lf2->provider()->layerId() );
+      if ( layer1Pos != layer2Pos && layer1Pos >= 0 && layer2Pos >= 0 )
+        return layer1Pos > layer2Pos; //higher positions are rendered first
+
+      //same layer, so render larger labels first
+      return lf1->size().width() * lf1->size().height() > lf2->size().width() * lf2->size().height();
+    }
+
+  private:
+
+    const QgsMapSettings& mMapSettings;
+};
+
 
 QgsLabelingEngineV2::QgsLabelingEngineV2()
     : mFlags( RenderOutlineLabels | UsePartialCandidates )
@@ -68,39 +100,12 @@ void QgsLabelingEngineV2::removeProvider( QgsAbstractLabelProvider* provider )
 
 void QgsLabelingEngineV2::processProvider( QgsAbstractLabelProvider* provider, QgsRenderContext& context, pal::Pal& p )
 {
-  // how to place the labels
-  pal::Arrangement arrangement;
-  switch ( provider->placement() )
-  {
-    case QgsPalLayerSettings::AroundPoint:
-      arrangement = pal::P_POINT;
-      break;
-    case QgsPalLayerSettings::OverPoint:
-      arrangement = pal::P_POINT_OVER;
-      break;
-    case QgsPalLayerSettings::Line:
-      arrangement = pal::P_LINE;
-      break;
-    case QgsPalLayerSettings::Curved:
-      arrangement = pal::P_CURVED;
-      break;
-    case QgsPalLayerSettings::Horizontal:
-      arrangement = pal::P_HORIZ;
-      break;
-    case QgsPalLayerSettings::Free:
-      arrangement = pal::P_FREE;
-      break;
-    default:
-      Q_ASSERT( "unsupported placement" && 0 );
-      return;
-  }
-
   QgsAbstractLabelProvider::Flags flags = provider->flags();
 
   // create the pal layer
   pal::Layer* l = p.addLayer( provider,
                               provider->name(),
-                              arrangement,
+                              provider->placement(),
                               provider->priority(),
                               true,
                               flags.testFlag( QgsAbstractLabelProvider::DrawLabels ),
@@ -116,18 +121,7 @@ void QgsLabelingEngineV2::processProvider( QgsAbstractLabelProvider* provider, Q
   l->setMergeConnectedLines( flags.testFlag( QgsAbstractLabelProvider::MergeConnectedLines ) );
 
   // set obstacle type
-  switch ( provider->obstacleType() )
-  {
-    case QgsPalLayerSettings::PolygonInterior:
-      l->setObstacleType( pal::PolygonInterior );
-      break;
-    case QgsPalLayerSettings::PolygonBoundary:
-      l->setObstacleType( pal::PolygonBoundary );
-      break;
-    case QgsPalLayerSettings::PolygonWhole:
-      l->setObstacleType( pal::PolygonWhole );
-      break;
-  }
+  l->setObstacleType( provider->obstacleType() );
 
   // set whether location of centroid must be inside of polygons
   l->setCentroidInside( flags.testFlag( QgsAbstractLabelProvider::CentroidMustBeInside ) );
@@ -243,7 +237,7 @@ void QgsLabelingEngineV2::run( QgsRenderContext& context )
   // do the labeling itself
   double bbox[] = { extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum() };
 
-  std::list<pal::LabelPosition*>* labels;
+  QList<pal::LabelPosition*>* labels;
   pal::Problem *problem;
   try
   {
@@ -306,8 +300,11 @@ void QgsLabelingEngineV2::run( QgsRenderContext& context )
   }
   painter->setRenderHint( QPainter::Antialiasing );
 
+  // sort labels
+  qSort( labels->begin(), labels->end(), QgsLabelSorter( mMapSettings ) );
+
   // draw the labels
-  std::list<pal::LabelPosition*>::iterator it = labels->begin();
+  QList<pal::LabelPosition*>::iterator it = labels->begin();
   for ( ; it != labels->end(); ++it )
   {
     if ( context.renderingStopped() )
@@ -378,55 +375,15 @@ void QgsLabelingEngineV2::writeSettingsToProject()
 
 ////
 
-
-
-QgsLabelFeature::QgsLabelFeature( QgsFeatureId id, GEOSGeometry* geometry, const QSizeF& size )
-    : mLayer( nullptr )
-    , mId( id )
-    , mGeometry( geometry )
-    , mObstacleGeometry( nullptr )
-    , mSize( size )
-    , mPriority( -1 )
-    , mHasFixedPosition( false )
-    , mHasFixedAngle( false )
-    , mFixedAngle( 0 )
-    , mHasFixedQuadrant( false )
-    , mDistLabel( 0 )
-    , mRepeatDistance( 0 )
-    , mAlwaysShow( false )
-    , mIsObstacle( false )
-    , mObstacleFactor( 1 )
-    , mInfo( nullptr )
-{
-}
-
-QgsLabelFeature::~QgsLabelFeature()
-{
-  if ( mGeometry )
-    GEOSGeom_destroy_r( QgsGeometry::getGEOSHandler(), mGeometry );
-
-  if ( mObstacleGeometry )
-    GEOSGeom_destroy_r( QgsGeometry::getGEOSHandler(), mObstacleGeometry );
-
-  delete mInfo;
-}
-
-void QgsLabelFeature::setObstacleGeometry( GEOSGeometry* obstacleGeom )
-{
-  if ( mObstacleGeometry )
-    GEOSGeom_destroy_r( QgsGeometry::getGEOSHandler(), mObstacleGeometry );
-
-  mObstacleGeometry = obstacleGeom;
-}
-
 QgsAbstractLabelProvider*QgsLabelFeature::provider() const
 {
   return mLayer ? mLayer->provider() : nullptr;
 
 }
 
-QgsAbstractLabelProvider::QgsAbstractLabelProvider()
+QgsAbstractLabelProvider::QgsAbstractLabelProvider( const QString& layerId )
     : mEngine( nullptr )
+    , mLayerId( layerId )
     , mFlags( DrawLabels )
     , mPlacement( QgsPalLayerSettings::AroundPoint )
     , mLinePlacementFlags( 0 )

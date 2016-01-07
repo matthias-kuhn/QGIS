@@ -46,6 +46,8 @@
 #include "qgsrasterlayer.h"
 #include "qgsrectangle.h"
 #include "qgsvectorlayer.h"
+#include "qgsvectordataprovider.h"
+#include "qgsmaplayerregistry.h"
 
 
 QgsMapLayer::QgsMapLayer( QgsMapLayer::LayerType type,
@@ -569,6 +571,11 @@ bool QgsMapLayer::writeLayerXML( QDomElement& layerElement, QDomDocument& docume
     urlDest.setQueryItems( urlSource.queryItems() );
     src = QString::fromAscii( urlDest.toEncoded() );
   }
+  else if ( vlayer && vlayer->providerType() == "memory" )
+  {
+    // Refetch the source from the provider, because adding fields actually changes the source for this provider.
+    src = vlayer->dataProvider()->dataSourceUri();
+  }
   else
   {
     bool handled = false;
@@ -782,7 +789,7 @@ QDomDocument QgsMapLayer::asLayerDefinition( const QList<QgsMapLayer *>& layers,
   return doc;
 }
 
-QList<QgsMapLayer*> QgsMapLayer::fromLayerDefinition( QDomDocument& document )
+QList<QgsMapLayer*> QgsMapLayer::fromLayerDefinition( QDomDocument& document, bool addToRegistry, bool addToLegend )
 {
   QList<QgsMapLayer*> layers;
   QDomNodeList layernodes = document.elementsByTagName( "maplayer" );
@@ -814,7 +821,11 @@ QList<QgsMapLayer*> QgsMapLayer::fromLayerDefinition( QDomDocument& document )
 
     bool ok = layer->readLayerXML( layerElem );
     if ( ok )
+    {
       layers << layer;
+      if ( addToRegistry )
+        QgsMapLayerRegistry::instance()->addMapLayer( layer, addToLegend );
+    }
   }
   return layers;
 }
@@ -1092,7 +1103,7 @@ bool QgsMapLayer::loadNamedStyleFromDb( const QString &db, const QString &theURI
     if ( sqlite3_bind_text( myPreparedStatement, 1, param.data(), param.length(), SQLITE_STATIC ) == SQLITE_OK &&
          sqlite3_step( myPreparedStatement ) == SQLITE_ROW )
     {
-      qml = QString::fromUtf8(( char * )sqlite3_column_text( myPreparedStatement, 0 ) );
+      qml = QString::fromUtf8( reinterpret_cast< const char * >( sqlite3_column_text( myPreparedStatement, 0 ) ) );
       theResultFlag = true;
     }
 
@@ -1269,6 +1280,9 @@ QString QgsMapLayer::saveNamedStyle( const QString &theURI, bool &theResultFlag 
   else if ( vlayer && vlayer->providerType() == "delimitedtext" )
   {
     filename = QUrl::fromEncoded( theURI.toAscii() ).toLocalFile();
+    // toLocalFile() returns an empty string if theURI is a plain Windows-path, e.g. "C:/style.qml"
+    if ( filename.isEmpty() )
+      filename = theURI;
   }
   else
   {
@@ -1453,6 +1467,9 @@ QString QgsMapLayer::saveSldStyle( const QString &theURI, bool &theResultFlag )
   else if ( vlayer->providerType() == "delimitedtext" )
   {
     filename = QUrl::fromEncoded( theURI.toAscii() ).toLocalFile();
+    // toLocalFile() returns an empty string if theURI is a plain Windows-path, e.g. "C:/style.qml"
+    if ( filename.isEmpty() )
+      filename = theURI;
   }
   else
   {

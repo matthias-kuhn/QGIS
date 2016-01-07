@@ -31,7 +31,7 @@ QgsVirtualLayerDefinition QgsVirtualLayerDefinition::fromUrl( const QUrl& url )
 {
   QgsVirtualLayerDefinition def;
 
-  def.setFilePath( url.path() );
+  def.setFilePath( url.toLocalFile() );
 
   // regexp for column name
   const QString columnNameRx( "[a-zA-Z_\x80-\xFF][a-zA-Z0-9_\x80-\xFF]*" );
@@ -39,7 +39,7 @@ QgsVirtualLayerDefinition QgsVirtualLayerDefinition::fromUrl( const QUrl& url )
   QgsFields fields;
 
   int layerIdx = 0;
-  QList<QPair<QString, QString> > items = url.queryItems();
+  QList<QPair<QByteArray, QByteArray> > items = url.encodedQueryItems();
   for ( int i = 0; i < items.size(); i++ )
   {
     QString key = items.at( i ).first;
@@ -74,6 +74,8 @@ QgsVirtualLayerDefinition QgsVirtualLayerDefinition::fromUrl( const QUrl& url )
 
         providerKey = value.left( pos );
         int pos2 = value.indexOf( ':', pos + 1 );
+        if ( pos2 - pos == 2 )
+          pos2 = value.indexOf( ':', pos + 3 );
         if ( pos2 != -1 )
         {
           source = QUrl::fromPercentEncoding( value.mid( pos + 1, pos2 - pos - 1 ).toUtf8() );
@@ -130,7 +132,7 @@ QgsVirtualLayerDefinition QgsVirtualLayerDefinition::fromUrl( const QUrl& url )
     else if ( key == "query" )
     {
       // url encoded query
-      def.setQuery( value );
+      def.setQuery( QUrl::fromPercentEncoding( value.toUtf8() ) );
     }
     else if ( key == "field" )
     {
@@ -171,11 +173,11 @@ QUrl QgsVirtualLayerDefinition::toUrl() const
     if ( l.isReferenced() )
       url.addQueryItem( "layer_ref", QString( "%1:%2" ).arg( l.reference(), l.name() ) );
     else
-      url.addQueryItem( "layer", QString( "%1:%4:%2:%3" ) // the order is important, since the 4th argument may contain '%2' as well
-                        .arg( l.provider(),
-                              QString( QUrl::toPercentEncoding( l.name() ) ),
-                              l.encoding(),
-                              QString( QUrl::toPercentEncoding( l.source() ) ) ) );
+      url.addEncodedQueryItem( "layer", QString( "%1:%4:%2:%3" ) // the order is important, since the 4th argument may contain '%2' as well
+                               .arg( l.provider(),
+                                     QString( QUrl::toPercentEncoding( l.name() ) ),
+                                     l.encoding(),
+                                     QString( QUrl::toPercentEncoding( l.source() ) ) ).toUtf8() );
   }
 
   if ( !query().isEmpty() )

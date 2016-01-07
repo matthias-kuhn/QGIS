@@ -306,7 +306,7 @@
           <item>
            <widget class="QStackedWidget" name="mDiagramStackedWidget">
             <property name="currentIndex">
-             <number>0</number>
+             <number>3</number>
             </property>
             <widget class="QWidget" name="mDiagramPage_Attributes">
              <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -631,7 +631,7 @@
                        <property name="bottomMargin">
                         <number>0</number>
                        </property>
-                       <item row="1" column="0">
+                       <item row="0" column="0">
                         <widget class="QLabel" name="mTransparencyLabel">
                          <property name="minimumSize">
                           <size>
@@ -644,123 +644,7 @@
                          </property>
                         </widget>
                        </item>
-                       <item row="0" column="1">
-                        <widget class="QgsDoubleSpinBox" name="mBarWidthSpinBox">
-                         <property name="minimum">
-                          <double>0.010000000000000</double>
-                         </property>
-                         <property name="value">
-                          <double>5.000000000000000</double>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="2" column="1">
-                        <widget class="QgsColorButtonV2" name="mBackgroundColorButton">
-                         <property name="minimumSize">
-                          <size>
-                           <width>120</width>
-                           <height>0</height>
-                          </size>
-                         </property>
-                         <property name="maximumSize">
-                          <size>
-                           <width>120</width>
-                           <height>16777215</height>
-                          </size>
-                         </property>
-                         <property name="text">
-                          <string/>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="4" column="1">
-                        <widget class="QgsDoubleSpinBox" name="mPenWidthSpinBox">
-                         <property name="decimals">
-                          <number>5</number>
-                         </property>
-                         <property name="maximum">
-                          <double>99999.990000000005239</double>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="4" column="0">
-                        <widget class="QLabel" name="mPenWidthLabel">
-                         <property name="text">
-                          <string>Line width</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="2" column="0">
-                        <widget class="QLabel" name="mBackgroundColorLabel">
-                         <property name="text">
-                          <string>Background color</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="3" column="0">
-                        <widget class="QLabel" name="mPenColorLabel">
-                         <property name="text">
-                          <string>Line color</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="5" column="0">
-                        <widget class="QLabel" name="mAngleOffsetLabel">
-                         <property name="text">
-                          <string>Start Angle</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="5" column="1">
-                        <widget class="QComboBox" name="mAngleOffsetComboBox"/>
-                       </item>
-                       <item row="0" column="0">
-                        <widget class="QLabel" name="mBarWidthLabel">
-                         <property name="text">
-                          <string>Bar width</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="3" column="1">
-                        <widget class="QgsColorButtonV2" name="mDiagramPenColorButton">
-                         <property name="minimumSize">
-                          <size>
-                           <width>120</width>
-                           <height>0</height>
-                          </size>
-                         </property>
-                         <property name="maximumSize">
-                          <size>
-                           <width>120</width>
-                           <height>16777215</height>
-                          </size>
-                         </property>
-                         <property name="text">
-                          <string/>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="4" column="2">
-                        <spacer name="horizontalSpacer_2">
-                         <property name="orientation">
-                          <enum>Qt::Horizontal</enum>
-                         </property>
-                         <property name="sizeHint" stdset="0">
-                          <size>
-                           <width>40</width>
-                           <height>20</height>
-                          </size>
-                         </property>
-                        </spacer>
-                       </item>
-                       <item row="6" column="1">
-                        <widget class="QPushButton" name="mDiagramFontButton">
-                         <property name="text">
-                          <string>Font...</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="1" column="1" colspan="2">
+                       <item row="0" column="1" colspan="2">
                         <layout class="QHBoxLayout" name="horizontalLayout_5">
                          <item>
                           <widget class="QSlider" name="mTransparencySlider">
@@ -807,6 +691,125 @@
                           </widget>
                          </item>
                         </layout>
+                       </item>
+                       <item row="1" column="0">
+                        <widget class="QLabel" name="mBarWidthLabel">
+                         <property name="text">
+                          <string>Bar width</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="1" column="1">
+                        <widget class="QgsDoubleSpinBox" name="mBarWidthSpinBox">
+                         <property name="minimum">
+                          <double>0.010000000000000</double>
+                         </property>
+                         <property name="value">
+                          <double>5.000000000000000</double>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="1">
+                        <widget class="QgsColorButtonV2" name="mBackgroundColorButton">
+                         <property name="minimumSize">
+                          <size>
+                           <width>120</width>
+                           <height>0</height>
+                          </size>
+                         </property>
+                         <property name="maximumSize">
+                          <size>
+                           <width>120</width>
+                           <height>16777215</height>
+                          </size>
+                         </property>
+                         <property name="text">
+                          <string/>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="4" column="1">
+                        <widget class="QgsDoubleSpinBox" name="mPenWidthSpinBox">
+                         <property name="decimals">
+                          <number>5</number>
+                         </property>
+                         <property name="maximum">
+                          <double>99999.990000000005239</double>
+                         </property>
+                         <property name="singleStep">
+                          <double>0.200000000000000</double>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="4" column="0">
+                        <widget class="QLabel" name="mPenWidthLabel">
+                         <property name="text">
+                          <string>Line width</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="2" column="0">
+                        <widget class="QLabel" name="mBackgroundColorLabel">
+                         <property name="text">
+                          <string>Background color</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="3" column="0">
+                        <widget class="QLabel" name="mPenColorLabel">
+                         <property name="text">
+                          <string>Line color</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="5" column="0">
+                        <widget class="QLabel" name="mAngleOffsetLabel">
+                         <property name="text">
+                          <string>Start Angle</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="5" column="1">
+                        <widget class="QComboBox" name="mAngleOffsetComboBox"/>
+                       </item>
+                       <item row="3" column="1">
+                        <widget class="QgsColorButtonV2" name="mDiagramPenColorButton">
+                         <property name="minimumSize">
+                          <size>
+                           <width>120</width>
+                           <height>0</height>
+                          </size>
+                         </property>
+                         <property name="maximumSize">
+                          <size>
+                           <width>120</width>
+                           <height>16777215</height>
+                          </size>
+                         </property>
+                         <property name="text">
+                          <string/>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="4" column="2">
+                        <spacer name="horizontalSpacer_2">
+                         <property name="orientation">
+                          <enum>Qt::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>40</width>
+                           <height>20</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                       <item row="6" column="1">
+                        <widget class="QPushButton" name="mDiagramFontButton">
+                         <property name="text">
+                          <string>Font...</string>
+                         </property>
+                        </widget>
                        </item>
                       </layout>
                      </widget>
@@ -1251,7 +1254,74 @@
                   <property name="bottomMargin">
                    <number>0</number>
                   </property>
-                  <item row="7" column="0">
+                  <item row="5" column="0" colspan="2">
+                   <widget class="QGroupBox" name="mDataDefinedPositionGroupBox">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="title">
+                     <string>Data defined position</string>
+                    </property>
+                    <property name="checkable">
+                     <bool>true</bool>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
+                    </property>
+                    <layout class="QGridLayout" name="gridLayout_5">
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="mXPosColLabel">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string>x</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QComboBox" name="mDataDefinedXComboBox">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="mYPosColLabel">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string>y</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QComboBox" name="mDataDefinedYComboBox">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item row="8" column="0">
                    <spacer name="verticalSpacer_4">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
@@ -1317,6 +1387,103 @@
                      </item>
                     </layout>
                    </widget>
+                  </item>
+                  <item row="6" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_3">
+                    <item>
+                     <widget class="QLabel" name="mPriorityLabel">
+                      <property name="text">
+                       <string>Priority:</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="mPriorityLowLabel">
+                      <property name="text">
+                       <string>Low</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSlider" name="mPrioritySlider">
+                      <property name="maximum">
+                       <number>10</number>
+                      </property>
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="invertedAppearance">
+                       <bool>false</bool>
+                      </property>
+                      <property name="invertedControls">
+                       <bool>false</bool>
+                      </property>
+                      <property name="tickPosition">
+                       <enum>QSlider::TicksBelow</enum>
+                      </property>
+                      <property name="tickInterval">
+                       <number>1</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="mPriorityHighLabel">
+                      <property name="text">
+                       <string>High</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_6">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="7" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_8">
+                    <item>
+                     <widget class="QLabel" name="label_16">
+                      <property name="text">
+                       <string>Diagram z-index</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QgsDoubleSpinBox" name="mZIndexSpinBox">
+                      <property name="toolTip">
+                       <string>Controls how labels are drawn on top of each other. Labels with a higher z-index are drawn above labels with a lower z-index.</string>
+                      </property>
+                      <property name="minimum">
+                       <double>-9999999.000000000000000</double>
+                      </property>
+                      <property name="maximum">
+                       <double>9999999.000000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_10">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
                   </item>
                   <item row="1" column="0" colspan="2">
                    <widget class="QFrame" name="mLinePlacementFrame">
@@ -1388,133 +1555,6 @@
                      </item>
                     </layout>
                    </widget>
-                  </item>
-                  <item row="5" column="0" colspan="2">
-                   <widget class="QGroupBox" name="mDataDefinedPositionGroupBox">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="title">
-                     <string>Data defined position</string>
-                    </property>
-                    <property name="checkable">
-                     <bool>true</bool>
-                    </property>
-                    <property name="checked">
-                     <bool>false</bool>
-                    </property>
-                    <layout class="QGridLayout" name="gridLayout_5">
-                     <item row="0" column="0">
-                      <widget class="QLabel" name="mXPosColLabel">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="text">
-                        <string>x</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="1">
-                      <widget class="QComboBox" name="mDataDefinedXComboBox">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="0">
-                      <widget class="QLabel" name="mYPosColLabel">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="text">
-                        <string>y</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="1">
-                      <widget class="QComboBox" name="mDataDefinedYComboBox">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item row="6" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout_3">
-                    <item>
-                     <widget class="QLabel" name="mPriorityLabel">
-                      <property name="text">
-                       <string>Priority:</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="mPriorityLowLabel">
-                      <property name="text">
-                       <string>Low</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QSlider" name="mPrioritySlider">
-                      <property name="maximum">
-                       <number>10</number>
-                      </property>
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="invertedAppearance">
-                       <bool>false</bool>
-                      </property>
-                      <property name="invertedControls">
-                       <bool>false</bool>
-                      </property>
-                      <property name="tickPosition">
-                       <enum>QSlider::TicksBelow</enum>
-                      </property>
-                      <property name="tickInterval">
-                       <number>1</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="mPriorityHighLabel">
-                      <property name="text">
-                       <string>High</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <spacer name="horizontalSpacer_6">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>40</width>
-                        <height>20</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                   </layout>
                   </item>
                  </layout>
                 </widget>
@@ -1757,21 +1797,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QgsCollapsibleGroupBox</class>
-   <extends>QGroupBox</extends>
-   <header>qgscollapsiblegroupbox.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>QgsColorButtonV2</class>
    <extends>QToolButton</extends>
    <header>qgscolorbuttonv2.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QgsFieldExpressionWidget</class>
-   <extends>QWidget</extends>
-   <header>qgsfieldexpressionwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -1783,6 +1811,18 @@
    <class>QgsSpinBox</class>
    <extends>QSpinBox</extends>
    <header>qgsspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>qgscollapsiblegroupbox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QgsFieldExpressionWidget</class>
+   <extends>QWidget</extends>
+   <header>qgsfieldexpressionwidget.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>QgsScaleRangeWidget</class>
@@ -1802,9 +1842,9 @@
   <tabstop>mRemoveCategoryPushButton</tabstop>
   <tabstop>mDiagramAttributesTreeWidget</tabstop>
   <tabstop>scrollArea_4</tabstop>
-  <tabstop>mBarWidthSpinBox</tabstop>
   <tabstop>mTransparencySlider</tabstop>
   <tabstop>mTransparencySpinBox</tabstop>
+  <tabstop>mBarWidthSpinBox</tabstop>
   <tabstop>mBackgroundColorButton</tabstop>
   <tabstop>mDiagramPenColorButton</tabstop>
   <tabstop>mPenWidthSpinBox</tabstop>
@@ -1834,6 +1874,7 @@
   <tabstop>mDataDefinedXComboBox</tabstop>
   <tabstop>mDataDefinedYComboBox</tabstop>
   <tabstop>mPrioritySlider</tabstop>
+  <tabstop>mZIndexSpinBox</tabstop>
   <tabstop>scrollArea_7</tabstop>
   <tabstop>mOrientationUpButton</tabstop>
   <tabstop>mOrientationDownButton</tabstop>

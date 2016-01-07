@@ -47,9 +47,8 @@ from processing.tools.system import setTempOutput
 
 class GeoAlgorithm:
 
-    _icon = QIcon(os.path.dirname(__file__) + '/../images/alg.png')
-
     def __init__(self):
+        self._icon = QIcon(os.path.dirname(__file__) + '/../images/alg.png')
         # Parameters needed by the algorithm
         self.parameters = list()
 
@@ -246,7 +245,7 @@ class GeoAlgorithm:
     def _checkParameterValuesBeforeExecuting(self):
         for param in self.parameters:
             if isinstance(param, (ParameterRaster, ParameterVector,
-                          ParameterMultipleInput)):
+                                  ParameterMultipleInput)):
                 if param.value:
                     if isinstance(param, ParameterMultipleInput):
                         inputlayers = param.value.split(';')
@@ -395,7 +394,7 @@ class GeoAlgorithm:
         layers = dataobjects.getAllLayers()
         for param in self.parameters:
             if isinstance(param, (ParameterRaster, ParameterVector,
-                          ParameterMultipleInput)):
+                                  ParameterMultipleInput)):
                 if param.value:
                     if isinstance(param, ParameterMultipleInput):
                         inputlayers = param.value.split(';')
@@ -421,7 +420,7 @@ class GeoAlgorithm:
         layers = dataobjects.getAllLayers()
         for param in self.parameters:
             if isinstance(param, (ParameterRaster, ParameterVector, ParameterTable,
-                          ParameterMultipleInput)):
+                                  ParameterMultipleInput)):
                 if param.value:
                     if isinstance(param, ParameterMultipleInput):
                         inputlayers = param.value.split(';')
@@ -441,7 +440,7 @@ class GeoAlgorithm:
         crsList = []
         for param in self.parameters:
             if isinstance(param, (ParameterRaster, ParameterVector,
-                          ParameterMultipleInput)):
+                                  ParameterMultipleInput)):
                 if param.value:
                     if isinstance(param, ParameterMultipleInput):
                         layers = param.value.split(';')

@@ -25,7 +25,8 @@ import shutil
 import subprocess
 import tempfile
 
-from utilities import unittest, unitTestDataPath
+from qgis.testing import unittest
+from utilities import unitTestDataPath
 
 TEST_DATA_DIR = unitTestDataPath()
 

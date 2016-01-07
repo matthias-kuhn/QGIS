@@ -18,8 +18,8 @@
 #include "qgsdatadefined.h"
 #include "qgsgeometry.h"
 #include "qgslabelsearchtree.h"
-#include "qgspalgeometry.h"
 #include "qgspallabeling.h"
+#include "qgstextlabelfeature.h"
 #include "qgsvectorlayer.h"
 #include "qgsvectorlayerfeatureiterator.h"
 #include "qgsrendererv2.h"
@@ -43,15 +43,15 @@ static void _fixQPictureDPI( QPainter* p )
   // Then when being drawn, it scales the painter. The following call
   // negates the effect. There is no way of setting QPicture's DPI.
   // See QTBUG-20361
-  p->scale(( double )qt_defaultDpiX() / p->device()->logicalDpiX(),
-           ( double )qt_defaultDpiY() / p->device()->logicalDpiY() );
+  p->scale( static_cast< double >( qt_defaultDpiX() ) / p->device()->logicalDpiX(),
+            static_cast< double >( qt_defaultDpiY() ) / p->device()->logicalDpiY() );
 }
 
 
 
 QgsVectorLayerLabelProvider::QgsVectorLayerLabelProvider( QgsVectorLayer* layer, bool withFeatureLoop, const QgsPalLayerSettings* settings, const QString& layerName )
-    : mSettings( settings ? *settings : QgsPalLayerSettings::fromLayer( layer ) )
-    , mLayerId( layer->id() )
+    : QgsAbstractLabelProvider( layer->id() )
+    , mSettings( settings ? *settings : QgsPalLayerSettings::fromLayer( layer ) )
     , mLayerGeometryType( layer->geometryType() )
     , mRenderer( layer->rendererV2() )
     , mFields( layer->fields() )
@@ -79,8 +79,8 @@ QgsVectorLayerLabelProvider::QgsVectorLayerLabelProvider( const QgsPalLayerSetti
     const QgsCoordinateReferenceSystem& crs,
     QgsAbstractFeatureSource* source,
     bool ownsSource, QgsFeatureRendererV2* renderer )
-    : mSettings( settings )
-    , mLayerId( layerId )
+    : QgsAbstractLabelProvider( layerId )
+    , mSettings( settings )
     , mLayerGeometryType( QGis::UnknownGeometry )
     , mRenderer( renderer )
     , mFields( fields )
@@ -290,6 +290,7 @@ QList<QgsLabelFeature*> QgsVectorLayerLabelProvider::labelFeatures( QgsRenderCon
       //point feature, use symbol bounds as obstacle
       obstacleGeometry.reset( getPointObstacleGeometry( fet, ctx, mRenderer ) );
     }
+    ctx.expressionContext().setFeature( fet );
     registerFeature( fet, ctx, obstacleGeometry.data() );
   }
 

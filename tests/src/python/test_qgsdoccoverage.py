@@ -13,12 +13,9 @@ __copyright__ = 'Copyright 2015, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import os
-from utilities import (TestCase,
-                       unittest,
-                       printImportant,
-                       DoxygenParser)
+from qgis.testing import unittest
 
-from PyQt4.QtCore import qDebug
+from utilities import printImportant, DoxygenParser
 
 # DOCUMENTATION THRESHOLD
 #
@@ -27,10 +24,10 @@ from PyQt4.QtCore import qDebug
 # DON'T RAISE THIS THRESHOLD!!!
 # (changes which lower this threshold are welcomed though!)
 
-ACCEPTABLE_MISSING_DOCS = 3807
+ACCEPTABLE_MISSING_DOCS = 3754
 
 
-class TestQgsDocCoverage(TestCase):
+class TestQgsDocCoverage(unittest.TestCase):
 
     def testCoverage(self):
         print 'CTEST_FULL_OUTPUT'

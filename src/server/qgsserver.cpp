@@ -111,7 +111,7 @@ void QgsServer::setupNetworkAccessManager()
  * @param captureOutput
  * @return request instance
  */
-QgsRequestHandler* QgsServer::createRequestHandler( const bool captureOutput /*= false*/ )
+QgsRequestHandler* QgsServer::createRequestHandler( const bool captureOutput )
 {
   QgsRequestHandler* requestHandler = nullptr;
   char* requestMethod = getenv( "REQUEST_METHOD" );
@@ -420,20 +420,27 @@ bool QgsServer::init( int & argc, char ** argv )
   return true;
 }
 
-
+void QgsServer::putenv( const QString &var, const QString &val )
+{
+#ifdef _MSC_VER
+  _putenv_s( var.toUtf8().data(), val.toUtf8().data() );
+#else
+  setenv( var.toUtf8().data(), val.toUtf8().data(), 1 );
+#endif
+}
 
 /**
  * @brief Handles the request
  * @param queryString
  * @return response headers and body
  */
-QPair<QByteArray, QByteArray> QgsServer::handleRequest( const QString& queryString /*= QString( )*/ )
+QPair<QByteArray, QByteArray> QgsServer::handleRequest( const QString& queryString )
 {
   // Run init if handleRequest was called without previously initialising
   // the server
   if ( ! mInitialised )
   {
-    init( );
+    init();
   }
 
   /*
@@ -441,13 +448,7 @@ QPair<QByteArray, QByteArray> QgsServer::handleRequest( const QString& queryStri
    * to handleRequest without using os.environment
    */
   if ( ! queryString.isEmpty() )
-  {
-#ifdef _MSC_VER
-    _putenv_s( "QUERY_STRING", queryString.toUtf8().data() );
-#else
-    setenv( "QUERY_STRING", queryString.toUtf8().data(), 1 );
-#endif
-  }
+    putenv( "QUERY_STRING", queryString );
 
   int logLevel = QgsServerLogger::instance()->logLevel();
   QTime time; //used for measuring request time if loglevel < 1
@@ -537,7 +538,7 @@ QPair<QByteArray, QByteArray> QgsServer::handleRequest( const QString& queryStri
                                );
       if ( !p )
       {
-        theRequestHandler->setServiceException( QgsMapServiceException( "Project file error", "Error reading the project file" ) );
+        theRequestHandler->setServiceException( QgsMapServiceException( "Project file error", QString( "Error reading the project file: %1" ).arg( configFilePath ) ) );
       }
       else
       {
@@ -563,7 +564,7 @@ QPair<QByteArray, QByteArray> QgsServer::handleRequest( const QString& queryStri
                                );
       if ( !p )
       {
-        theRequestHandler->setServiceException( QgsMapServiceException( "Project file error", "Error reading the project file" ) );
+        theRequestHandler->setServiceException( QgsMapServiceException( "Project file error", QString( "Error reading the project file: %1" ).arg( configFilePath ) ) );
       }
       else
       {

@@ -2564,7 +2564,7 @@ void QgisApp::createOverview()
 
   int action = mySettings.value( "/qgis/wheel_action", 2 ).toInt();
   double zoomFactor = mySettings.value( "/qgis/zoom_factor", 2 ).toDouble();
-  mMapCanvas->setWheelAction(( QgsMapCanvas::WheelAction ) action, zoomFactor );
+  mMapCanvas->setWheelAction( static_cast< QgsMapCanvas::WheelAction >( action ), zoomFactor );
 
   mMapCanvas->setCachingEnabled( mySettings.value( "/qgis/enable_render_caching", true ).toBool() );
 
@@ -3015,13 +3015,13 @@ void QgisApp::restoreWindowState()
   // restore the toolbar and dock widgets positions using Qt4 settings API
   QSettings settings;
 
-  if ( !restoreState( settings.value( "/UI/state", QByteArray::fromRawData(( char * )defaultUIstate, sizeof defaultUIstate ) ).toByteArray() ) )
+  if ( !restoreState( settings.value( "/UI/state", QByteArray::fromRawData( reinterpret_cast< const char * >( defaultUIstate ), sizeof defaultUIstate ) ).toByteArray() ) )
   {
     QgsDebugMsg( "restore of UI state failed" );
   }
 
   // restore window geometry
-  if ( !restoreGeometry( settings.value( "/UI/geometry", QByteArray::fromRawData(( char * )defaultUIgeometry, sizeof defaultUIgeometry ) ).toByteArray() ) )
+  if ( !restoreGeometry( settings.value( "/UI/geometry", QByteArray::fromRawData( reinterpret_cast< const char * >( defaultUIgeometry ), sizeof defaultUIgeometry ) ).toByteArray() ) )
   {
     QgsDebugMsg( "restore of UI geometry failed" );
   }
@@ -3970,7 +3970,7 @@ void QgisApp::fileNew( bool thePromptToSaveFlag, bool forceBlank )
   // write the projections _proj string_ to project settings
   prj->writeEntry( "SpatialRefSys", "/ProjectCRSProj4String", srs.toProj4() );
   prj->writeEntry( "SpatialRefSys", "/ProjectCrs", srs.authid() );
-  prj->writeEntry( "SpatialRefSys", "/ProjectCRSID", ( int ) srs.srsid() );
+  prj->writeEntry( "SpatialRefSys", "/ProjectCRSID", static_cast< int >( srs.srsid() ) );
   prj->dirty( false );
   if ( srs.mapUnits() != QGis::UnknownUnit )
   {
@@ -4312,13 +4312,35 @@ bool QgisApp::addProject( const QString& projectFile )
 
   if ( !QgsProject::instance()->read( projectFile ) )
   {
+    QString backupFile = projectFile + "~";
+    QString loadBackupPrompt;
+    QMessageBox::StandardButtons buttons;
+    if ( QFile( backupFile ).exists() )
+    {
+      loadBackupPrompt = "\n\n" + tr( "Do you want to open the backup file\n%1\ninstead?" ).arg( backupFile );
+      buttons |= QMessageBox::Yes;
+      buttons |= QMessageBox::No;
+    }
+    else
+    {
+      buttons |= QMessageBox::Ok;
+    }
     QApplication::restoreOverrideCursor();
     statusBar()->clearMessage();
 
-    QMessageBox::critical( this,
-                           tr( "Unable to open project" ),
-                           QgsProject::instance()->error() );
+    int r = QMessageBox::critical( this,
+                                   tr( "Unable to open project" ),
+                                   QgsProject::instance()->error() + loadBackupPrompt,
+                                   buttons );
 
+    if ( QMessageBox::Yes == r && addProject( backupFile ) )
+    {
+      // We loaded data from the backup file, but we pretend to work on the original project file.
+      QgsProject::instance()->setFileName( projectFile );
+      QgsProject::instance()->setDirty( true );
+      mProjectLastModified = pfi.lastModified();
+      return true;
+    }
 
     mMapCanvas->freeze( false );
     mMapCanvas->refresh();
@@ -5599,7 +5621,7 @@ void QgisApp::saveAsVectorFileGeneral( QgsVectorLayer* vlayer, bool symbologyOpt
               datasourceOptions, dialog->layerOptions(),
               dialog->skipAttributeCreation(),
               &newFilename,
-              ( QgsVectorFileWriter::SymbologyExport )( dialog->symbologyExport() ),
+              static_cast< QgsVectorFileWriter::SymbologyExport >( dialog->symbologyExport() ),
               dialog->scaleDenominator(),
               dialog->hasFilterExtent() ? &filterExtent : nullptr,
               autoGeometryType ? QgsWKBTypes::Unknown : forcedGeometryType,
@@ -7927,7 +7949,7 @@ void QgisApp::loadPythonSupport()
 
   //QgsDebugMsg("Python support library loaded successfully.");
   typedef QgsPythonUtils*( *inst )();
-  inst pythonlib_inst = ( inst ) cast_to_fptr( pythonlib.resolve( "instance" ) );
+  inst pythonlib_inst = reinterpret_cast< inst >( cast_to_fptr( pythonlib.resolve( "instance" ) ) );
   if ( !pythonlib_inst )
   {
     //using stderr on purpose because we want end users to see this [TS]
@@ -8041,7 +8063,7 @@ void QgisApp::showOptionsDialog( QWidget *parent, const QString& currentPage )
 
     int action = mySettings.value( "/qgis/wheel_action", 2 ).toInt();
     double zoomFactor = mySettings.value( "/qgis/zoom_factor", 2 ).toDouble();
-    mMapCanvas->setWheelAction(( QgsMapCanvas::WheelAction ) action, zoomFactor );
+    mMapCanvas->setWheelAction( static_cast< QgsMapCanvas::WheelAction >( action ), zoomFactor );
 
     mMapCanvas->setCachingEnabled( mySettings.value( "/qgis/enable_render_caching", true ).toBool() );
 
@@ -8445,11 +8467,18 @@ void QgisApp::embedLayers()
     //layer ids
     QList<QDomNode> brokenNodes;
     QList< QPair< QgsVectorLayer*, QDomElement > > vectorLayerList;
+
+    // resolve dependencies
+    QgsLayerDefinition::DependencySorter depSorter( projectFile );
+    QStringList sortedIds = depSorter.sortedLayerIds();
     QStringList layerIds = d.selectedLayerIds();
-    QStringList::const_iterator layerIt = layerIds.constBegin();
-    for ( ; layerIt != layerIds.constEnd(); ++layerIt )
+    foreach ( QString id, sortedIds )
     {
-      QgsProject::instance()->createEmbeddedLayer( *layerIt, projectFile, brokenNodes, vectorLayerList );
+      foreach ( QString selId, layerIds )
+      {
+        if ( selId == id )
+          QgsProject::instance()->createEmbeddedLayer( selId, projectFile, brokenNodes, vectorLayerList );
+      }
     }
 
     mMapCanvas->freeze( false );
@@ -10410,7 +10439,7 @@ void QgisApp::writeProject( QDomDocument &doc )
   delete clonedRoot;
   doc.firstChildElement( "qgis" ).appendChild( oldLegendElem );
 
-  QgsProject::instance()->writeEntry( "Legend", "filterByMap", ( bool ) layerTreeView()->layerTreeModel()->legendFilterMapSettings() );
+  QgsProject::instance()->writeEntry( "Legend", "filterByMap", static_cast< bool >( layerTreeView()->layerTreeModel()->legendFilterMapSettings() ) );
 
   projectChanged( doc );
 }
@@ -10779,8 +10808,8 @@ void QgisApp::authMessageOut( const QString& message, const QString& authtag, Qg
   if ( qApp->activeWindow() != this )
     return;
 
-  int levelint = ( int )level;
-  messageBar()->pushMessage( authtag, message, ( QgsMessageBar::MessageLevel )levelint, 7 );
+  int levelint = static_cast< int >( level );
+  messageBar()->pushMessage( authtag, message, static_cast< QgsMessageBar::MessageLevel >( levelint ), 7 );
 }
 
 void QgisApp::completeInitialization()

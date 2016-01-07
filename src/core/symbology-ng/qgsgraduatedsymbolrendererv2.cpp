@@ -679,7 +679,7 @@ static QList<double> _calcStdDevBreaks( QList<double> values, int classes, QList
 
 static QList<double> _calcJenksBreaks( QList<double> values, int classes,
                                        double minimum, double maximum,
-                                       int maximumSize = 1000 )
+                                       int maximumSize = 3000 )
 {
   // Jenks Optimal (Natural Breaks) algorithm
   // Based on the Jenks algorithm from the 'classInt' package available for
@@ -1100,8 +1100,8 @@ QDomElement QgsGraduatedSymbolRendererV2::save( QDomDocument& doc )
     symbols.insert( symbolName, range.symbol() );
 
     QDomElement rangeElem = doc.createElement( "range" );
-    rangeElem.setAttribute( "lower", QString::number( range.lowerValue(), 'f' ) );
-    rangeElem.setAttribute( "upper", QString::number( range.upperValue(), 'f' ) );
+    rangeElem.setAttribute( "lower", QString::number( range.lowerValue(), 'f', 15 ) );
+    rangeElem.setAttribute( "upper", QString::number( range.upperValue(), 'f', 15 ) );
     rangeElem.setAttribute( "symbol", symbolName );
     rangeElem.setAttribute( "label", range.label() );
     rangeElem.setAttribute( "render", range.renderState() ? "true" : "false" );

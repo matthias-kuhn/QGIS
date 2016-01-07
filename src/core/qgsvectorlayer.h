@@ -549,6 +549,11 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer
     const QList<QgsVectorJoinInfo> vectorJoins() const;
 
     /**
+     * Get the list of layer ids on which this layer depends. This in particular determines the order of layer loading.
+     */
+    virtual QSet<QString> layerDependencies() const;
+
+    /**
      * Add a new field which is calculated by the expression specified
      *
      * @param exp The expression which calculates the field
@@ -1020,11 +1025,13 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer
 
     /** Access to labeling configuration.
      * @note added in 2.12
+     * @note not available in Python bindings
      */
     const QgsAbstractVectorLayerLabeling* labeling() const { return mLabeling; }
 
     /** Set labeling configuration. Takes ownership of the object.
      * @note added in 2.12
+     * @note not available in Python bindings
      */
     void setLabeling( QgsAbstractVectorLayerLabeling* labeling );
 
@@ -1321,7 +1328,7 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer
     Q_DECL_DEPRECATED EditType editType( int idx );
 
     /**
-     * Get edit type
+     * Set edit type
      *
      * @deprecated Use `editFormConfig()->setWidgetType()` instead
      */
@@ -1621,7 +1628,7 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer
      *
      * @see select(QgsFeatureIds)
      */
-    void select( const QgsFeatureId &featureId );
+    void select( QgsFeatureId featureId );
 
     /**
      * Select features by their ID
@@ -1838,7 +1845,7 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer
 
   private slots:
     void onJoinedFieldsChanged();
-    void onFeatureDeleted( const QgsFeatureId& fid );
+    void onFeatureDeleted( QgsFeatureId fid );
 
   protected:
     /** Set the extent */

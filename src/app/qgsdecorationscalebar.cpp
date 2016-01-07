@@ -51,10 +51,10 @@ email                : sbr00pwb@users.sourceforge.net
 
 QgsDecorationScaleBar::QgsDecorationScaleBar( QObject* parent )
     : QgsDecorationItem( parent )
+    , mMarginHorizontal( 0 )
+    , mMarginVertical( 0 )
 {
-  mPlacementLabels << tr( "Bottom Left" ) << tr( "Top Left" )
-  << tr( "Top Right" ) << tr( "Bottom Right" );
-  mPlacementIndex = 1;
+  mPlacement = TopRight;
   mStyleLabels << tr( "Tick Down" ) << tr( "Tick Up" )
   << tr( "Bar" ) << tr( "Box" );
 
@@ -72,37 +72,33 @@ void QgsDecorationScaleBar::projectRead()
   QgsDecorationItem::projectRead();
   mPreferredSize = QgsProject::instance()->readNumEntry( mNameConfig, "/PreferredSize", 30 );
   mStyleIndex = QgsProject::instance()->readNumEntry( mNameConfig, "/Style", 0 );
-  mPlacementIndex = QgsProject::instance()->readNumEntry( mNameConfig, "/Placement", 2 );
-  // mEnabled = QgsProject::instance()->readBoolEntry( mNameConfig, "/Enabled", false );
   mSnapping = QgsProject::instance()->readBoolEntry( mNameConfig, "/Snapping", true );
   int myRedInt = QgsProject::instance()->readNumEntry( mNameConfig, "/ColorRedPart", 0 );
   int myGreenInt = QgsProject::instance()->readNumEntry( mNameConfig, "/ColorGreenPart", 0 );
   int myBlueInt = QgsProject::instance()->readNumEntry( mNameConfig, "/ColorBluePart", 0 );
   mColor = QColor( myRedInt, myGreenInt, myBlueInt );
+  mMarginHorizontal = QgsProject::instance()->readNumEntry( mNameConfig, "/MarginH", 0 );
+  mMarginVertical = QgsProject::instance()->readNumEntry( mNameConfig, "/MarginV", 0 );
 }
 
 void QgsDecorationScaleBar::saveToProject()
 {
   QgsDecorationItem::saveToProject();
-  QgsProject::instance()->writeEntry( mNameConfig, "/Placement", mPlacementIndex );
   QgsProject::instance()->writeEntry( mNameConfig, "/PreferredSize", mPreferredSize );
   QgsProject::instance()->writeEntry( mNameConfig, "/Snapping", mSnapping );
-  // QgsProject::instance()->writeEntry( mNameConfig, "/Enabled", mEnabled );
   QgsProject::instance()->writeEntry( mNameConfig, "/Style", mStyleIndex );
   QgsProject::instance()->writeEntry( mNameConfig, "/ColorRedPart", mColor.red() );
   QgsProject::instance()->writeEntry( mNameConfig, "/ColorGreenPart", mColor.green() );
   QgsProject::instance()->writeEntry( mNameConfig, "/ColorBluePart", mColor.blue() );
+  QgsProject::instance()->writeEntry( mNameConfig, "/MarginH", mMarginHorizontal );
+  QgsProject::instance()->writeEntry( mNameConfig, "/MarginV", mMarginVertical );
 }
 
 
 void QgsDecorationScaleBar::run()
 {
   QgsDecorationScaleBarDialog dlg( *this, QgisApp::instance()->mapCanvas()->mapUnits(), QgisApp::instance() );
-
-  if ( dlg.exec() )
-  {
-    update();
-  }
+  dlg.exec();
 }
 
 
@@ -133,7 +129,6 @@ void QgsDecorationScaleBar::render( QPainter * theQPainter )
     // Hard coded sizes
     int myMajorTickSize = 8;
     int myTextOffsetX = 3;
-    int myMargin = 20;
 
     QSettings settings;
     QGis::UnitType myPreferredUnits = QGis::fromLiteral( settings.value( "/qgis/measure/displayunits", QGis::toLiteral( QGis::Meters ) ).toString() );
@@ -252,26 +247,34 @@ void QgsDecorationScaleBar::render( QPainter * theQPainter )
     //Calculate total width of scale bar and label
     double myTotalScaleBarWidth = myScaleBarWidth + myFontWidth;
 
-    //determine the origin of scale bar depending on placement selected
-    int myOriginX = myMargin;
-    int myOriginY = myMargin;
-    switch ( mPlacementIndex )
+    //Calculate percentage page width for use in placing item
+    int myMarginW = 10;
+    int myMarginH = 20;
+    float myMarginDoubledW = float( myMarginW * 2 );
+    float myMarginDoubledH = float( myMarginH * 2 );
+    int myOriginX = int((( float( myCanvasWidth - myMarginDoubledW ) - myTotalScaleBarWidth )
+                         / 100. ) * float( mMarginHorizontal ) );
+    int myOriginY = int((( float( myCanvasHeight - myMarginDoubledH ) )
+                         / 100. ) * float( mMarginVertical ) );
+
+    //Determine the origin of scale bar depending on placement selected
+    switch ( mPlacement )
     {
-      case 0: // Bottom Left
-        myOriginX = myMargin;
-        myOriginY = myCanvasHeight - myMargin;
+      case BottomLeft:
+        myOriginX += myMarginW;
+        myOriginY = myCanvasHeight - myOriginY - myMarginH;
         break;
-      case 1: // Top Left
-        myOriginX = myMargin;
-        myOriginY = myMargin;
+      case TopLeft:
+        myOriginX += myMarginW;
+        myOriginY += myMarginH;
         break;
-      case 2: // Top Right
-        myOriginX = myCanvasWidth - (( int ) myTotalScaleBarWidth ) - myMargin;
-        myOriginY = myMargin;
+      case TopRight:
+        myOriginX = myCanvasWidth - myOriginX - myMarginW - ( static_cast< int >( myTotalScaleBarWidth ) );
+        myOriginY += myMarginH;
         break;
-      case 3: // Bottom Right
-        myOriginX = myCanvasWidth - (( int ) myTotalScaleBarWidth ) - myMargin;
-        myOriginY = myCanvasHeight - myMargin;
+      case BottomRight:
+        myOriginX = myCanvasWidth - myOriginX - myMarginW - ( static_cast< int >( myTotalScaleBarWidth ) );
+        myOriginY = myCanvasHeight - myOriginY - myMarginH;
         break;
       default:
         QgsDebugMsg( "Unable to determine where to put scale bar so defaulting to top left" );
@@ -282,7 +285,7 @@ void QgsDecorationScaleBar::render( QPainter * theQPainter )
     QPen myBackgroundPen( Qt::white, 4 );
 
     //Cast myScaleBarWidth to int for drawing
-    int myScaleBarWidthInt = ( int ) myScaleBarWidth;
+    int myScaleBarWidthInt = static_cast< int >( myScaleBarWidth );
 
     //Create array of vertices for scale bar depending on style
     switch ( mStyleIndex )

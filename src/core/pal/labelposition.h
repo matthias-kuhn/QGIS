@@ -158,7 +158,7 @@ namespace pal
        */
       FeaturePart * getFeaturePart();
 
-      double getNumOverlaps() const { return nbOverlap; }
+      int getNumOverlaps() const { return nbOverlap; }
       void resetNumOverlaps() { nbOverlap = 0; } // called from problem.cpp, pal.cpp
 
       int getProblemFeatureId() const { return probFeat; }
@@ -220,9 +220,6 @@ namespace pal
       bool getUpsideDown() const { return upsideDown; }
 
       Quadrant getQuadrant() const { return quadrant; }
-
-      void print();
-
       LabelPosition* getNextPart() const { return nextPart; }
       void setNextPart( LabelPosition* next ) { nextPart = next; }
 
@@ -242,10 +239,6 @@ namespace pal
 
       /** Check whether the candidate in ctx overlap with obstacle feat */
       static bool pruneCallback( LabelPosition *candidatePosition, void *ctx );
-
-      // for sorting
-      static bool costShrink( void *l, void *r );
-      static bool costGrow( void *l, void *r );
 
       // for counting number of overlaps
       typedef struct

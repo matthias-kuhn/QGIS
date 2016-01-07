@@ -30,6 +30,7 @@ extern "C"
 #include <qgsvectorlayer.h>
 #include <qgsmaplayerregistry.h>
 #include <qgsdatasourceuri.h>
+
 #include "qgsvirtuallayerprovider.h"
 #include "qgsvirtuallayersqlitemodule.h"
 #include "qgsvirtuallayerqueryparser.h"
@@ -48,9 +49,10 @@ static QString quotedColumn( QString name )
 
 
 QgsVirtualLayerProvider::QgsVirtualLayerProvider( QString const &uri )
-    : QgsVectorDataProvider( uri ),
-    mValid( true ),
-    mCachedStatistics( false )
+    : QgsVectorDataProvider( uri )
+    , mValid( true )
+    , mCachedStatistics( false )
+    , mFeatureCount( 0 )
 {
   mError.clear();
 
@@ -102,7 +104,7 @@ bool QgsVirtualLayerProvider::loadSourceLayers()
     if ( layer.isReferenced() )
     {
       QgsMapLayer *l = QgsMapLayerRegistry::instance()->mapLayer( layer.reference() );
-      if ( l == 0 )
+      if ( !l )
       {
         PROVIDER_ERROR( QString( "Cannot find layer %1" ).arg( layer.reference() ) );
         return false;
@@ -596,6 +598,17 @@ QgsAttributeList QgsVirtualLayerProvider::pkAttributeIndexes()
     }
   }
   return QgsAttributeList();
+}
+
+QSet<QString> QgsVirtualLayerProvider::layerDependencies() const
+{
+  QSet<QString> deps;
+  foreach ( const QgsVirtualLayerDefinition::SourceLayer& l, mDefinition.sourceLayers() )
+  {
+    if ( l.isReferenced() )
+      deps << l.reference();
+  }
+  return deps;
 }
 
 /**

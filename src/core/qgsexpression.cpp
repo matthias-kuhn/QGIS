@@ -3116,7 +3116,7 @@ void QgsExpression::detach()
 
   if ( d->ref > 1 )
   {
-    d->ref.deref();
+    ( void )d->ref.deref();
 
     d = new QgsExpressionPrivate( *d );
   }
@@ -4189,7 +4189,7 @@ QgsExpression::Node* QgsExpression::NodeCondition::clone() const
   WhenThenList conditions;
   Q_FOREACH ( WhenThen* wt, mConditions )
     conditions.append( new WhenThen( wt->mWhenExp->clone(), wt->mThenExp->clone() ) );
-  return new NodeCondition( &conditions, mElseExp->clone() );
+  return new NodeCondition( conditions, mElseExp ? mElseExp->clone() : nullptr );
 }
 
 

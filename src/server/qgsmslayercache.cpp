@@ -23,8 +23,10 @@
 
 QgsMSLayerCache* QgsMSLayerCache::instance()
 {
-  static QgsMSLayerCache mInstance;
-  return &mInstance;
+  static QgsMSLayerCache *mInstance = 0;
+  if ( !mInstance )
+    mInstance = new QgsMSLayerCache();
+  return mInstance;
 }
 
 QgsMSLayerCache::QgsMSLayerCache()
@@ -52,12 +54,13 @@ QgsMSLayerCache::~QgsMSLayerCache()
   {
     delete entry.layerPointer;
   }
+  mEntries.clear();
 }
 
 void QgsMSLayerCache::insertLayer( const QString& url, const QString& layerName, QgsMapLayer* layer, const QString& configFile, const QList<QString>& tempFiles )
 {
   QgsMessageLog::logMessage( "Layer cache: insert Layer '" + layerName + "' configFile: " + configFile, "Server", QgsMessageLog::INFO );
-  if ( mEntries.size() > std::max( mDefaultMaxLayers, mProjectMaxLayers ) ) //force cache layer examination after 10 inserted layers
+  if ( mEntries.size() > qMax( mDefaultMaxLayers, mProjectMaxLayers ) ) //force cache layer examination after 10 inserted layers
   {
     updateEntries();
   }
@@ -145,7 +148,7 @@ void QgsMSLayerCache::removeProjectFileLayers( const QString& project )
 void QgsMSLayerCache::updateEntries()
 {
   QgsDebugMsg( "updateEntries" );
-  int entriesToDelete = mEntries.size() - std::max( mDefaultMaxLayers, mProjectMaxLayers );
+  int entriesToDelete = mEntries.size() - qMax( mDefaultMaxLayers, mProjectMaxLayers );
   if ( entriesToDelete < 1 )
   {
     return;

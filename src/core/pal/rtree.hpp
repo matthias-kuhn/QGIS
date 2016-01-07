@@ -14,19 +14,12 @@
  *    - 2008 Portability issues fixed by Maxence Laurent
  */
 
-#ifdef _MSC_VER
-#ifndef _CRT_SECURE_NO_DEPRECATE
-#define _CRT_SECURE_NO_DEPRECATE
-#endif
-#endif
-
 #ifndef RTREE_H
 #define RTREE_H
 
 #include <cstdio>
 #include <cmath>
 #include <cassert>
-#include <cstdlib>
 #include <QtGlobal>
 
 #define ASSERT assert // RTree uses ASSERT( condition )

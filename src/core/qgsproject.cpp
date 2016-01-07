@@ -17,9 +17,6 @@
 
 #include "qgsproject.h"
 
-#include <deque>
-#include <memory>
-
 #include "qgsdatasourceuri.h"
 #include "qgsexception.h"
 #include "qgslayertree.h"
@@ -38,14 +35,22 @@
 #include "qgsrelationmanager.h"
 #include "qgsvectorlayer.h"
 #include "qgsvisibilitypresetcollection.h"
+#include "qgslayerdefinition.h"
 
 #include <QApplication>
 #include <QFileInfo>
 #include <QDomNode>
 #include <QObject>
 #include <QTextStream>
+#include <QTemporaryFile>
 #include <QDir>
 #include <QUrl>
+
+#ifdef Q_OS_UNIX
+#include <utime.h>
+#elif _MSC_VER
+#include <sys/utime.h>
+#endif
 
 // canonical project instance
 QgsProject *QgsProject::theProject_ = nullptr;
@@ -668,13 +673,19 @@ QPair< bool, QList<QDomNode> > QgsProject::_getMapLayers( QDomDocument const &do
 
   emit layerLoaded( 0, nl.count() );
 
+  // order layers based on their dependencies
+  QgsLayerDefinition::DependencySorter depSorter( doc );
+  if ( depSorter.hasCycle() || depSorter.hasMissingDependency() )
+    return qMakePair( false, QList<QDomNode>() );
+
+  QVector<QDomNode> sortedLayerNodes = depSorter.sortedLayerNodes();
+
   // Collect vector layers with joins.
   // They need to refresh join caches and symbology infos after all layers are loaded
   QList< QPair< QgsVectorLayer*, QDomElement > > vLayerList;
-
-  for ( int i = 0; i < nl.count(); i++ )
+  int i = 0;
+  foreach ( QDomNode node, sortedLayerNodes )
   {
-    QDomNode node = nl.item( i );
     QDomElement element = node.toElement();
 
     QString name = node.namedItem( "layername" ).toElement().text();
@@ -694,6 +705,7 @@ QPair< bool, QList<QDomNode> > QgsProject::_getMapLayers( QDomDocument const &do
       }
     }
     emit layerLoaded( i + 1, nl.count() );
+    i++;
   }
 
   // Update field map of layers with joins and create join caches if necessary
@@ -998,38 +1010,16 @@ bool QgsProject::write()
 {
   clearError();
 
-  // Create backup file
-  if ( QFile::exists( fileName() ) )
-  {
-    QString backup = fileName() + '~';
-    if ( QFile::exists( backup ) )
-      QFile::remove( backup );
-    QFile::rename( fileName(), backup );
-  }
-
   // if we have problems creating or otherwise writing to the project file,
   // let's find out up front before we go through all the hand-waving
   // necessary to create all the Dom objects
-  if ( !imp_->file.open( QIODevice::WriteOnly | QIODevice::Truncate ) )
-  {
-    imp_->file.close();         // even though we got an error, let's make
-    // sure it's closed anyway
-
-    setError( tr( "Unable to save to file %1" ).arg( imp_->file.fileName() ) );
-    return false;
-  }
   QFileInfo myFileInfo( imp_->file );
-  if ( !myFileInfo.isWritable() )
+  if ( myFileInfo.exists() && !myFileInfo.isWritable() )
   {
-    // even though we got an error, let's make
-    // sure it's closed anyway
-    imp_->file.close();
     setError( tr( "%1 is not writable. Please adjust permissions (if possible) and try again." )
               .arg( imp_->file.fileName() ) );
     return false;
   }
-
-
 
   QDomImplementation DomImplementation;
   DomImplementation.setInvalidDataPolicy( QDomImplementation::DropInvalidChars );
@@ -1126,15 +1116,69 @@ bool QgsProject::write()
   // now wrap it up and ship it to the project file
   doc->normalize();             // XXX I'm not entirely sure what this does
 
-  QTextStream projectFileStream( &imp_->file );
+  // Create backup file
+  if ( QFile::exists( fileName() ) )
+  {
+    QFile backupFile( fileName() + '~' );
+    bool ok = true;
+    ok &= backupFile.open( QIODevice::WriteOnly | QIODevice::Truncate );
+    ok &= imp_->file.open( QIODevice::ReadOnly );
 
-  doc->save( projectFileStream, 2 );  // save as utf-8
-  imp_->file.close();
+    QByteArray ba;
+    while ( ok && !imp_->file.atEnd() )
+    {
+      ba = imp_->file.read( 10240 );
+      ok &= backupFile.write( ba ) == ba.size();
+    }
 
-  // check if the text stream had no error - if it does
-  // the user will get a message so they can try to resolve the
-  // situation e.g. by saving project to a volume with more space
-  if ( projectFileStream.pos() == -1  || imp_->file.error() != QFile::NoError )
+    imp_->file.close();
+    backupFile.close();
+
+    if ( !ok )
+    {
+      setError( tr( "Unable to create backup file %1" ).arg( backupFile.fileName() ) );
+      return false;
+    }
+
+    QFileInfo fi( fileName() );
+    struct utimbuf tb = { fi.lastRead().toTime_t(), fi.lastModified().toTime_t() };
+    utime( backupFile.fileName().toUtf8().constData(), &tb );
+  }
+
+  if ( !imp_->file.open( QIODevice::WriteOnly | QIODevice::Truncate ) )
+  {
+    imp_->file.close();         // even though we got an error, let's make
+    // sure it's closed anyway
+
+    setError( tr( "Unable to save to file %1" ).arg( imp_->file.fileName() ) );
+    return false;
+  }
+
+  QTemporaryFile tempFile;
+  bool ok = tempFile.open();
+  if ( ok )
+  {
+    QTextStream projectFileStream( &tempFile );
+    doc->save( projectFileStream, 2 );  // save as utf-8
+    ok &= projectFileStream.pos() > -1;
+
+    ok &= tempFile.seek( 0 );
+
+    QByteArray ba;
+    while ( ok && !tempFile.atEnd() )
+    {
+      ba = tempFile.read( 10240 );
+      ok &= imp_->file.write( ba ) == ba.size();
+    }
+
+    ok &= imp_->file.error() == QFile::NoError;
+
+    imp_->file.close();
+  }
+
+  tempFile.close();
+
+  if ( !ok )
   {
     setError( tr( "Unable to save to file %1. Your project "
                   "may be corrupted on disk. Try clearing some space on the volume and "
@@ -1631,9 +1675,12 @@ bool QgsProject::createEmbeddedLayer( const QString &layerId, const QString &pro
   QgsDebugCall;
 
   static QString prevProjectFilePath;
+  static QDateTime prevProjectFileTimestamp;
   static QDomDocument projectDocument;
 
-  if ( projectFilePath != prevProjectFilePath )
+  QDateTime projectFileTimestamp = QFileInfo( projectFilePath ).lastModified();
+
+  if ( projectFilePath != prevProjectFilePath || projectFileTimestamp != prevProjectFileTimestamp )
   {
     prevProjectFilePath.clear();
 
@@ -1649,6 +1696,7 @@ bool QgsProject::createEmbeddedLayer( const QString &layerId, const QString &pro
     }
 
     prevProjectFilePath = projectFilePath;
+    prevProjectFileTimestamp = projectFileTimestamp;
   }
 
   // does project store pathes absolute or relative?

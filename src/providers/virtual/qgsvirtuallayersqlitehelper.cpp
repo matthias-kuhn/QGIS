@@ -19,6 +19,7 @@ email                : hugo dot mercier at oslandia dot com
 #include <stdexcept>
 
 #include "qgsvirtuallayersqlitehelper.h"
+#include "qgslogger.h"
 
 QgsScopedSqlite::QgsScopedSqlite( const QString& path, bool withExtension )
 {
@@ -26,7 +27,7 @@ QgsScopedSqlite::QgsScopedSqlite( const QString& path, bool withExtension )
   {
     // register a statically-linked function as extension
     // for all future database connection
-    sqlite3_auto_extension(( void( * )() )qgsvlayer_module_init );
+    sqlite3_auto_extension( reinterpret_cast < void( * )() > ( qgsvlayer_module_init ) );
   }
   int r;
   r = sqlite3_open( path.toLocal8Bit().constData(), &db_ );
@@ -38,7 +39,9 @@ QgsScopedSqlite::QgsScopedSqlite( const QString& path, bool withExtension )
 
   if ( r )
   {
-    throw std::runtime_error( sqlite3_errmsg( db_ ) );
+    QString err = QString( "%1 [%2]" ).arg( sqlite3_errmsg( db_ ), path );
+    QgsDebugMsg( err );
+    throw std::runtime_error( err.toLocal8Bit().constData() );
   }
   // enable extended result codes
   sqlite3_extended_result_codes( db_, 1 );
@@ -47,7 +50,7 @@ QgsScopedSqlite::QgsScopedSqlite( const QString& path, bool withExtension )
 QgsScopedSqlite::QgsScopedSqlite( QgsScopedSqlite& other )
 {
   db_ = other.db_;
-  other.db_ = 0;
+  other.db_ = nullptr;
 }
 
 QgsScopedSqlite& QgsScopedSqlite::operator=( QgsScopedSqlite & other )
@@ -66,7 +69,7 @@ sqlite3* QgsScopedSqlite::get() const { return db_; }
 sqlite3* QgsScopedSqlite::release()
 {
   sqlite3* pp = db_;
-  db_ = 0;
+  db_ = nullptr;
   return pp;
 }
 
@@ -87,7 +90,7 @@ namespace Sqlite
   Query::Query( sqlite3* db, const QString& q ) : db_( db ), nBind_( 1 )
   {
     QByteArray ba( q.toLocal8Bit() );
-    int r = sqlite3_prepare_v2( db, ba.constData(), ba.size(), &stmt_, NULL );
+    int r = sqlite3_prepare_v2( db, ba.constData(), ba.size(), &stmt_, nullptr );
     if ( r )
     {
       QString err = QString( "Query preparation error on %1" ).arg( q );
@@ -120,8 +123,8 @@ namespace Sqlite
 
   void Query::exec( sqlite3* db, const QString& sql )
   {
-    char *errMsg = 0;
-    int r = sqlite3_exec( db, sql.toLocal8Bit().constData(), NULL, NULL, &errMsg );
+    char *errMsg = nullptr;
+    int r = sqlite3_exec( db, sql.toLocal8Bit().constData(), nullptr, nullptr, &errMsg );
     if ( r )
     {
       QString err = QString( "Query execution error on %1: %2 - %3" ).arg( sql ).arg( r ).arg( errMsg );
@@ -172,14 +175,14 @@ namespace Sqlite
   QString Query::columnText( int i ) const
   {
     int size = sqlite3_column_bytes( stmt_, i );
-    const char* str = ( const char* )sqlite3_column_text( stmt_, i );
+    const char* str = reinterpret_cast< const char* >( sqlite3_column_text( stmt_, i ) );
     return QString::fromUtf8( str, size );
   }
 
   QByteArray Query::columnBlob( int i ) const
   {
     int size = sqlite3_column_bytes( stmt_, i );
-    const char* data = ( const char* )sqlite3_column_blob( stmt_, i );
+    const char* data = reinterpret_cast< const char* >( sqlite3_column_blob( stmt_, i ) );
     // data is not copied. QByteArray is just here a augmented pointer
     return QByteArray::fromRawData( data, size );
   }

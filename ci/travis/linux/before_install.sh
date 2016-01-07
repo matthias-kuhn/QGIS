@@ -45,8 +45,11 @@ sudo apt-get install --force-yes --no-install-recommends --no-install-suggests \
         python-qt4 \
         python-qt4-dev \
         python-qt4-sql \
+        python-qscintilla2 \
         python-sip \
         python-sip-dev \
+        python-psycopg2 \
+        python-numpy \
         python-gdal \
         spawn-fcgi \
         txt2tags \
@@ -58,9 +61,11 @@ sudo apt-get install --force-yes --no-install-recommends --no-install-suggests \
         xvfb \
         python-pip \
         flip \
+        jq \
         postgresql-9.1-postgis-2.1/precise # from ubuntugis-unstable, not pgdg
 
 sudo -H pip install autopep8 # TODO when switching to trusty or above: replace python-pip with python-autopep8
+sudo -H pip install nose2 pyyaml mock
 
 #update clang
 sudo apt-get install --force-yes llvm-3.7 llvm-3.7-dev clang-3.7 libstdc++-4.9-dev

@@ -19,18 +19,18 @@ from qgis.core import NULL
 
 from qgis.core import QgsVectorLayer, QgsFeatureRequest, QgsFeature, QgsProviderRegistry
 from PyQt4.QtCore import QSettings
-from utilities import (unitTestDataPath,
-                       getQgisTestApp,
-                       unittest,
-                       TestCase
-                       )
+from qgis.testing import (start_app,
+                          unittest
+                          )
+from utilities import unitTestDataPath
+
 from providertestbase import ProviderTestCase
 
-QGISAPP, CANVAS, IFACE, PARENT = getQgisTestApp()
+start_app()
 TEST_DATA_DIR = unitTestDataPath()
 
 
-class TestPyQgsMssqlProvider(TestCase, ProviderTestCase):
+class TestPyQgsMssqlProvider(unittest.TestCase, ProviderTestCase):
 
     @classmethod
     def setUpClass(cls):

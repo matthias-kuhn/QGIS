@@ -20,6 +20,8 @@
 #include <QColor>
 #include <QFont>
 #include <QSettings>
+#include <QDialogButtonBox>
+#include <QPushButton>
 
 QgsDecorationCopyrightDialog::QgsDecorationCopyrightDialog( QgsDecorationCopyright& deco, QWidget* parent )
     : QDialog( parent ), mDeco( deco )
@@ -29,17 +31,24 @@ QgsDecorationCopyrightDialog::QgsDecorationCopyrightDialog( QgsDecorationCopyrig
   QSettings settings;
   restoreGeometry( settings.value( "/Windows/DecorationCopyright/geometry" ).toByteArray() );
 
+  QPushButton* applyButton = buttonBox->button( QDialogButtonBox::Apply );
+  connect( applyButton, SIGNAL( clicked() ), this, SLOT( apply() ) );
+
   //programmatically hide orientation selection for now
   cboOrientation->hide();
   textLabel15->hide();
 
-  cboxEnabled->setChecked( mDeco.enabled() );
+  grpEnable->setChecked( mDeco.enabled() );
   // text
   txtCopyrightText->setPlainText( mDeco.mLabelQString );
   // placement
-  cboPlacement->clear();
-  cboPlacement->addItems( mDeco.mPlacementLabels );
-  cboPlacement->setCurrentIndex( mDeco.mPlacementIndex );
+  cboPlacement->addItem( tr( "Top left" ), QgsDecorationItem::TopLeft );
+  cboPlacement->addItem( tr( "Top right" ), QgsDecorationItem::TopRight );
+  cboPlacement->addItem( tr( "Bottom left" ), QgsDecorationItem::BottomLeft );
+  cboPlacement->addItem( tr( "Bottom right" ), QgsDecorationItem::BottomRight );
+  cboPlacement->setCurrentIndex( cboPlacement->findData( mDeco.placement() ) );
+  spnHorizontal->setValue( mDeco.mMarginHorizontal );
+  spnVertical->setValue( mDeco.mMarginVertical );
   // color
   pbnColorChooser->setColor( mDeco.mLabelQColor );
   pbnColorChooser->setContext( "gui" );
@@ -59,12 +68,7 @@ QgsDecorationCopyrightDialog::~QgsDecorationCopyrightDialog()
 
 void QgsDecorationCopyrightDialog::on_buttonBox_accepted()
 {
-  mDeco.mQFont = txtCopyrightText->currentFont();
-  mDeco.mLabelQString = txtCopyrightText->toPlainText();
-  mDeco.mLabelQColor = pbnColorChooser->color();
-  mDeco.mPlacementIndex = cboPlacement->currentIndex();
-  mDeco.setEnabled( cboxEnabled->isChecked() );
-
+  apply();
   accept();
 }
 
@@ -79,6 +83,18 @@ void QgsDecorationCopyrightDialog::on_pbnColorChooser_colorChanged( const QColor
   txtCopyrightText->selectAll();
   txtCopyrightText->setTextColor( c );
   txtCopyrightText->setTextCursor( cursor );
+}
+
+void QgsDecorationCopyrightDialog::apply()
+{
+  mDeco.mQFont = txtCopyrightText->currentFont();
+  mDeco.mLabelQString = txtCopyrightText->toPlainText();
+  mDeco.mLabelQColor = pbnColorChooser->color();
+  mDeco.setPlacement( static_cast< QgsDecorationItem::Placement>( cboPlacement->itemData( cboPlacement->currentIndex() ).toInt() ) );
+  mDeco.mMarginHorizontal = spnHorizontal->value();
+  mDeco.mMarginVertical = spnVertical->value();
+  mDeco.setEnabled( grpEnable->isChecked() );
+  mDeco.update();
 }
 
 void QgsDecorationCopyrightDialog::on_buttonBox_helpRequested()

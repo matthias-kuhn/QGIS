@@ -37,7 +37,7 @@ QgsDecorationGridDialog::QgsDecorationGridDialog( QgsDecorationGrid& deco, QWidg
   QSettings settings;
   //  restoreGeometry( settings.value( "/Windows/DecorationGrid/geometry" ).toByteArray() );
 
-  chkEnable->setChecked( mDeco.enabled() );
+  grpEnable->setChecked( mDeco.enabled() );
 
   // mXMinLineEdit->setValidator( new QDoubleValidator( mXMinLineEdit ) );
 
@@ -67,16 +67,16 @@ void QgsDecorationGridDialog::updateGuiElements()
 {
   // blockAllSignals( true );
 
-  chkEnable->setChecked( mDeco.enabled() );
+  grpEnable->setChecked( mDeco.enabled() );
 
   mIntervalXEdit->setText( QString::number( mDeco.gridIntervalX() ) );
   mIntervalYEdit->setText( QString::number( mDeco.gridIntervalY() ) );
   mOffsetXEdit->setText( QString::number( mDeco.gridOffsetX() ) );
   mOffsetYEdit->setText( QString::number( mDeco.gridOffsetY() ) );
 
-  mGridTypeComboBox->setCurrentIndex(( int ) mDeco.gridStyle() );
+  mGridTypeComboBox->setCurrentIndex( static_cast< int >( mDeco.gridStyle() ) );
   mDrawAnnotationCheckBox->setChecked( mDeco.showGridAnnotation() );
-  mAnnotationDirectionComboBox->setCurrentIndex(( int ) mDeco.gridAnnotationDirection() );
+  mAnnotationDirectionComboBox->setCurrentIndex( static_cast< int >( mDeco.gridAnnotationDirection() ) );
   mCoordinatePrecisionSpinBox->setValue( mDeco.gridAnnotationPrecision() );
 
   mDistanceToMapFrameSpinBox->setValue( mDeco.annotationFrameDistance() );
@@ -109,7 +109,7 @@ void QgsDecorationGridDialog::updateGuiElements()
 void QgsDecorationGridDialog::updateDecoFromGui()
 {
   mDeco.setDirty( false );
-  mDeco.setEnabled( chkEnable->isChecked() );
+  mDeco.setEnabled( grpEnable->isChecked() );
 
   mDeco.setGridIntervalX( mIntervalXEdit->text().toDouble() );
   mDeco.setGridIntervalY( mIntervalYEdit->text().toDouble() );

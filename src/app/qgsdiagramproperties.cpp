@@ -368,6 +368,7 @@ QgsDiagramProperties::QgsDiagramProperties( QgsVectorLayer* layer, QWidget* pare
     {
       mDiagramDistanceSpinBox->setValue( dls->dist );
       mPrioritySlider->setValue( dls->priority );
+      mZIndexSpinBox->setValue( dls->zIndex );
       mDataDefinedXComboBox->setCurrentIndex( mDataDefinedXComboBox->findData( dls->xPosColumn ) );
       mDataDefinedYComboBox->setCurrentIndex( mDataDefinedYComboBox->findData( dls->yPosColumn ) );
       if ( dls->xPosColumn != -1 || dls->yPosColumn != -1 )
@@ -497,7 +498,7 @@ void QgsDiagramProperties::addAttribute( QTreeWidgetItem * item )
   newItem->setText( 0, item->text( 0 ) );
   newItem->setText( 2, guessLegendText( item->text( 0 ) ) );
   newItem->setData( 0, Qt::UserRole, item->data( 0, Qt::UserRole ) );
-  newItem->setFlags( newItem->flags() & ~Qt::ItemIsDropEnabled );
+  newItem->setFlags(( newItem->flags() | Qt::ItemIsEditable ) & ~Qt::ItemIsDropEnabled );
 
   //set initial color for diagram category
   int red = 1 + ( int )( 255.0 * qrand() / ( RAND_MAX + 1.0 ) );
@@ -763,6 +764,7 @@ void QgsDiagramProperties::apply()
   QgsDiagramLayerSettings dls;
   dls.dist = mDiagramDistanceSpinBox->value();
   dls.priority = mPrioritySlider->value();
+  dls.zIndex = mZIndexSpinBox->value();
   dls.showAll = mShowAllCheckBox->isChecked();
   if ( mDataDefinedPositionGroupBox->isChecked() )
   {
