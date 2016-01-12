@@ -82,18 +82,12 @@ QgsTransaction::~QgsTransaction()
 
 bool QgsTransaction::addLayer( const QString& layerId )
 {
-  if ( mTransactionActive )
-    return false;
-
   QgsVectorLayer* layer = qobject_cast<QgsVectorLayer*>( QgsMapLayerRegistry::instance()->mapLayer( layerId ) );
   return addLayer( layer );
 }
 
 bool QgsTransaction::addLayer( QgsVectorLayer* layer )
 {
-  if ( mTransactionActive )
-    return false;
-
   if ( !layer )
     return false;
 

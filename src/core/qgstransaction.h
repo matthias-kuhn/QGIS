@@ -61,10 +61,10 @@ class CORE_EXPORT QgsTransaction : public QObject
 
     virtual ~QgsTransaction();
 
-    /** Add layer to the transaction. The layer must not be in edit mode. The transaction must not be active. */
+    /** Add layer to the transaction. The layer must not be in edit mode. */
     bool addLayer( const QString& layerId );
 
-    /** Add layer to the transaction. The layer must not be in edit mode. The transaction must not be active. */
+    /** Add layer to the transaction. The layer must not be in edit mode. */
     bool addLayer( QgsVectorLayer* layer );
 
     /** Begin transaction
