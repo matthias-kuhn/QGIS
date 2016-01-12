@@ -255,13 +255,13 @@ QgsPostgresConn* QgsPostgresProvider::connectionRW()
 
 QgsTransaction* QgsPostgresProvider::transaction() const
 {
-  return static_cast<QgsTransaction*>( mTransaction );
+  return mTransaction;
 }
 
 void QgsPostgresProvider::setTransaction( QgsTransaction* transaction )
 {
-  // static_cast since layers cannot be added to a transaction of a non-matching provider
-  mTransaction = static_cast<QgsPostgresTransaction*>( transaction );
+  // dynamic cast to make sure that we get a supported transaction or a nullptr
+  mTransaction = dynamic_cast<QgsPostgresTransaction*>( transaction );
 }
 
 void QgsPostgresProvider::disconnectDb()

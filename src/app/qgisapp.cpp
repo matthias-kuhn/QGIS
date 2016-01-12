@@ -9362,12 +9362,13 @@ void QgisApp::extentChanged()
 
 void QgisApp::layersWereAdded( const QList<QgsMapLayer *>& theLayers )
 {
-  for ( int i = 0; i < theLayers.size(); ++i )
-  {
-    QgsMapLayer * layer = theLayers.at( i );
-    QgsDataProvider *provider = nullptr;
+  QSettings settings;
 
-    QgsVectorLayer *vlayer = qobject_cast<QgsVectorLayer *>( layer );
+  Q_FOREACH ( QgsMapLayer* layer, theLayers )
+  {
+    QgsDataProvider* provider = nullptr;
+
+    QgsVectorLayer* vlayer = qobject_cast<QgsVectorLayer *>( layer );
     if ( vlayer )
     {
       // notify user about any font family substitution, but only when rendering labels (i.e. not when opening settings dialog)
@@ -9380,6 +9381,23 @@ void QgisApp::layersWereAdded( const QList<QgsMapLayer *>& theLayers )
         connect( vlayer, SIGNAL( editingStarted() ), this, SLOT( layerEditStateChanged() ) );
         connect( vlayer, SIGNAL( editingStopped() ), this, SLOT( layerEditStateChanged() ) );
       }
+
+      if ( settings.value( "qgis/unifiedEditing", false ).toBool() )
+      {
+        QString connString = QgsDataSourceURI( vlayer->source() ).connectionInfo();
+        QgsTransaction* transaction = mTransactions.value( connString );
+
+        if ( !transaction )
+        {
+          transaction = QgsTransaction::create( connString, vlayer->providerType() );
+        }
+
+        if ( transaction )
+        {
+          transaction->addLayer( layer->id() );
+        }
+      }
+
       provider = vProvider;
     }
 
@@ -9398,7 +9416,6 @@ void QgisApp::layersWereAdded( const QList<QgsMapLayer *>& theLayers )
     if ( provider )
     {
       connect( provider, SIGNAL( dataChanged() ), layer, SLOT( triggerRepaint() ) );
-      connect( provider, SIGNAL( dataChanged() ), mMapCanvas, SLOT( refresh() ) );
     }
   }
 }

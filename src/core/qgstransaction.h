@@ -24,6 +24,7 @@
 
 class QgsVectorDataProvider;
 class QgsVectorLayer;
+class QgsMapLayer;
 
 /**
  * This class allows to include a set of layers in a database-side transaction,
@@ -84,6 +85,8 @@ class CORE_EXPORT QgsTransaction : public QObject
 
     /** Executes sql */
     virtual bool executeSql( const QString& sql, QString& error ) = 0;
+
+    static bool supportsTransaction( const QgsVectorLayer* layer );
 
   signals:
     /**

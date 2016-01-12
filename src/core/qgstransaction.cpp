@@ -28,7 +28,6 @@ typedef QgsTransaction* createTransaction_t( const QString& connString );
 
 QgsTransaction* QgsTransaction::create( const QString& connString, const QString& providerKey )
 {
-
   QLibrary* lib = QgsProviderRegistry::instance()->providerLibrary( providerKey );
   if ( !lib )
     return nullptr;
@@ -179,6 +178,15 @@ bool QgsTransaction::rollback( QString& errorMsg )
   emit afterRollback();
 
   return true;
+}
+
+bool QgsTransaction::supportsTransaction( const QgsVectorLayer* layer )
+{
+  QLibrary* lib = QgsProviderRegistry::instance()->providerLibrary( layer->providerType() );
+  if ( !lib )
+    return false;
+
+  return lib->resolve( "createTransaction" );
 }
 
 void QgsTransaction::onLayersDeleted( const QStringList& layerids )

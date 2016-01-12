@@ -110,6 +110,7 @@ class QgsTileScaleWidget;
 #include "qgsmessagebar.h"
 #include "qgsbookmarks.h"
 #include "qgswelcomepageitemsmodel.h"
+#include "qgstransaction.h"
 
 #include "ui_qgisapp.h"
 
@@ -1708,6 +1709,8 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     QgsWelcomePage* mWelcomePage;
 
     QStackedWidget* mCentralContainer;
+
+    QMap<QString, QgsTransaction*> mTransactions;
 
     int mProjOpen;
 #ifdef HAVE_TOUCH

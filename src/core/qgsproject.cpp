@@ -788,7 +788,7 @@ bool QgsProject::addLayer( const QDomElement &layerElem, QList<QDomNode> &broken
 }
 
 
-/**
+/*
    Please note that most of the contents were copied from qgsproject
 */
 bool QgsProject::read( QFileInfo const &file )
@@ -800,7 +800,7 @@ bool QgsProject::read( QFileInfo const &file )
 
 
 
-/**
+/*
    presuming that the caller has already reset the map canvas, map registry, and legend
  */
 bool QgsProject::read()
