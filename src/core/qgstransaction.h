@@ -77,10 +77,10 @@ class CORE_EXPORT QgsTransaction : public QObject
      *  Some providers might not honour the statement timeout. */
     bool begin( QString& errorMsg, int statementTimeout = 20 );
 
-    /** Commit transaction. All layers need to be in read-only mode. */
+    /** Commit transaction. All layers will be committed. */
     bool commit( QString& errorMsg );
 
-    /** Roll back transaction. All layers need to be in read-only mode. */
+    /** Roll back transaction. All layers will be rolled back. */
     bool rollback( QString& errorMsg );
 
     /** Executes sql */
@@ -93,6 +93,22 @@ class CORE_EXPORT QgsTransaction : public QObject
      * Emitted after a rollback
      */
     void afterRollback();
+
+    /**
+     * Emitted after a commit
+     */
+    void afterCommit();
+
+    /**
+     * Emitted when the transaction ends, next to
+     * afterCommit and afterRollback
+     */
+    void endTransaction();
+
+    /**
+     * Emitted when the transaction begins
+     */
+    void beginTransaction();
 
   private slots:
     void onLayersDeleted( const QStringList& layerids );

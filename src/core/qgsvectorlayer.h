@@ -1846,6 +1846,7 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer
   private slots:
     void onJoinedFieldsChanged();
     void onFeatureDeleted( QgsFeatureId fid );
+    void deleteEditBuffer();
 
   protected:
     /** Set the extent */

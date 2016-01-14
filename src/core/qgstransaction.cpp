@@ -124,6 +124,7 @@ bool QgsTransaction::begin( QString& errorMsg, int statementTimeout )
   if ( !beginTransaction( errorMsg, statementTimeout ) )
     return false;
 
+  emit beginTransaction();
   setLayerTransactionIds( this );
   mTransactionActive = true;
   return true;
@@ -134,16 +135,11 @@ bool QgsTransaction::commit( QString& errorMsg )
   if ( !mTransactionActive )
     return false;
 
-  Q_FOREACH ( QgsVectorLayer* l, mLayers )
-  {
-    if ( !l || l->isEditable() )
-    {
-      return false;
-    }
-  }
-
   if ( !commitTransaction( errorMsg ) )
     return false;
+
+  emit afterCommit();
+  emit endTransaction();
 
   setLayerTransactionIds( nullptr );
   mTransactionActive = false;
@@ -155,14 +151,6 @@ bool QgsTransaction::rollback( QString& errorMsg )
   if ( !mTransactionActive )
     return false;
 
-  Q_FOREACH ( QgsVectorLayer* l, mLayers )
-  {
-    if ( l->isEditable() )
-    {
-      return false;
-    }
-  }
-
   if ( !rollbackTransaction( errorMsg ) )
     return false;
 
@@ -170,6 +158,7 @@ bool QgsTransaction::rollback( QString& errorMsg )
   mTransactionActive = false;
 
   emit afterRollback();
+  emit endTransaction();
 
   return true;
 }
@@ -186,9 +175,16 @@ bool QgsTransaction::supportsTransaction( const QgsVectorLayer* layer )
 void QgsTransaction::onLayersDeleted( const QStringList& layerids )
 {
   Q_FOREACH ( const QString& layerid, layerids )
+  {
     Q_FOREACH ( QgsVectorLayer* l, mLayers )
+    {
       if ( l->id() == layerid )
+      {
         mLayers.remove( l );
+        break;
+      }
+    }
+  }
 }
 
 void QgsTransaction::setLayerTransactionIds( QgsTransaction* transaction )

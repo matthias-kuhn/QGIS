@@ -83,6 +83,7 @@
 #include "qgspallabeling.h"
 #include "qgssimplifymethod.h"
 #include "qgsexpressioncontext.h"
+#include "qgstransaction.h"
 
 #include "diagram/qgsdiagram.h"
 
@@ -1316,6 +1317,7 @@ bool QgsVectorLayer::startEditing()
   if ( mDataProvider->transaction() )
   {
     mEditBuffer = new QgsVectorLayerEditPassthrough( this );
+    connect( mDataProvider->transaction(), SIGNAL( endTransaction() ), this, SLOT( deleteEditBuffer() ) );
   }
   else
   {
@@ -2224,6 +2226,14 @@ bool QgsVectorLayer::commitChanges()
 {
   mCommitErrors.clear();
 
+  if ( dataProvider()->transaction() )
+  {
+    QString errorMsg;
+    bool retval = dataProvider()->transaction()->commit( errorMsg );
+    mCommitErrors << errorMsg;
+    return retval;
+  }
+
   if ( !mDataProvider )
   {
     mCommitErrors << tr( "ERROR: no provider" );
@@ -2272,6 +2282,14 @@ const QStringList &QgsVectorLayer::commitErrors()
 
 bool QgsVectorLayer::rollBack( bool deleteBuffer )
 {
+  if ( dataProvider()->transaction() )
+  {
+    QString errorMsg;
+    bool retval = dataProvider()->transaction()->rollback( errorMsg );
+    mCommitErrors << errorMsg;
+    return retval;
+  }
+
   if ( !mEditBuffer )
   {
     return false;
@@ -3701,6 +3719,12 @@ void QgsVectorLayer::onFeatureDeleted( QgsFeatureId fid )
     emit featuresDeleted( QgsFeatureIds() << fid );
 
   emit featureDeleted( fid );
+}
+
+void QgsVectorLayer::deleteEditBuffer()
+{
+  delete mEditBuffer;
+  mEditBuffer = 0;
 }
 
 QgsVectorLayer::ValueRelationData QgsVectorLayer::valueRelation( int idx )
