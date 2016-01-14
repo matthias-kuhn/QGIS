@@ -23,13 +23,17 @@
 QgsPostgresTransaction::QgsPostgresTransaction( const QString &connString )
     : QgsTransaction( connString ), mConn( nullptr )
 {
+  mConn = QgsPostgresConn::connectDb( mConnString, false /*readonly*/, false /*shared*/, true /*transaction*/ );
+}
 
+QgsPostgresTransaction::~QgsPostgresTransaction()
+{
+  mConn->unref();
+  mConn = nullptr;
 }
 
 bool QgsPostgresTransaction::beginTransaction( QString &error, int statementTimeout )
 {
-  mConn = QgsPostgresConn::connectDb( mConnString, false /*readonly*/, false /*shared*/, true /*transaction*/ );
-
   return executeSql( QString( "SET statement_timeout = %1" ).arg( statementTimeout * 1000 ), error )
          && executeSql( "BEGIN TRANSACTION", error );
 }
@@ -38,8 +42,6 @@ bool QgsPostgresTransaction::commitTransaction( QString &error )
 {
   if ( executeSql( "COMMIT TRANSACTION", error ) )
   {
-    mConn->unref();
-    mConn = nullptr;
     return true;
   }
   return false;
@@ -49,8 +51,6 @@ bool QgsPostgresTransaction::rollbackTransaction( QString &error )
 {
   if ( executeSql( "ROLLBACK TRANSACTION", error ) )
   {
-    mConn->unref();
-    mConn = nullptr;
     return true;
   }
   return false;
@@ -58,11 +58,6 @@ bool QgsPostgresTransaction::rollbackTransaction( QString &error )
 
 bool QgsPostgresTransaction::executeSql( const QString &sql, QString &errorMsg )
 {
-  if ( !mConn )
-  {
-    return false;
-  }
-
   QgsDebugMsg( QString( "Transaction sql: %1" ).arg( sql ) );
   mConn->lock();
   QgsPostgresResult r( mConn->PQexec( sql, true ) );

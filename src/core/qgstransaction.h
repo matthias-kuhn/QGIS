@@ -123,6 +123,7 @@ class CORE_EXPORT QgsTransaction : public QObject
     const QgsTransaction& operator=( const QgsTransaction& other );
 
     bool mTransactionActive;
+    bool mTransactionStarting;
     QSet<QgsVectorLayer*> mLayers;
 
     void setLayerTransactionIds( QgsTransaction *transaction );

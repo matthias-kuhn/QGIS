@@ -1317,7 +1317,11 @@ bool QgsVectorLayer::startEditing()
   if ( mDataProvider->transaction() )
   {
     mEditBuffer = new QgsVectorLayerEditPassthrough( this );
-    connect( mDataProvider->transaction(), SIGNAL( endTransaction() ), this, SLOT( deleteEditBuffer() ) );
+    QString errorMsg;
+    if ( mDataProvider->transaction()->begin( errorMsg ) )
+      connect( mDataProvider->transaction(), SIGNAL( endTransaction() ), this, SLOT( deleteEditBuffer() ) );
+    else
+      QgsDebugMsg( errorMsg );
   }
   else
   {

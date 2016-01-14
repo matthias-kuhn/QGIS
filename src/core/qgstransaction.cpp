@@ -69,7 +69,9 @@ QgsTransaction* QgsTransaction::create( const QStringList& layerIds )
 
 
 QgsTransaction::QgsTransaction( const QString& connString )
-    : mConnString( connString ), mTransactionActive( false )
+    : mConnString( connString )
+    , mTransactionActive( false )
+    , mTransactionStarting( false )
 {
 }
 
@@ -109,12 +111,16 @@ bool QgsTransaction::addLayer( QgsVectorLayer* layer )
 
   connect( this, SIGNAL( afterRollback() ), layer->dataProvider(), SIGNAL( dataChanged() ) );
   connect( QgsMapLayerRegistry::instance(), SIGNAL( layersWillBeRemoved( QStringList ) ), this, SLOT( onLayersDeleted( QStringList ) ) );
+  layer->dataProvider()->setTransaction( this );
   mLayers.insert( layer );
   return true;
 }
 
 bool QgsTransaction::begin( QString& errorMsg, int statementTimeout )
 {
+  if ( mTransactionStarting )
+    return true;
+
   if ( mTransactionActive )
     return false;
 
@@ -123,7 +129,12 @@ bool QgsTransaction::begin( QString& errorMsg, int statementTimeout )
     return false;
 
   emit beginTransaction();
-  setLayerTransactionIds( this );
+
+  mTransactionStarting = true;
+  Q_FOREACH ( QgsVectorLayer* l, mLayers )
+    l->startEditing();
+  mTransactionStarting = false;
+
   mTransactionActive = true;
   return true;
 }
@@ -139,7 +150,6 @@ bool QgsTransaction::commit( QString& errorMsg )
   emit afterCommit();
   emit endTransaction();
 
-  setLayerTransactionIds( nullptr );
   mTransactionActive = false;
   return true;
 }
@@ -152,7 +162,6 @@ bool QgsTransaction::rollback( QString& errorMsg )
   if ( !rollbackTransaction( errorMsg ) )
     return false;
 
-  setLayerTransactionIds( nullptr );
   mTransactionActive = false;
 
   emit afterRollback();
