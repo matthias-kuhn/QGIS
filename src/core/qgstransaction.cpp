@@ -28,8 +28,8 @@ typedef QgsTransaction* createTransaction_t( const QString& connString );
 
 QgsTransaction* QgsTransaction::create( const QString& connString, const QString& providerKey )
 {
-  QLibrary* lib = QgsProviderRegistry::instance()->providerLibrary( providerKey );
-  if ( !lib )
+  QScopedPointer<QLibrary> lib( QgsProviderRegistry::instance()->providerLibrary( providerKey ) );
+  if ( lib.isNull() )
     return nullptr;
 
   createTransaction_t* createTransaction = reinterpret_cast< createTransaction_t* >( cast_to_fptr( lib->resolve( "createTransaction" ) ) );
@@ -37,8 +37,6 @@ QgsTransaction* QgsTransaction::create( const QString& connString, const QString
     return nullptr;
 
   QgsTransaction* ts = createTransaction( connString );
-
-  delete lib;
 
   return ts;
 }
