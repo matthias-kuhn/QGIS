@@ -1142,7 +1142,7 @@ void QgsOptions::saveOptions()
   mSettings->setValue( "/qgis/defaultLegendGraphicResolution", mLegendGraphicResolutionSpinBox->value() );
   bool createRasterLegendIcons = mSettings->value( "/qgis/createRasterLegendIcons", false ).toBool();
   mSettings->setValue( "/qgis/createRasterLegendIcons", cbxCreateRasterLegendIcons->isChecked() );
-  mSettings->setValue( "/qgis/unifiedEditing", cbxUnifiedEditing->isChecked() );
+  QgisApp::instance()->setUnifiedEditing( cbxUnifiedEditing->isChecked() );
   mSettings->setValue( "/qgis/copyGeometryAsWKT", cbxCopyWKTGeomFromTable->isChecked() );
   mSettings->setValue( "/qgis/new_layers_visible", chkAddedVisibility->isChecked() );
   mSettings->setValue( "/qgis/enable_anti_aliasing", chkAntiAliasing->isChecked() );
