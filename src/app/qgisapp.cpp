@@ -6050,6 +6050,31 @@ QgsComposer* QgisApp::duplicateComposer( QgsComposer* currentComposer, QString t
   return newComposer;
 }
 
+bool QgisApp::setUnifiedEditing( bool ue )
+{
+  QSettings settings;
+
+  Q_FOREACH ( QgsMapLayer* mapLayer, QgsMapLayerRegistry::instance()->mapLayers().values() )
+  {
+    QgsVectorLayer* vlayer = qobject_cast<QgsVectorLayer*>( mapLayer );
+    if ( !vlayer )
+      continue;
+
+    if ( !toggleEditing( vlayer, true ) )
+      return false;
+  }
+
+  settings.setValue( "qgis/unifiedEditing", ue );
+  return true;
+}
+
+bool QgisApp::unifiedEditing()
+{
+  QSettings settings;
+
+  return settings.value( "qgis/unifiedEditing", false ).toBool();
+}
+
 bool QgisApp::loadComposersFromProject( const QDomDocument& doc )
 {
   if ( doc.isNull() )

@@ -277,6 +277,10 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
      */
     QgsComposer *duplicateComposer( QgsComposer *currentComposer, QString title = QString() );
 
+    bool setUnifiedEditing( bool ue );
+
+    bool unifiedEditing();
+
     /** Overloaded function used to sort menu entries alphabetically */
     QMenu* createPopupMenu() override;
 
