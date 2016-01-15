@@ -2690,6 +2690,9 @@ void QgisApp::initLayerTreeView()
   connect( mLayerTreeView->selectionModel(), SIGNAL( currentChanged( QModelIndex, QModelIndex ) ), this, SLOT( updateNewLayerInsertionPoint() ) );
   connect( QgsProject::instance()->layerTreeRegistryBridge(), SIGNAL( addedLayersToLayerTree( QList<QgsMapLayer*> ) ),
            this, SLOT( autoSelectAddedLayer( QList<QgsMapLayer*> ) ) );
+  if ( unifiedEditing() )
+    connect( QgsProject::instance()->layerTreeRegistryBridge(), SIGNAL( addedLayersToLayerTree( QList<QgsMapLayer*> ) ),
+             this, SLOT( autoStartTransaction( QList<QgsMapLayer*> ) ) );
 
   // add group action
   QAction* actionAddGroup = new QAction( tr( "Add Group" ), this );
@@ -11062,6 +11065,29 @@ void QgisApp::showStatisticsDockWidget()
 {
   mStatisticalSummaryDockWidget->show();
   mStatisticalSummaryDockWidget->raise();
+}
+
+void QgisApp::autoStartTransaction( QList<QgsMapLayer*> layers )
+{
+  Q_FOREACH ( QgsMapLayer* layer, layers )
+  {
+    QgsVectorLayer* vlayer = qobject_cast<QgsVectorLayer*>( layer );
+    if ( vlayer )
+    {
+      QString connString = QgsDataSourceURI( vlayer->source() ).connectionInfo();
+      QgsTransaction* transaction = mTransactions.value( connString );
+
+      if ( !transaction )
+      {
+        transaction = QgsTransaction::create( connString, vlayer->providerType() );
+      }
+
+      if ( transaction )
+      {
+        transaction->addLayer( layer->id() );
+      }
+    }
+  }
 }
 
 
