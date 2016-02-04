@@ -1658,15 +1658,31 @@ OGRFeatureH QgsVectorFileWriter::createFeature( QgsFeature& feature )
 
     switch ( attrValue.type() )
     {
+#if defined(GDAL_VERSION_NUM) && GDAL_VERSION_NUM >= 2000000
+      case QVariant::Int:
+      case QVariant::UInt:
+        OGR_F_SetFieldInteger( poFeature, ogrField, attrValue.toInt() );
+        break;
+      case QVariant::LongLong:
+      case QVariant::ULongLong:
+        OGR_F_SetFieldInteger64( poFeature, ogrField, attrValue.toLongLong() );
+        break;
+      case QVariant::String:
+        OGR_F_SetFieldString( poFeature, ogrField, mCodec->fromUnicode( attrValue.toString() ).data() );
+        break;
+#else
       case QVariant::Int:
         OGR_F_SetFieldInteger( poFeature, ogrField, attrValue.toInt() );
         break;
+      case QVariant::String:
+      case QVariant::LongLong:
+      case QVariant::UInt:
+      case QVariant::ULongLong:
+        OGR_F_SetFieldString( poFeature, ogrField, mCodec->fromUnicode( attrValue.toString() ).data() );
+        break;
+#endif
       case QVariant::Double:
         OGR_F_SetFieldDouble( poFeature, ogrField, attrValue.toDouble() );
-        break;
-      case QVariant::LongLong:
-      case QVariant::String:
-        OGR_F_SetFieldString( poFeature, ogrField, mCodec->fromUnicode( attrValue.toString() ).data() );
         break;
       case QVariant::Date:
         OGR_F_SetFieldDateTime( poFeature, ogrField,
@@ -1685,17 +1701,32 @@ OGRFeatureH QgsVectorFileWriter::createFeature( QgsFeature& feature )
                                 attrValue.toDateTime().time().second(),
                                 0 );
         break;
+      case QVariant::Time:
+        if ( mOgrDriverName == "ESRI Shapefile" )
+        {
+          OGR_F_SetFieldString( poFeature, ogrField, mCodec->fromUnicode( attrValue.toString() ).data() );
+        }
+        else
+        {
+          OGR_F_SetFieldDateTime( poFeature, ogrField,
+                                  0, 0, 0,
+                                  attrValue.toTime().hour(),
+                                  attrValue.toTime().minute(),
+                                  attrValue.toTime().second(),
+                                  0 );
+        }
+        break;
       case QVariant::Invalid:
         break;
       default:
         mErrorMessage = QObject::tr( "Invalid variant type for field %1[%2]: received %3 with type %4" )
-                        .arg( mFields[fldIdx].name() )
+                        .arg( mFields.at( fldIdx ).name() )
                         .arg( ogrField )
-                        .arg( QMetaType::typeName( attrValue.type() ) )
-                        .arg( attrValue.toString() );
+                        .arg( attrValue.typeName(),
+                              attrValue.toString() );
         QgsMessageLog::logMessage( mErrorMessage, QObject::tr( "OGR" ) );
         mError = ErrFeatureWriteFailed;
-        return 0;
+        return nullptr;
     }
   }
 
