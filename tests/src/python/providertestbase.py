@@ -384,3 +384,38 @@ class ProviderTestCase(object):
 
         # Test rewinding closed iterator
         self.assertFalse(f_it.rewind(), 'Rewinding closed iterator successful, should not be allowed')
+
+    def testGetFeaturesSubsetAttributes(self):
+        """ Test that expected results are returned when using subsets of attributes """
+
+        tests = {'pk': set([1, 2, 3, 4, 5]),
+                 'cnt': set([-200, 300, 100, 200, 400]),
+                 'name': set(['Pear', 'Orange', 'Apple', 'Honey', NULL]),
+                 'name2': set(['NuLl', 'PEaR', 'oranGe', 'Apple', 'Honey'])}
+        for field, expected in tests.iteritems():
+            result = set([f[field] for f in self.provider.getFeatures(QgsFeatureRequest().setSubsetOfAttributes([field], self.provider.fields()))])
+            self.assertEqual(result, expected, 'Expected {}, got {}'.format(expected, result))
+
+    def testGetFeaturesSubsetAttributes2(self):
+        """ Test that other fields are NULL wen fetching subsets of attributes """
+
+        for field_to_fetch in ['pk', 'cnt', 'name', 'name2']:
+            for f in self.provider.getFeatures(QgsFeatureRequest().setSubsetOfAttributes([field_to_fetch], self.provider.fields())):
+                # Check that all other fields are NULL
+                for other_field in [field.name() for field in self.provider.fields() if field.name() != field_to_fetch]:
+                    self.assertEqual(f[other_field], NULL, 'Value for field "{}" was present when it should not have been fetched by request'.format(other_field))
+
+    def testGetFeaturesNoGeometry(self):
+        """ Test that no geometry is present when fetching features without geometry"""
+
+        for f in self.provider.getFeatures(QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry)):
+            self.assertFalse(f.constGeometry(), 'Expected no geometry, got one')
+
+    def testGetFeaturesNoGeometry(self):
+        """ Test that geometry is present when fetching features without setting NoGeometry flag"""
+        for f in self.provider.getFeatures(QgsFeatureRequest()):
+            if f['pk'] == 3:
+                # no geometry for this feature
+                continue
+
+            assert f.constGeometry(), 'Expected geometry, got none'
