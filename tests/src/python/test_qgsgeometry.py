@@ -413,7 +413,7 @@ class TestQgsGeometry(unittest.TestCase):
             QgsPoint(30, 20),
             QgsPoint(20, 20),
         ]])
-        print 'Clip: %s' % myClipPolygon.exportToWkt()
+        print('Clip: %s' % myClipPolygon.exportToWkt())
         writeShape(myMemoryLayer, 'clipGeometryBefore.shp')
         fit = myProvider.getFeatures()
         myFeatures = []
@@ -432,7 +432,7 @@ class TestQgsGeometry(unittest.TestCase):
                 # print 'Original: %s' % myGeometry.exportToWkt()
                 # print 'Combined: %s' % myCombinedGeometry.exportToWkt()
                 # print 'Difference: %s' % myDifferenceGeometry.exportToWkt()
-                print 'Symmetrical: %s' % mySymmetricalGeometry.exportToWkt()
+                print('Symmetrical: %s' % mySymmetricalGeometry.exportToWkt())
 
                 myExpectedWkt = 'Polygon ((20 20, 20 30, 30 30, 30 20, 20 20))'
 
@@ -1657,6 +1657,21 @@ class TestQgsGeometry(unittest.TestCase):
         expWkt = 'LineString (0 0, 1 0, 2 0)'
         wkt = c.exportToWkt()
         assert compareWkt(expWkt, wkt), "testRegression13274 failed: mismatch Expected:\n%s\nGot:\n%s\n" % (expWkt, wkt)
+
+    def testReshape(self):
+        """ Test geometry reshaping """
+        g = QgsGeometry.fromWkt('Polygon ((0 0, 1 0, 1 1, 0 1, 0 0))')
+        g.reshapeGeometry([QgsPoint(0, 1.5), QgsPoint(1.5, 0)])
+        expWkt = 'Polygon ((0.5 1, 0 1, 0 0, 1 0, 1 0.5, 0.5 1))'
+        wkt = g.exportToWkt()
+        assert compareWkt(expWkt, wkt), "testReshape failed: mismatch Expected:\n%s\nGot:\n%s\n" % (expWkt, wkt)
+
+        # Test reshape a geometry involving the first/last vertex (http://hub.qgis.org/issues/14443)
+        g.reshapeGeometry([QgsPoint(0.5, 1), QgsPoint(0, 0.5)])
+
+        expWkt = 'Polygon ((0 0.5, 0 0, 1 0, 1 0.5, 0.5 1, 0 0.5))'
+        wkt = g.exportToWkt()
+        assert compareWkt(expWkt, wkt), "testReshape failed: mismatch Expected:\n%s\nGot:\n%s\n" % (expWkt, wkt)
 
     def testConvertToMultiType(self):
         """ Test converting geometries to multi type """

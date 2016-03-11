@@ -271,12 +271,32 @@ QVariant QgsLayerTreeModel::data( const QModelIndex &index, int role ) const
       f.setUnderline( true );
     return f;
   }
+  else if ( role == Qt::ForegroundRole )
+  {
+    QBrush brush( Qt::black, Qt::SolidPattern );
+    if ( QgsLayerTree::isLayer( node ) )
+    {
+      const QgsMapLayer* layer = QgsLayerTree::toLayer( node )->layer();
+      if ( layer && !layer->isInScaleRange( mLegendMapViewScale ) )
+      {
+        brush.setColor( Qt::lightGray );
+      }
+    }
+    return brush;
+  }
   else if ( role == Qt::ToolTipRole )
   {
     if ( QgsLayerTree::isLayer( node ) )
     {
       if ( QgsMapLayer* layer = QgsLayerTree::toLayer( node )->layer() )
-        return layer->publicSource();
+      {
+        QString tooltip = "<b>" +
+                          ( layer->title().isEmpty() ? layer->shortName() : layer->title() ) + "</b>";
+        if ( !layer->abstract().isEmpty() )
+          tooltip += "<br/>" + layer->abstract().replace( "\n", "<br/>" );
+        tooltip += "<br/><i>" + layer->publicSource() + "</i>";
+        return tooltip;
+      }
     }
   }
 
@@ -626,6 +646,8 @@ void QgsLayerTreeModel::setLegendMapViewData( double mapUnitsPerPixel, int dpi, 
 
   // now invalidate legend nodes!
   legendInvalidateMapBasedData();
+
+  refreshScaleBasedLayers();
 }
 
 void QgsLayerTreeModel::legendMapViewData( double* mapUnitsPerPixel, int* dpi, double* scale )
@@ -912,6 +934,24 @@ void QgsLayerTreeModel::recursivelyEmitDataChanged( const QModelIndex& idx )
     recursivelyEmitDataChanged( index( i, 0, idx ) );
 }
 
+void QgsLayerTreeModel::refreshScaleBasedLayers( const QModelIndex& idx )
+{
+  QgsLayerTreeNode* node = index2node( idx );
+  if ( !node )
+    return;
+
+  if ( node->nodeType() == QgsLayerTreeNode::NodeLayer )
+  {
+    const QgsMapLayer* layer = QgsLayerTree::toLayer( node )->layer();
+    if ( layer && layer->hasScaleBasedVisibility() )
+    {
+      emit dataChanged( idx, idx );
+    }
+  }
+  int count = node->children().count();
+  for ( int i = 0; i < count; ++i )
+    refreshScaleBasedLayers( index( i, 0, idx ) );
+}
 
 Qt::DropActions QgsLayerTreeModel::supportedDropActions() const
 {

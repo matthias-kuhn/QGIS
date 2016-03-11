@@ -23,12 +23,12 @@ from qgis.testing import (start_app,
                           )
 from utilities import unitTestDataPath
 from providertestbase import ProviderTestCase
-from PyQt4.QtCore import QSettings
+from PyQt.QtCore import QSettings
 
 try:
     from pyspatialite import dbapi2 as sqlite3
 except ImportError:
-    print "You should install pyspatialite to run the tests"
+    print("You should install pyspatialite to run the tests")
     raise ImportError
 
 # Convenience instances in case you may need them
