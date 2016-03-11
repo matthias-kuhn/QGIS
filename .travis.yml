@@ -21,6 +21,8 @@ matrix:
         ccache: true
       compiler:
         - clang
+      python:
+        - "3.3"
       addons:
         postgresql: "9.4"
         apt:
@@ -67,6 +69,8 @@ notifications:
     on_start: never # default: never
 
 before_install:
+  - python --version
+  - python -c "import sys;print(sys.path)"
   - ./ci/travis/${TRAVIS_OS_NAME}/before_install.sh
 
 install:
