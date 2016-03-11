@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import str
 __author__ = 'Chris Crook'
 __date__ = '3/10/2014'
 __copyright__ = 'Copyright 2014, The QGIS Project'
@@ -30,9 +31,9 @@ from qgis.core import (QgsGraduatedSymbolRendererV2,
                        QgsSymbolLayerV2Utils,
                        QgsRenderContext
                        )
-from PyQt4.QtCore import Qt
-from PyQt4.QtXml import QDomDocument
-from PyQt4.QtGui import QColor
+from PyQt.QtCore import Qt
+from PyQt.QtXml import QDomDocument
+from PyQt.QtGui import QColor
 
 start_app()
 

@@ -3,7 +3,7 @@
                          OGC Web Coverage Service layers
                              -------------------
     begin                : 2 July, 2012
-    copyright            : (C) (C) 2012 by Radim Blazek
+    copyright            : (C) 2012 by Radim Blazek
     email                : radim dot blazek at gmail.com
 
     Based on qgswmsprovider.cpp written by Brendan Morley.
@@ -19,8 +19,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <typeinfo>
-
 #include "qgslogger.h"
 #include "qgswcsprovider.h"
 #include "qgscoordinatetransform.h"
@@ -31,20 +29,14 @@
 #include "qgscoordinatereferencesystem.h"
 #include "qgsnetworkaccessmanager.h"
 #include "qgsnetworkreplyparser.h"
-#include "qgsmessageoutput.h"
 #include "qgsmessagelog.h"
 
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QNetworkProxy>
-#include <QNetworkDiskCache>
 
 #include <QUrl>
-#include <QRegExp>
-#include <QSettings>
 #include <QEventLoop>
-#include <QCoreApplication>
-#include <QTime>
 #include <QFile>
 
 #ifdef QGISDEBUG
@@ -595,7 +587,8 @@ void QgsWcsProvider::readBlock( int bandNo, QgsRectangle  const & viewExtent, in
         QgsDebugMsg( QString( "Couldn't allocate memory of %1 bytes" ).arg( size ) );
         return;
       }
-      GDALRasterIO( gdalBand, GF_Read, 0, 0, width, height, tmpData, width, height, ( GDALDataType ) mGdalDataType.at( bandNo - 1 ), 0, 0 );
+      if ( GDALRasterIO( gdalBand, GF_Read, 0, 0, width, height, tmpData, width, height, ( GDALDataType ) mGdalDataType.at( bandNo - 1 ), 0, 0 ) != CE_None )
+        QgsDebugMsg( "Raster IO Error" );
       for ( int i = 0; i < pixelHeight; i++ )
       {
         for ( int j = 0; j < pixelWidth; j++ )
@@ -609,13 +602,16 @@ void QgsWcsProvider::readBlock( int bandNo, QgsRectangle  const & viewExtent, in
     }
     else if ( width == pixelWidth && height == pixelHeight )
     {
-      GDALRasterIO( gdalBand, GF_Read, 0, 0, pixelWidth, pixelHeight, block, pixelWidth, pixelHeight, ( GDALDataType ) mGdalDataType.at( bandNo - 1 ), 0, 0 );
-      QgsDebugMsg( tr( "Block read OK" ) );
+      if ( GDALRasterIO( gdalBand, GF_Read, 0, 0, pixelWidth, pixelHeight, block, pixelWidth, pixelHeight, ( GDALDataType ) mGdalDataType.at( bandNo - 1 ), 0, 0 ) != CE_None )
+        QgsDebugMsg( "Raster IO Error" );
+      else
+        QgsDebugMsg( "Block read OK" );
     }
     else
     {
       // This should not happen, but it is better to give distorted result + warning
-      GDALRasterIO( gdalBand, GF_Read, 0, 0, width, height, block, pixelWidth, pixelHeight, ( GDALDataType ) mGdalDataType.at( bandNo - 1 ), 0, 0 );
+      if ( GDALRasterIO( gdalBand, GF_Read, 0, 0, width, height, block, pixelWidth, pixelHeight, ( GDALDataType ) mGdalDataType.at( bandNo - 1 ), 0, 0 ) != CE_None )
+        QgsDebugMsg( "Raster IO Error" );
       QgsMessageLog::logMessage( tr( "Received coverage has wrong size %1 x %2 (expected %3 x %4)" ).arg( width ).arg( height ).arg( pixelWidth ).arg( pixelHeight ), tr( "WCS" ) );
     }
   }
@@ -1589,14 +1585,6 @@ QString QgsWcsProvider::nodeAttribute( const QDomElement &e, const QString& name
   return defValue;
 }
 
-void QgsWcsProvider::showMessageBox( const QString& title, const QString& text )
-{
-  QgsMessageOutput *message = QgsMessageOutput::createMessageOutput();
-  message->setTitle( title );
-  message->setMessage( text, QgsMessageOutput::MessageText );
-  message->showMessage();
-}
-
 QMap<QString, QString> QgsWcsProvider::supportedMimes()
 {
   QMap<QString, QString> mimes;
@@ -1670,16 +1658,13 @@ QGISEXTERN bool isProvider()
 int QgsWcsDownloadHandler::sErrors = 0;
 
 QgsWcsDownloadHandler::QgsWcsDownloadHandler( const QUrl& url, QgsWcsAuthorization& auth, QNetworkRequest::CacheLoadControl cacheLoadControl, QByteArray& cachedData, const QString& wcsVersion, QgsError& cachedError )
-    : mNAM( new QgsNetworkAccessManager )
-    , mAuth( auth )
+    : mAuth( auth )
     , mEventLoop( new QEventLoop )
     , mCacheReply( nullptr )
     , mCachedData( cachedData )
     , mWcsVersion( wcsVersion )
     , mCachedError( cachedError )
 {
-  mNAM->setupDefaultProxyAndCache();
-
   QNetworkRequest request( url );
   if ( !mAuth.setAuthorization( request ) )
   {
@@ -1690,7 +1675,7 @@ QgsWcsDownloadHandler::QgsWcsDownloadHandler( const QUrl& url, QgsWcsAuthorizati
   request.setAttribute( QNetworkRequest::CacheSaveControlAttribute, true );
   request.setAttribute( QNetworkRequest::CacheLoadControlAttribute, cacheLoadControl );
 
-  mCacheReply = mNAM->get( request );
+  mCacheReply = QgsNetworkAccessManager::instance()->get( request );
   connect( mCacheReply, SIGNAL( finished() ), this, SLOT( cacheReplyFinished() ) );
   connect( mCacheReply, SIGNAL( downloadProgress( qint64, qint64 ) ), this, SLOT( cacheReplyProgress( qint64, qint64 ) ) );
 }
@@ -1698,7 +1683,6 @@ QgsWcsDownloadHandler::QgsWcsDownloadHandler( const QUrl& url, QgsWcsAuthorizati
 QgsWcsDownloadHandler::~QgsWcsDownloadHandler()
 {
   delete mEventLoop;
-  delete mNAM;
 }
 
 void QgsWcsDownloadHandler::blockingDownload()
@@ -1726,7 +1710,7 @@ void QgsWcsDownloadHandler::cacheReplyFinished()
                                    tr( "WCS" ) );
         return;
       }
-      mCacheReply = mNAM->get( request );
+      mCacheReply = QgsNetworkAccessManager::instance()->get( request );
       connect( mCacheReply, SIGNAL( finished() ), this, SLOT( cacheReplyFinished() ) );
       connect( mCacheReply, SIGNAL( downloadProgress( qint64, qint64 ) ), this, SLOT( cacheReplyProgress( qint64, qint64 ) ) );
 
@@ -1890,7 +1874,7 @@ void QgsWcsDownloadHandler::cacheReplyFinished()
 
       mCacheReply->deleteLater();
 
-      mCacheReply = mNAM->get( request );
+      mCacheReply = QgsNetworkAccessManager::instance()->get( request );
       connect( mCacheReply, SIGNAL( finished() ), this, SLOT( cacheReplyFinished() ), Qt::DirectConnection );
       connect( mCacheReply, SIGNAL( downloadProgress( qint64, qint64 ) ), this, SLOT( cacheReplyProgress( qint64, qint64 ) ), Qt::DirectConnection );
 

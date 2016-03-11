@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import range
 __author__ = 'Nyall Dawson'
 __date__ = '2015-08'
 __copyright__ = 'Copyright 2015, The QGIS Project'
@@ -19,7 +20,7 @@ from qgis.core import (QgsVectorGradientColorRampV2,
                        QgsVectorRandomColorRampV2,
                        QgsRandomColorsV2,
                        QgsVectorColorBrewerColorRampV2)
-from PyQt4.QtGui import QColor, QGradient
+from PyQt.QtGui import QColor, QGradient
 from qgis.testing import (TestCase, unittest)
 
 
@@ -145,9 +146,9 @@ class PyQgsVectorColorRamp(unittest.TestCase):
         self.assertTrue(not r.color(5).isValid())
 
         # test that generated random colors are all valid
-        for i in xrange(10000):
+        for i in range(10000):
             r.updateColors()
-            for j in xrange(5):
+            for j in range(5):
                 self.assertTrue(r.color(r.value(j)).isValid())
 
         # test setters
@@ -164,9 +165,9 @@ class PyQgsVectorColorRamp(unittest.TestCase):
         r.setValMax(200)
         self.assertEqual(r.valMax(), 200)
         # test that generated random colors are within range
-        for i in xrange(10000):
+        for i in range(10000):
             r.updateColors()
-            for j in xrange(5):
+            for j in range(5):
                 c = r.color(r.value(j))
                 self.assertTrue(c.isValid())
                 self.assertTrue(c.hue() >= r.hueMin())
@@ -198,7 +199,7 @@ class PyQgsVectorColorRamp(unittest.TestCase):
         self.assertEqual(cloned.valMax(), 200)
 
         # test randomColors static method
-        for i in xrange(10000):
+        for i in range(10000):
             cols = r.randomColors(10, 30, 60, 90, 120, 150, 180)
             self.assertEqual(len(cols), 10)
             for c in cols:
@@ -219,7 +220,7 @@ class PyQgsVectorColorRamp(unittest.TestCase):
         self.assertEqual(r.value(1), 0)
 
         # test non-pregenerated colors. All should be valid
-        for i in xrange(10000):
+        for i in range(10000):
             c = r.color(0)
             self.assertTrue(c.isValid())
 
@@ -232,9 +233,9 @@ class PyQgsVectorColorRamp(unittest.TestCase):
         self.assertEqual(cloned.type(), 'randomcolors')
 
         # test with pregenerated colors
-        for i in xrange(10000):
+        for i in range(10000):
             r.setTotalColorCount(10)
-            for j in xrange(10):
+            for j in range(10):
                 c = r.color(j * 0.1)
                 self.assertTrue(c.isValid())
 

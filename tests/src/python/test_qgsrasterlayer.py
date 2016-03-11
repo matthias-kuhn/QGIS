@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import str
 __author__ = 'Tim Sutton'
 __date__ = '20/08/2012'
 __copyright__ = 'Copyright 2012, The QGIS Project'
@@ -15,7 +16,7 @@ __revision__ = '$Format:%H$'
 import qgis
 import os
 
-from PyQt4.QtCore import QFileInfo, QObject, SIGNAL
+from PyQt.QtCore import QFileInfo, QObject
 from PyQt4 import QtGui
 
 from qgis.core import (QgsRaster,
@@ -58,7 +59,7 @@ class TestQgsRasterLayer(unittest.TestCase):
         assert len(myRasterValues) > 0
 
         # Get the name of the first band
-        myBand = myRasterValues.keys()[0]
+        myBand = list(myRasterValues.keys())[0]
         # myExpectedName = 'Band 1
         myExpectedBand = 1
         myMessage = 'Expected "%s" got "%s" for first raster band name' % (
@@ -67,7 +68,7 @@ class TestQgsRasterLayer(unittest.TestCase):
 
         # Convert each band value to a list of ints then to a string
 
-        myValues = myRasterValues.values()
+        myValues = list(myRasterValues.values())
         myIntValues = []
         for myValue in myValues:
             myIntValues.append(int(myValue))
@@ -223,8 +224,7 @@ class TestQgsRasterLayer(unittest.TestCase):
         layer = QgsRasterLayer(myPath, myBaseName)
 
         self.rendererChanged = False
-        QObject.connect(layer, SIGNAL("rendererChanged()"),
-                        self.onRendererChanged)
+        layer.rendererChanged.connect(self.onRendererChanged)
 
         rShader = QgsRasterShader()
         r = QgsSingleBandPseudoColorRenderer(layer.dataProvider(), 1, rShader)

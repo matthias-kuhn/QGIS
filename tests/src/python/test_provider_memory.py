@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import str
 __author__ = 'Matthias Kuhn'
 __date__ = '2015-04-23'
 __copyright__ = 'Copyright 2015, The QGIS Project'
@@ -41,7 +42,7 @@ from utilities import (
 )
 
 from providertestbase import ProviderTestCase
-from PyQt4.QtCore import QVariant
+from PyQt.QtCore import QVariant
 
 start_app()
 TEST_DATA_DIR = unitTestDataPath()
@@ -105,6 +106,18 @@ class TestPyQgsMemoryProvider(unittest.TestCase, ProviderTestCase):
     @classmethod
     def tearDownClass(cls):
         """Run after all tests"""
+
+    def testGetFeaturesSubsetAttributes2(self):
+        """ Override and skip this test for memory provider, as it's actually more efficient for the memory provider to return
+        its features as direct copies (due to implicit sharing of QgsFeature)
+        """
+        pass
+
+    def testGetFeaturesNoGeometry(self):
+        """ Override and skip this test for memory provider, as it's actually more efficient for the memory provider to return
+        its features as direct copies (due to implicit sharing of QgsFeature)
+        """
+        pass
 
     def testCtors(self):
         testVectors = ["Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", "MultiPolygon", "None"]
@@ -227,6 +240,7 @@ class TestPyQgsMemoryProvider(unittest.TestCase, ProviderTestCase):
 
         # Add some fields to the layer
         myFields = [QgsField('TestInt', QVariant.Int, 'integer', 2, 0),
+                    QgsField('TestLong', QVariant.LongLong, 'long', -1, 0),
                     QgsField('TestDbl', QVariant.Double, 'double', 8, 6),
                     QgsField('TestString', QVariant.String, 'string', 50, 0),
                     QgsField('TestDate', QVariant.Date, 'date'),
@@ -315,6 +329,18 @@ class TestPyQgsMemoryProviderIndexed(unittest.TestCase, ProviderTestCase):
     @classmethod
     def tearDownClass(cls):
         """Run after all tests"""
+
+    def testGetFeaturesSubsetAttributes2(self):
+        """ Override and skip this test for memory provider, as it's actually more efficient for the memory provider to return
+        its features as direct copies (due to implicit sharing of QgsFeature)
+        """
+        pass
+
+    def testGetFeaturesNoGeometry(self):
+        """ Override and skip this test for memory provider, as it's actually more efficient for the memory provider to return
+        its features as direct copies (due to implicit sharing of QgsFeature)
+        """
+        pass
 
 if __name__ == '__main__':
     unittest.main()

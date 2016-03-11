@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import range
 __author__ = '(C) 2012 by Dr. Horst Düster / Dr. Marco Hugentobler'
 __date__ = '20/08/2012'
 __copyright__ = 'Copyright 2012, The QGIS Project'
@@ -15,9 +16,9 @@ __revision__ = '$Format:%H$'
 import qgis
 import os
 
-from PyQt4.QtCore import QFileInfo
-from PyQt4.QtXml import QDomDocument
-from PyQt4.QtGui import QPainter
+from PyQt.QtCore import QFileInfo
+from PyQt.QtXml import QDomDocument
+from PyQt.QtGui import QPainter
 
 from qgis.core import (QgsComposerMap,
                        QgsRectangle,
