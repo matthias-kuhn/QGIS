@@ -10,6 +10,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import object
 __author__ = 'Larry Shaffer'
 __date__ = '07/16/2013'
 __copyright__ = 'Copyright 2013, The QGIS Project'
@@ -19,8 +20,8 @@ __revision__ = '$Format:%H$'
 import qgis
 import os
 
-from PyQt4.QtCore import Qt, QPointF
-from PyQt4.QtGui import QFont
+from PyQt.QtCore import Qt, QPointF
+from PyQt.QtGui import QFont
 
 from qgis.core import QgsPalLayerSettings
 

@@ -16,6 +16,7 @@
 *                                                                         *
 ***************************************************************************
 """
+from __future__ import print_function
 
 __author__ = 'Massimo Endrighi'
 __date__ = 'October 2012'
@@ -26,9 +27,9 @@ __revision__ = '$Format:%H$'
 import qgis
 import os
 
-from PyQt4.QtCore import pyqtWrapperType, Qt, QDir, QFile, QIODevice, QPointF
-from PyQt4.QtXml import QDomDocument
-from PyQt4.QtGui import QColor
+from PyQt.QtCore import pyqtWrapperType, Qt, QDir, QFile, QIODevice, QPointF
+from PyQt.QtXml import QDomDocument
+from PyQt.QtGui import QColor
 
 from qgis.core import (QgsCentroidFillSymbolLayerV2,
                        QgsEllipseSymbolLayerV2,
@@ -678,7 +679,7 @@ class TestQgsSymbolLayerV2(unittest.TestCase):
 
         mExpectedValue = u'skull.svg'
         mValue = os.path.basename(mSymbolLayer.path())
-        print "VALUE", mSymbolLayer.path()
+        print("VALUE", mSymbolLayer.path())
         mMessage = 'Expected "%s" got "%s"' % (mExpectedValue, mValue)
         assert mExpectedValue == mValue, mMessage
 

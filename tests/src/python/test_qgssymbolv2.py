@@ -16,6 +16,9 @@
 *                                                                         *
 ***************************************************************************
 """
+from __future__ import division
+from __future__ import print_function
+from past.utils import old_div
 
 __author__ = 'Nyall Dawson'
 __date__ = 'January 2016'
@@ -28,8 +31,8 @@ import csv
 
 from utilities import unitTestDataPath
 
-from PyQt4.QtCore import QSize, QDir
-from PyQt4.QtGui import QImage, QColor, QPainter
+from PyQt.QtCore import QSize, QDir
+from PyQt.QtGui import QImage, QColor, QPainter
 
 from qgis.core import (QgsGeometry,
                        QgsMarkerSymbolV2,
@@ -141,7 +144,7 @@ class TestQgsSymbolV2(unittest.TestCase):
         extent = geom.geometry().boundingBox()
         # buffer extent by 10%
         if extent.width() > 0:
-            extent = extent.buffer((extent.height() + extent.width()) / 20.0)
+            extent = extent.buffer(old_div((extent.height() + extent.width()), 20.0))
         else:
             extent = extent.buffer(10)
 
@@ -149,7 +152,7 @@ class TestQgsSymbolV2(unittest.TestCase):
         ms.setOutputSize(image.size())
         context = QgsRenderContext.fromMapSettings(ms)
         context.setPainter(painter)
-        context.setScaleFactor(96 / 25.4) # 96 DPI
+        context.setScaleFactor(old_div(96, 25.4)) # 96 DPI
 
         painter.begin(image)
         image.fill(QColor(0, 0, 0))
@@ -184,7 +187,7 @@ class TestQgsSymbolV2(unittest.TestCase):
         checker.setColorTolerance(2)
         result = checker.compareImages(name, 20)
         self.report += checker.report()
-        print self.report
+        print(self.report)
         return result
 
 

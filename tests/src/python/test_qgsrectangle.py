@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from __future__ import print_function
 __author__ = 'Tim Sutton'
 __date__ = '20/08/2012'
 __copyright__ = 'Copyright 2012, The QGIS Project'
@@ -156,7 +157,7 @@ class TestQgsRectangle(unittest.TestCase):
                      (True, rect1.contains(rect2)))
         assert rect1.contains(rect2), myMessage
 
-        print rect1.toString()
+        print(rect1.toString())
         assert rect1 == QgsRectangle(0.0, 0.0, 7.0, 7.0), 'Wrong combine with rectangle result'
 
         rect1 = QgsRectangle(0.0, 0.0, 5.0, 5.0)

@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import str
 __author__ = 'Matthias Kuhn'
 __date__ = '2015-04-23'
 __copyright__ = 'Copyright 2015, The QGIS Project'
@@ -41,7 +42,7 @@ from utilities import (
 )
 
 from providertestbase import ProviderTestCase
-from PyQt4.QtCore import QVariant
+from PyQt.QtCore import QVariant
 
 start_app()
 TEST_DATA_DIR = unitTestDataPath()

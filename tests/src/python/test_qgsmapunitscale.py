@@ -6,6 +6,8 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from __future__ import division
+from past.utils import old_div
 __author__ = 'Nyall Dawson'
 __date__ = '2015-09'
 __copyright__ = 'Copyright 2015, The QGIS Project'
@@ -15,7 +17,7 @@ __revision__ = '$Format:%H$'
 import qgis
 
 from qgis.core import (QgsMapUnitScale, QgsRenderContext, QgsSymbolLayerV2Utils, QgsSymbolV2, QgsMapSettings, QgsRectangle)
-from PyQt4.QtCore import QSize
+from PyQt.QtCore import QSize
 from qgis.testing import (TestCase, unittest)
 
 
@@ -89,29 +91,29 @@ class PyQgsMapUnitScale(unittest.TestCase):
         self.assertAlmostEqual(mup, 2.0, places=5)
 
         # add a minimum scale less than the renderer scale, so should be no change
-        c.minScale = 1 / 350000000.0
+        c.minScale = old_div(1, 350000000.0)
         mup = c.computeMapUnitsPerPixel(r)
         self.assertAlmostEqual(mup, 2.0, places=5)
 
         # minimum scale greater than the renderer scale, so should be limited to minScale
-        c.minScale = 1 / 150000000.0
+        c.minScale = old_div(1, 150000000.0)
         mup = c.computeMapUnitsPerPixel(r)
         self.assertAlmostEqual(mup, 1.0276160, places=5)
-        c.minScale = 1 / 50000000.0
+        c.minScale = old_div(1, 50000000.0)
         mup = c.computeMapUnitsPerPixel(r)
         self.assertAlmostEqual(mup, 0.3425386, places=5)
-        c.minScale = 1 / 350000000.0
+        c.minScale = old_div(1, 350000000.0)
 
         # add a maximum scale greater than the renderer scale, so should be no change
-        c.maxScale = 1 / 150000000.0
+        c.maxScale = old_div(1, 150000000.0)
         mup = c.computeMapUnitsPerPixel(r)
         self.assertAlmostEqual(mup, 2.0, places=5)
 
         # maximum scale less than the renderer scale, so should be limited to maxScale
-        c.maxScale = 1 / 350000000.0
+        c.maxScale = old_div(1, 350000000.0)
         mup = c.computeMapUnitsPerPixel(r)
         self.assertAlmostEqual(mup, 2.3977706, places=5)
-        c.maxScale = 1 / 500000000.0
+        c.maxScale = old_div(1, 500000000.0)
         mup = c.computeMapUnitsPerPixel(r)
         self.assertAlmostEqual(mup, 3.4253867, places=5)
 
@@ -143,7 +145,7 @@ class PyQgsMapUnitScale(unittest.TestCase):
         self.assertAlmostEqual(sf, 1.0, places=5)
 
         # minimum scale greater than the renderer scale, so should be limited to minScale
-        c.minScale = 1 / 150000000.0
+        c.minScale = old_div(1, 150000000.0)
         sf = QgsSymbolLayerV2Utils.lineWidthScaleFactor(r, QgsSymbolV2.MapUnit, c)
         self.assertAlmostEqual(sf, 3.89250455, places=5)
         # only conversion from mapunits should be affected
@@ -154,7 +156,7 @@ class PyQgsMapUnitScale(unittest.TestCase):
         c.minScale = 0
 
         # maximum scale less than the renderer scale, so should be limited to maxScale
-        c.maxScale = 1 / 350000000.0
+        c.maxScale = old_div(1, 350000000.0)
         sf = QgsSymbolLayerV2Utils.lineWidthScaleFactor(r, QgsSymbolV2.MapUnit, c)
         self.assertAlmostEqual(sf, 0.5, places=5)
         # only conversion from mapunits should be affected
@@ -229,7 +231,7 @@ class PyQgsMapUnitScale(unittest.TestCase):
         self.assertAlmostEqual(sf, 1.0, places=5)
 
         # minimum scale greater than the renderer scale, so should be limited to minScale
-        c.minScale = 1 / 150000000.0
+        c.minScale = old_div(1, 150000000.0)
         sf = QgsSymbolLayerV2Utils.pixelSizeScaleFactor(r, QgsSymbolV2.MapUnit, c)
         self.assertAlmostEqual(sf, 3.8925045, places=5)
         # only conversion from mapunits should be affected
@@ -240,7 +242,7 @@ class PyQgsMapUnitScale(unittest.TestCase):
         c.minScale = 0
 
         # maximum scale less than the renderer scale, so should be limited to maxScale
-        c.maxScale = 1 / 350000000.0
+        c.maxScale = old_div(1, 350000000.0)
         sf = QgsSymbolLayerV2Utils.pixelSizeScaleFactor(r, QgsSymbolV2.MapUnit, c)
         self.assertAlmostEqual(sf, 0.5, places=5)
         # only conversion from mapunits should be affected

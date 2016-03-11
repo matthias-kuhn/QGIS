@@ -18,7 +18,7 @@ import shutil
 import glob
 
 from qgis.core import QgsVectorLayer, QgsFeatureRequest, QgsFeature, QgsProviderRegistry
-from PyQt4.QtCore import QSettings, QDate, QTime, QDateTime, QVariant
+from PyQt.QtCore import QSettings, QDate, QTime, QDateTime, QVariant
 from qgis.testing import (
     start_app,
     unittest
@@ -43,7 +43,7 @@ class TestPyQgsTabfileProvider(unittest.TestCase):
         self.assertEqual(fields.at(fields.indexFromName('time')).type(), QVariant.Time)
         self.assertEqual(fields.at(fields.indexFromName('date_time')).type(), QVariant.DateTime)
 
-        f = vl.getFeatures(QgsFeatureRequest()).next()
+        f = next(vl.getFeatures(QgsFeatureRequest()))
 
         date_idx = vl.fieldNameIndex('date')
         assert isinstance(f.attributes()[date_idx], QDate)
