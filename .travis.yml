@@ -66,8 +66,8 @@ notifications:
     on_start: never # default: never
 
 before_install:
-  - python3 --version
-  - python3 -c "import sys;print(sys.path)"
+  - python --version
+  - python -c "import sys;print(sys.path)"
   - ./ci/travis/${TRAVIS_OS_NAME}/before_install.sh
 
 install:
