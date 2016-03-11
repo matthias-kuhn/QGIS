@@ -23,11 +23,6 @@ sudo apt-get install --force-yes --no-install-recommends --no-install-suggests \
         libgsl0-dev \
         libpq-dev \
         libproj-dev \
-        libqca2-dev \
-        libqca2-plugin-ossl \
-        libqscintilla2-dev \
-        libqtwebkit-dev \
-        libqwt-dev \
         libspatialindex-dev \
         libspatialite-dev \
         libsqlite3-dev \
@@ -44,7 +39,11 @@ sudo apt-get install --force-yes --no-install-recommends --no-install-suggests \
         xvfb \
         python-pip \
         flip \
-        jq
+        jq \
+        qt5-default \
+        python3-pyqt5 \
+        libqt5scintilla2-dev
+        
 
 sudo -H pip install autopep8 # TODO when switching to trusty or above: replace python-pip with python-autopep8
 sudo -H pip install nose2 pyyaml mock
