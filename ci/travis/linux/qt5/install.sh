@@ -1,13 +1,10 @@
 mkdir build
 cd build
 
-ln -s /usr/bin/ccache ${HOME}/osgeo4travis/bin/clang++-3.6
-ln -s /usr/bin/ccache ${HOME}/osgeo4travis/bin/clang-3.6
-
 ccache -s
 
-export CXX="clang++-3.6"
-export CC="clang-3.6"
+export CXX="clang++-3.8"
+export CC="clang-3.8"
 export PATH=${HOME}/osgeo4travis/bin:${PATH}
 export PYTHONPATH=${HOME}/osgeo4travis/lib/python3/dist-packages/
 
