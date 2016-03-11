@@ -41,6 +41,13 @@ sudo apt-get install -y --no-install-recommends --no-install-suggests \
         flip \
         jq \
         qt5-default \
+        libqt5svg5-dev \
+        qtpositioning5-dev \
+        libqt5webkit5-dev \
+        pyqt5-dev-tools \
+        libqt5xmlpatterns5-dev \
+        qttools5-dev \
+        qtscript5-dev \
         python3-pyqt5 \
         libqt5scintilla2-dev
         
