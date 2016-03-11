@@ -58,7 +58,7 @@ class TestQgsRasterLayer(unittest.TestCase):
         assert len(myRasterValues) > 0
 
         # Get the name of the first band
-        myBand = myRasterValues.keys()[0]
+        myBand = list(myRasterValues.keys())[0]
         # myExpectedName = 'Band 1
         myExpectedBand = 1
         myMessage = 'Expected "%s" got "%s" for first raster band name' % (
@@ -67,14 +67,14 @@ class TestQgsRasterLayer(unittest.TestCase):
 
         # Convert each band value to a list of ints then to a string
 
-        myValues = myRasterValues.values()
+        myValues = list(myRasterValues.values())
         myIntValues = []
         for myValue in myValues:
             myIntValues.append(int(myValue))
         myValues = str(myIntValues)
         myExpectedValues = '[127, 141, 112, 72, 86, 126, 156, 211, 170]'
         myMessage = 'Expected: %s\nGot: %s' % (myValues, myExpectedValues)
-        self.assertEquals(myValues, myExpectedValues, myMessage)
+        self.assertEqual(myValues, myExpectedValues, myMessage)
 
     def testTransparency(self):
         myPath = os.path.join(unitTestDataPath('raster'),

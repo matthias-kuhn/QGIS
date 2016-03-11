@@ -29,7 +29,7 @@ import errno
 from qgis.testing import unittest
 from utilities import unitTestDataPath
 
-print 'CTEST_FULL_OUTPUT'
+print('CTEST_FULL_OUTPUT')
 
 TEST_DATA_DIR = unitTestDataPath()
 
@@ -87,13 +87,13 @@ class TestPyQgsAppStartup(unittest.TestCase):
         while not os.path.exists(myTestFile):
             p.poll()
             if p.returncode is not None:
-                print 'Application has returned: {}'.format(p.returncode)
+                print('Application has returned: {}'.format(p.returncode))
                 ok = False
                 break
             time.sleep(1)
             s += 1
             if s > timeOut:
-                print 'Timed out waiting for application start'
+                print('Timed out waiting for application start')
                 ok = False
                 break
 
@@ -209,6 +209,6 @@ if __name__ == '__main__':
             if found:
                 break
 
-    print '\nQGIS_BIN: ', QGIS_BIN
+    print('\nQGIS_BIN: ', QGIS_BIN)
     assert QGIS_BIN, 'QGIS binary not found, skipping test suite'
     unittest.main()

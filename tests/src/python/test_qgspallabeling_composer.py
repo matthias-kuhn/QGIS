@@ -64,7 +64,7 @@ if not PDFUTIL:
 # output kind enum
 # noinspection PyClassHasNoInit
 class OutputKind():
-    Img, Svg, Pdf = range(3)
+    Img, Svg, Pdf = list(range(3))
 
 
 # noinspection PyShadowingNames
