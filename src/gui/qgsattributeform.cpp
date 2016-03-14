@@ -278,8 +278,40 @@ void QgsAttributeForm::resetValues()
 void QgsAttributeForm::onAttributeChanged( const QVariant& value )
 {
   QgsEditorWidgetWrapper* eww = qobject_cast<QgsEditorWidgetWrapper*>( sender() );
-
   Q_ASSERT( eww );
+
+  if ( eww->layer()->editFormConfig()->notNull( eww->fieldIdx() ) )
+  {
+    QLabel* buddy = mBuddyMap.value( eww->widget() );
+
+    if ( buddy )
+    {
+      if ( !buddy->property( "originalText" ).isValid() )
+        buddy->setProperty( "originalText", buddy->text() );
+
+      QString text = buddy->property( "originalText" ).toString();
+
+      if ( value.isNull() )
+      {
+        // not good
+#if QT_VERSION >= 0x050000
+        buddy->setText( QString( "%1<font color=\"red\">❌</font>" ).arg( text ) );
+#else
+        buddy->setText( QString( "%1<font color=\"red\">*</font>" ).arg( text ) );
+#endif
+      }
+      else
+      {
+        // good
+#if QT_VERSION >= 0x050000
+        buddy->setText( QString( "%1<font color=\"green\">✔</font>" ).arg( text ) );
+#else
+        buddy->setText( QString( "%1<font color=\"green\">*</font>" ).arg( text ) );
+#endif
+      }
+    }
+  }
+
 
   emit attributeChanged( eww->field().name(), value );
 }
@@ -339,6 +371,36 @@ void QgsAttributeForm::onUpdatedFields()
   }
   init();
   setFeature( mFeature );
+}
+
+void QgsAttributeForm::onConstraintStatusChanged( const QString& constraint, bool ok )
+{
+  Q_UNUSED( constraint )
+
+
+  QgsEditorWidgetWrapper* eww = qobject_cast<QgsEditorWidgetWrapper*>( sender() );
+  Q_ASSERT( eww );
+
+  QLabel* buddy = mBuddyMap.value( eww->widget() );
+
+  if ( buddy )
+  {
+    if ( !buddy->property( "originalText" ).isValid() )
+      buddy->setProperty( "originalText", buddy->text() );
+
+    QString text = buddy->property( "originalText" ).toString();
+
+    if ( !ok )
+    {
+      // not good
+      buddy->setText( QString( "%1<font color=\"red\">*</font>" ).arg( text ) );
+    }
+    else
+    {
+      // good
+      buddy->setText( QString( "%1<font color=\"green\">*</font>" ).arg( text ) );
+    }
+  }
 }
 
 void QgsAttributeForm::preventFeatureRefresh()
@@ -502,9 +564,11 @@ void QgsAttributeForm::init()
       bool labelOnTop = mLayer->editFormConfig()->labelOnTop( idx );
 
       // This will also create the widget
-      QWidget *l = new QLabel( fieldName );
+      QLabel *l = new QLabel( fieldName );
       QgsEditorWidgetWrapper* eww = QgsEditorWidgetRegistry::instance()->create( widgetType, mLayer, idx, widgetConfig, nullptr, this, mContext );
       QWidget *w = eww ? eww->widget() : new QLabel( QString( "<p style=\"color: red; font-style: italic;\">Failed to create widget with type '%1'</p>" ).arg( widgetType ) );
+
+      l->setBuddy( w );
 
       if ( w )
         w->setObjectName( field.name() );
@@ -550,7 +614,7 @@ void QgsAttributeForm::init()
 
   mButtonBox->setVisible( buttonBoxVisible );
 
-  connectWrappers();
+  afterWidgetInit();
 
   connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
   connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( resetValues() ) );
@@ -785,6 +849,8 @@ QgsAttributeForm::WidgetInfo QgsAttributeForm::createWidgetFromDef( const QgsAtt
             mypLabel->setAlignment( Qt::AlignRight | Qt::AlignVCenter );
           }
 
+          mypLabel->setBuddy( widgetInfo.widget );
+
           if ( widgetInfo.labelOnTop )
           {
             QVBoxLayout* c = new QVBoxLayout();
@@ -883,7 +949,7 @@ void QgsAttributeForm::createWrappers()
   }
 }
 
-void QgsAttributeForm::connectWrappers()
+void QgsAttributeForm::afterWidgetInit()
 {
   bool isFirstEww = true;
 
@@ -900,7 +966,19 @@ void QgsAttributeForm::connectWrappers()
       }
 
       connect( eww, SIGNAL( valueChanged( const QVariant& ) ), this, SLOT( onAttributeChanged( const QVariant& ) ) );
+      connect( eww, SIGNAL( constraintStatusChanged( QString, bool ) ), this, SLOT( onConstraintStatusChanged( QString, bool ) ) );
     }
+  }
+
+  // Update buddy widget list
+
+  mBuddyMap.clear();
+  QList<QLabel*> labels = findChildren<QLabel*>();
+
+  Q_FOREACH ( QLabel* label, labels )
+  {
+    if ( label->buddy() )
+      mBuddyMap.insert( label->buddy(), label );
   }
 }
 

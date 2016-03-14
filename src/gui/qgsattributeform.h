@@ -22,6 +22,7 @@
 #include "qgsattributeeditorcontext.h"
 
 #include <QWidget>
+#include <QLabel>
 #include <QDialogButtonBox>
 
 class QgsAttributeFormInterface;
@@ -174,6 +175,7 @@ class GUI_EXPORT QgsAttributeForm : public QWidget
     void onAttributeAdded( int idx );
     void onAttributeDeleted( int idx );
     void onUpdatedFields();
+    void onConstraintStatusChanged( const QString& constraint, bool ok );
 
     void preventFeatureRefresh();
     void synchronizeEnabledState();
@@ -208,7 +210,7 @@ class GUI_EXPORT QgsAttributeForm : public QWidget
      * Called once maximally.
      */
     void createWrappers();
-    void connectWrappers();
+    void afterWidgetInit();
 
     QgsVectorLayer* mLayer;
     QgsFeature mFeature;
@@ -230,6 +232,8 @@ class GUI_EXPORT QgsAttributeForm : public QWidget
     bool mPreventFeatureRefresh;
 
     QString mEditCommandMessage;
+    //! Backlinks widgets to buddies.
+    QMap<QWidget*, QLabel*> mBuddyMap;
 };
 
 #endif // QGSATTRIBUTEFORM_H

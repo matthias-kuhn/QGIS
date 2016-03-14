@@ -122,7 +122,7 @@ void QgsTextEditWrapper::initWidget( QWidget* editor )
       fle->setNullValue( defVal.toString() );
     }
 
-    connect( mLineEdit, SIGNAL( textChanged( QString ) ), this, SLOT( valueChanged( QString ) ) );
+    connect( mLineEdit, SIGNAL( textChanged( QString ) ), this, SLOT( valueChanged() ) );
 
     mWritablePalette = mLineEdit->palette();
     mReadOnlyPalette = mLineEdit->palette();
