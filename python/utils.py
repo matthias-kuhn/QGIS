@@ -42,9 +42,9 @@ import traceback
 import glob
 import os.path
 try:
-    import ConfigParser
-except ImportError:
     import configparser
+except ImportError:
+    import ConfigParser as configparser
 import warnings
 import codecs
 import time
