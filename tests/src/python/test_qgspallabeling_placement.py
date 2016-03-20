@@ -21,7 +21,7 @@ import qgis # switch sip api
 import os
 import sys
 
-from PyQt4.QtCore import QThreadPool, qDebug
+from PyQt.QtCore import QThreadPool, qDebug
 
 from qgis.core import QgsPalLayerSettings, QgsSingleSymbolRendererV2, QgsMarkerSymbolV2
 

@@ -28,9 +28,9 @@ import qgis # switch sip api
 
 import os
 
-from PyQt4.QtCore import pyqtWrapperType, Qt, QDir, QFile, QIODevice, QPointF
-from PyQt4.QtXml import QDomDocument
-from PyQt4.QtGui import QColor
+from PyQt.QtCore import pyqtWrapperType, Qt, QDir, QFile, QIODevice, QPointF
+from PyQt.QtXml import QDomDocument
+from PyQt.QtGui import QColor
 
 from qgis.core import (QgsCentroidFillSymbolLayerV2,
                        QgsEllipseSymbolLayerV2,

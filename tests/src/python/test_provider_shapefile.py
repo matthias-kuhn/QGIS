@@ -20,7 +20,7 @@ import shutil
 import glob
 
 from qgis.core import QgsVectorLayer, QgsFeatureRequest
-from PyQt4.QtCore import QSettings
+from PyQt.QtCore import QSettings
 from qgis.testing import (start_app,
                           unittest
                           )

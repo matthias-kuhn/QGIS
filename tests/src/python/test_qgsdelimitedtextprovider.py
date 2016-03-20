@@ -36,11 +36,7 @@ import test_qgsdelimitedtextprovider_wanted as want
 
 rebuildTests = 'REBUILD_DELIMITED_TEXT_TESTS' in os.environ
 
-from PyQt4.QtCore import (
-    QCoreApplication,
-    QUrl,
-    QObject
-)
+from PyQt.QtCore import QCoreApplication, QUrl, QObject
 
 from qgis.core import (
     QgsProviderRegistry,

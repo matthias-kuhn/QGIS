@@ -14,7 +14,7 @@ __revision__ = '$Format:%H$'
 
 import qgis # switch sip api
 
-from PyQt4.QtCore import QDir, QFile
+from PyQt.QtCore import QDir, QFile
 from qgis.core import QgsVectorLayer, QgsFeature, QgsFeatureRequest
 from qgis.analysis import QgsZonalStatistics
 

@@ -18,8 +18,8 @@ import qgis # switch sip api
 
 import os
 
-from PyQt4.QtCore import QVariant
-from PyQt4.QtGui import QPainter
+from PyQt.QtCore import QVariant
+from PyQt.QtGui import QPainter
 
 from qgis.core import (QGis,
                        QgsVectorLayer,

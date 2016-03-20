@@ -18,8 +18,7 @@ import qgis # switch sip api
 import os
 import glob
 
-from PyQt4.QtCore import (QTemporaryFile,
-                          QDir)
+from PyQt.QtCore import QTemporaryFile, QDir
 from qgis.core import (QgsRasterLayer,
                        QgsRasterChecker,
                        QgsRasterPipe,

@@ -21,7 +21,7 @@ import os
 import socketserver
 import threading
 import http.server
-from PyQt4.QtCore import QRectF
+from PyQt.QtCore import QRectF
 
 from qgis.core import (QgsComposerPicture,
                        QgsComposition,

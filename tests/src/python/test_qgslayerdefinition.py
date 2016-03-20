@@ -25,7 +25,7 @@ from qgis.testing import (
 )
 from utilities import unitTestDataPath
 
-from PyQt4.QtXml import QDomDocument
+from PyQt.QtXml import QDomDocument
 
 start_app()
 TEST_DATA_DIR = unitTestDataPath()

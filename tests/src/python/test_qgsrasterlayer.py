@@ -17,8 +17,8 @@ import qgis # switch sip api
 
 import os
 
-from PyQt4.QtCore import QFileInfo
-from PyQt4.QtGui import QColor
+from PyQt.QtCore import QFileInfo
+from PyQt.QtGui import QColor
 
 from qgis.core import (QgsRaster,
                        QgsRasterLayer,

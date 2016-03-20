@@ -23,7 +23,7 @@ from qgis.core import (QgsCategorizedSymbolRendererV2,
                        QgsField,
                        QgsFields
                        )
-from PyQt4.QtCore import QVariant
+from PyQt.QtCore import QVariant
 
 start_app()
 

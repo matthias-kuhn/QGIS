@@ -21,13 +21,7 @@ from qgis.core import (
     QgsFeatureRequest,
 )
 
-from PyQt4.QtCore import (
-    QSettings,
-    QDate,
-    QTime,
-    QDateTime,
-    QVariant
-)
+from PyQt.QtCore import QSettings, QDate, QTime, QDateTime, QVariant
 
 from utilities import unitTestDataPath
 from qgis.testing import (

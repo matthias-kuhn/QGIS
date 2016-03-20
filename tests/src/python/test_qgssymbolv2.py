@@ -30,8 +30,8 @@ import qgis # switch sip api
 
 from utilities import unitTestDataPath
 
-from PyQt4.QtCore import QDir
-from PyQt4.QtGui import QImage, QColor, QPainter
+from PyQt.QtCore import QDir
+from PyQt.QtGui import QImage, QColor, QPainter
 
 from qgis.core import (QgsGeometry,
                        QgsMarkerSymbolV2,

@@ -17,8 +17,8 @@ import qgis # switch sip api
 
 import os
 
-from PyQt4.QtCore import QUrl, qDebug
-from PyQt4.QtXml import QDomDocument
+from PyQt.QtCore import QUrl, qDebug
+from PyQt.QtXml import QDomDocument
 from qgis.core import (QgsComposition,
                        QgsComposerHtml,
                        QgsComposerFrame,
