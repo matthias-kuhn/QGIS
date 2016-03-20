@@ -21,7 +21,7 @@ import qgis # switch sip api
 
 import sys
 import os
-from PyQt4.QtCore import qDebug, QThreadPool
+from PyQt.QtCore import qDebug, QThreadPool
 
 from utilities import (
     getTempfilePath,

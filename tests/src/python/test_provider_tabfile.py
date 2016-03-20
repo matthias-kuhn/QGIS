@@ -15,7 +15,7 @@ __revision__ = '$Format:%H$'
 import os
 
 from qgis.core import QgsVectorLayer, QgsFeatureRequest
-from PyQt4.QtCore import QDate, QTime, QDateTime, QVariant
+from PyQt.QtCore import QDate, QTime, QDateTime, QVariant
 from qgis.testing import (
     start_app,
     unittest
@@ -40,7 +40,7 @@ class TestPyQgsTabfileProvider(unittest.TestCase):
         self.assertEqual(fields.at(fields.indexFromName('time')).type(), QVariant.Time)
         self.assertEqual(fields.at(fields.indexFromName('date_time')).type(), QVariant.DateTime)
 
-        f = vl.getFeatures(QgsFeatureRequest()).next()
+        f = next(vl.getFeatures(QgsFeatureRequest()))
 
         date_idx = vl.fieldNameIndex('date')
         assert isinstance(f.attributes()[date_idx], QDate)

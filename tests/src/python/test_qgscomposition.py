@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import str
 __author__ = '(C) 2012 by Tim Sutton'
 __date__ = '20/08/2012'
 __copyright__ = 'Copyright 2012, The QGIS Project'
@@ -16,8 +17,8 @@ import qgis # switch sip api
 
 import os
 
-from PyQt4.QtCore import QFileInfo, QDir
-from PyQt4.QtXml import QDomDocument
+from PyQt.QtCore import QFileInfo, QDir
+from PyQt.QtXml import QDomDocument
 
 from qgis.core import (QgsComposition,
                        QgsPoint,

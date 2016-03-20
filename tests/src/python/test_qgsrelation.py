@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import str
 __author__ = 'Matthias Kuhn'
 __date__ = '07/10/2013'
 __copyright__ = 'Copyright 2013, The QGIS Project'
@@ -66,7 +67,7 @@ def createReferencedLayer():
 
 
 def formatAttributes(attrs):
-    return repr([unicode(a) for a in attrs])
+    return repr([str(a) for a in attrs])
 
 
 class TestQgsRelation(unittest.TestCase):
@@ -107,7 +108,7 @@ class TestQgsRelation(unittest.TestCase):
         rel.setReferencedLayer(self.referencedLayer.id())
         rel.addFieldPair('foreignkey', 'y')
 
-        feat = self.referencedLayer.getFeatures().next()
+        feat = next(self.referencedLayer.getFeatures())
 
         it = rel.getRelatedFeatures(feat)
 
@@ -121,7 +122,7 @@ class TestQgsRelation(unittest.TestCase):
         rel.setReferencedLayer(self.referencedLayer.id())
         rel.addFieldPair('foreignkey', 'y')
 
-        feat = self.referencingLayer.getFeatures().next()
+        feat = next(self.referencingLayer.getFeatures())
 
         f = rel.getReferencedFeature(feat)
 

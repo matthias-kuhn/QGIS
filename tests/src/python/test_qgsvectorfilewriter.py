@@ -6,6 +6,9 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from __future__ import print_function
+from builtins import str
+from past.builtins import basestring
 __author__ = 'Tim Sutton'
 __date__ = '20/08/2012'
 __copyright__ = 'Copyright 2012, The QGIS Project'
@@ -23,7 +26,7 @@ from qgis.core import (QgsVectorLayer,
                        QgsFeatureRequest,
                        QgsWKBTypes
                        )
-from PyQt4.QtCore import QDate, QTime, QDateTime, QVariant, QDir
+from PyQt.QtCore import QDate, QTime, QDateTime, QVariant, QDir
 import os
 import platform
 from qgis.testing import (
@@ -106,7 +109,7 @@ class TestQgsVectorLayer(unittest.TestCase):
         #shapefiles do not support datetime types, result should be string
         self.assertEqual(fields.at(fields.indexFromName('dt_f')).type(), QVariant.String)
 
-        f = created_layer.getFeatures(QgsFeatureRequest()).next()
+        f = next(created_layer.getFeatures(QgsFeatureRequest()))
 
         date_idx = created_layer.fieldNameIndex('date_f')
         assert isinstance(f.attributes()[date_idx], QDate)
@@ -160,7 +163,7 @@ class TestQgsVectorLayer(unittest.TestCase):
         self.assertEqual(fields.at(fields.indexFromName('time_f')).type(), QVariant.Time)
         self.assertEqual(fields.at(fields.indexFromName('dt_f')).type(), QVariant.DateTime)
 
-        f = created_layer.getFeatures(QgsFeatureRequest()).next()
+        f = next(created_layer.getFeatures(QgsFeatureRequest()))
 
         date_idx = created_layer.fieldNameIndex('date_f')
         assert isinstance(f.attributes()[date_idx], QDate)
@@ -212,7 +215,7 @@ class TestQgsVectorLayer(unittest.TestCase):
 
             # Open result and check
             created_layer = QgsVectorLayer(u'{}|layerid=0'.format(dest_file_name), u'test', u'ogr')
-            f = created_layer.getFeatures(QgsFeatureRequest()).next()
+            f = next(created_layer.getFeatures(QgsFeatureRequest()))
             g = f.geometry()
             wkt = g.exportToWkt()
             expWkt = 'PointZ (1 2 3)'
@@ -235,7 +238,7 @@ class TestQgsVectorLayer(unittest.TestCase):
 
             # Open result and check
             created_layer_from_shp = QgsVectorLayer(u'{}|layerid=0'.format(dest_file_name), u'test', u'ogr')
-            f = created_layer_from_shp.getFeatures(QgsFeatureRequest()).next()
+            f = next(created_layer_from_shp.getFeatures(QgsFeatureRequest()))
             g = f.geometry()
             wkt = g.exportToWkt()
             assert compareWkt(expWkt, wkt), "saving geometry with Z failed: mismatch Expected:\n%s\nGot:\n%s\n" % (expWkt, wkt)
@@ -274,7 +277,7 @@ class TestQgsVectorLayer(unittest.TestCase):
 
         # Open result and check
         created_layer = QgsVectorLayer(u'{}|layerid=0'.format(dest_file_name), u'test', u'ogr')
-        f = created_layer.getFeatures(QgsFeatureRequest()).next()
+        f = next(created_layer.getFeatures(QgsFeatureRequest()))
         g = f.geometry()
         wkt = g.exportToWkt()
         expWkt = 'MultiPoint ((1 2))'

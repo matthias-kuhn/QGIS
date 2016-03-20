@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import range
 __author__ = 'Larry Shaffer'
 __date__ = '2014/11/05'
 __copyright__ = 'Copyright 2014, Boundless Spatial, Inc.'
@@ -21,9 +22,9 @@ from qgis.core import QgsAuthManager, QgsAuthCertUtils, QgsPkiBundle, QgsAuthMet
 from qgis.gui import QgsAuthEditorWidgets
 
 
-from PyQt4.QtCore import QFileInfo, qDebug, QSsl, QSslError, QSslSocket
-from PyQt4.QtGui import QDialog, QVBoxLayout, QDialogButtonBox
-from PyQt4.QtTest import QTest
+from PyQt.QtCore import QFileInfo, qDebug
+from PyQt.QtWidgets import QDialog, QVBoxLayout, QDialogButtonBox
+from PyQt.QtTest import QTest
 
 from qgis.testing import (
     start_app,
@@ -381,7 +382,7 @@ class TestQgsAuthManager(unittest.TestCase):
         self.assertIsNotNone(self.authm.uniqueConfigId(), msg)
 
         uids = []
-        for _ in xrange(50):
+        for _ in range(50):
             # time.sleep(0.01)  # or else the salt is not random enough
             uids.append(self.authm.uniqueConfigId())
         msg = 'Generated 50 config ids are not unique:\n{0}\n{1}'.format(

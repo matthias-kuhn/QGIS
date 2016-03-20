@@ -22,7 +22,7 @@ from qgis.core import (QgsField,
 
 from qgis.testing import unittest
 
-from PyQt4.QtCore import QVariant, QUrl
+from PyQt.QtCore import QVariant, QUrl
 
 
 class TestQgsVirtualLayerDefinition(unittest.TestCase):

@@ -27,7 +27,7 @@ import qgis # switch sip api
 
 import os
 
-from PyQt4.QtCore import QSize
+from PyQt.QtCore import QSize
 
 from qgis.core import (
     QgsVectorLayer,

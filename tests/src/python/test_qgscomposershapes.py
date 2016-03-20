@@ -14,7 +14,7 @@ __revision__ = '$Format:%H$'
 
 import qgis # switch sip api
 
-from PyQt4.QtGui import QColor
+from PyQt.QtGui import QColor
 
 from qgis.core import (QgsComposerShape,
                        QgsComposition,

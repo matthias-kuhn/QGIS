@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from __future__ import print_function
 __author__ = 'Radim Blazek'
 __date__ = '20/08/2012'
 __copyright__ = 'Copyright 2012, The QGIS Project'
@@ -17,8 +18,7 @@ import qgis # switch sip api
 import os
 import glob
 
-from PyQt4.QtCore import (QTemporaryFile,
-                          QDir)
+from PyQt.QtCore import QTemporaryFile, QDir
 from qgis.core import (QgsRasterLayer,
                        QgsRasterChecker,
                        QgsRasterPipe,
@@ -41,7 +41,7 @@ class TestQgsRasterFileWriter(unittest.TestCase):
         self.report = "<h1>Python Raster File Writer Tests</h1>\n"
 
     def write(self, theRasterName):
-        print theRasterName
+        print(theRasterName)
 
         path = "%s/%s" % (self.testDataDir, theRasterName)
         rasterLayer = QgsRasterLayer(path, "test")
@@ -60,13 +60,13 @@ class TestQgsRasterFileWriter(unittest.TestCase):
         fileWriter = QgsRasterFileWriter(tmpName)
         pipe = QgsRasterPipe()
         if not pipe.set(provider.clone()):
-            print "Cannot set pipe provider"
+            print("Cannot set pipe provider")
             return False
 
         projector = QgsRasterProjector()
         projector.setCRS(provider.crs(), provider.crs())
         if not pipe.insert(2, projector):
-            print "Cannot set pipe projector"
+            print("Cannot set pipe projector")
             return False
 
         fileWriter.writeRaster(

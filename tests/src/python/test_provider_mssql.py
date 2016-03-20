@@ -21,13 +21,7 @@ from qgis.core import (
     QgsFeatureRequest,
 )
 
-from PyQt4.QtCore import (
-    QSettings,
-    QDate,
-    QTime,
-    QDateTime,
-    QVariant
-)
+from PyQt.QtCore import QSettings, QDate, QTime, QDateTime, QVariant
 
 from utilities import unitTestDataPath
 from qgis.testing import (
@@ -82,7 +76,7 @@ class TestPyQgsMssqlProvider(unittest.TestCase, ProviderTestCase):
         self.assertEqual(fields.at(fields.indexFromName(
             'datetime_field')).type(), QVariant.DateTime)
 
-        f = vl.getFeatures(QgsFeatureRequest()).next()
+        f = next(vl.getFeatures(QgsFeatureRequest()))
 
         date_idx = vl.fieldNameIndex('date_field')
         assert isinstance(f.attributes()[date_idx], QDate)

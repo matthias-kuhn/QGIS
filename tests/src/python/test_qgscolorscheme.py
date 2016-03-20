@@ -16,7 +16,7 @@ import qgis # switch sip api
 
 from qgis.testing import unittest
 from qgis.core import QgsColorScheme
-from PyQt4.QtGui import QColor
+from PyQt.QtGui import QColor
 
 # Make a dummy color scheme for testing
 
