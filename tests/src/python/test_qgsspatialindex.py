@@ -6,6 +6,7 @@
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
 """
+from builtins import range
 __author__ = 'Alexander Bruy'
 __date__ = '20/01/2011'
 __copyright__ = 'Copyright 2012, The QGIS Project'

@@ -48,7 +48,7 @@ class TestSyntacticSugar(unittest.TestCase):
 
         # Check update
         with edit(ml):
-            f = ml.getFeatures().next()
+            f = next(ml.getFeatures())
             f['value'] = 9.9
             assert ml.updateFeature(f)
 
@@ -57,7 +57,7 @@ class TestSyntacticSugar(unittest.TestCase):
         # Check for rollBack after exceptions
         with self.assertRaises(NameError):
             with edit(ml):
-                f = ml.getFeatures().next()
+                f = next(ml.getFeatures())
                 f['value'] = 3.8
                 crashycrash()
 
@@ -66,7 +66,7 @@ class TestSyntacticSugar(unittest.TestCase):
 
         # Check for `as`
         with edit(ml) as l:
-            f = l.getFeatures().next()
+            f = next(l.getFeatures())
             f['value'] = 10
             assert l.updateFeature(f)
 

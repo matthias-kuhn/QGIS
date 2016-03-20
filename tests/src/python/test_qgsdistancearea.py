@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from __future__ import print_function
 __author__ = 'Jürgen E. Fischer'
 __date__ = '19/01/2014'
 __copyright__ = 'Copyright 2014, The QGIS Project'
@@ -172,7 +173,7 @@ class TestQgsDistanceArea(unittest.TestCase):
         distance = da.measureLine(QgsPoint(1, 1), QgsPoint(2, 3))
         units = da.lengthUnits()
 
-        print "measured {} in {}".format(distance, QgsUnitTypes.toString(units))
+        print("measured {} in {}".format(distance, QgsUnitTypes.toString(units)))
         assert ((abs(distance - 2.23606797) < 0.00000001 and units == QGis.Degrees) or
                 (abs(distance - 248.52) < 0.01 and units == QGis.Meters))
 
@@ -180,7 +181,7 @@ class TestQgsDistanceArea(unittest.TestCase):
         distance = da.measureLine(QgsPoint(1, 1), QgsPoint(2, 3))
         units = da.lengthUnits()
 
-        print "measured {} in {}".format(distance, QgsUnitTypes.toString(units))
+        print("measured {} in {}".format(distance, QgsUnitTypes.toString(units)))
         assert ((abs(distance - 2.23606797) < 0.00000001 and units == QGis.Degrees) or
                 (abs(distance - 248.52) < 0.01 and units == QGis.Meters))
 
@@ -188,7 +189,7 @@ class TestQgsDistanceArea(unittest.TestCase):
         distance = da.measureLine(QgsPoint(1, 1), QgsPoint(2, 3))
         units = da.lengthUnits()
 
-        print "measured {} in {}".format(distance, QgsUnitTypes.toString(units))
+        print("measured {} in {}".format(distance, QgsUnitTypes.toString(units)))
         # should always be in Meters
         self.assertAlmostEqual(distance, 247555.57, delta=0.01)
         self.assertEqual(units, QGis.Meters)
@@ -203,7 +204,7 @@ class TestQgsDistanceArea(unittest.TestCase):
         # measurement should be in feet
         distance = da.measureLine(QgsPoint(1, 1), QgsPoint(2, 3))
         units = da.lengthUnits()
-        print "measured {} in {}".format(distance, QgsUnitTypes.toString(units))
+        print("measured {} in {}".format(distance, QgsUnitTypes.toString(units)))
         self.assertAlmostEqual(distance, 2.23606797, delta=0.000001)
         self.assertEqual(units, QGis.Feet)
 
@@ -215,7 +216,7 @@ class TestQgsDistanceArea(unittest.TestCase):
         # now should be in Meters again
         distance = da.measureLine(QgsPoint(1, 1), QgsPoint(2, 3))
         units = da.lengthUnits()
-        print "measured {} in {}".format(distance, QgsUnitTypes.toString(units))
+        print("measured {} in {}".format(distance, QgsUnitTypes.toString(units)))
         self.assertAlmostEqual(distance, 0.67953772, delta=0.000001)
         self.assertEqual(units, QGis.Meters)
 
@@ -246,7 +247,7 @@ class TestQgsDistanceArea(unittest.TestCase):
         area = da.measureArea(polygon)
         units = da.areaUnits()
 
-        print "measured {} in {}".format(area, QgsUnitTypes.toString(units))
+        print("measured {} in {}".format(area, QgsUnitTypes.toString(units)))
         assert ((abs(area - 3.0) < 0.00000001 and units == QgsUnitTypes.SquareDegrees) or
                 (abs(area - 37176087091.5) < 0.1 and units == QgsUnitTypes.SquareMeters))
 
@@ -254,7 +255,7 @@ class TestQgsDistanceArea(unittest.TestCase):
         area = da.measureArea(polygon)
         units = da.areaUnits()
 
-        print "measured {} in {}".format(area, QgsUnitTypes.toString(units))
+        print("measured {} in {}".format(area, QgsUnitTypes.toString(units)))
         assert ((abs(area - 3.0) < 0.00000001 and units == QgsUnitTypes.SquareDegrees) or
                 (abs(area - 37176087091.5) < 0.1 and units == QgsUnitTypes.SquareMeters))
 
@@ -262,7 +263,7 @@ class TestQgsDistanceArea(unittest.TestCase):
         area = da.measureArea(polygon)
         units = da.areaUnits()
 
-        print "measured {} in {}".format(area, QgsUnitTypes.toString(units))
+        print("measured {} in {}".format(area, QgsUnitTypes.toString(units)))
         # should always be in Meters Squared
         self.assertAlmostEqual(area, 37416879192.9, delta=0.1)
         self.assertEqual(units, QgsUnitTypes.SquareMeters)
@@ -282,7 +283,7 @@ class TestQgsDistanceArea(unittest.TestCase):
         # measurement should be in square feet
         area = da.measureArea(polygon)
         units = da.areaUnits()
-        print "measured {} in {}".format(area, QgsUnitTypes.toString(units))
+        print("measured {} in {}".format(area, QgsUnitTypes.toString(units)))
         self.assertAlmostEqual(area, 2000000, delta=0.001)
         self.assertEqual(units, QgsUnitTypes.SquareFeet)
 
@@ -294,7 +295,7 @@ class TestQgsDistanceArea(unittest.TestCase):
         # now should be in Square Meters again
         area = da.measureArea(polygon)
         units = da.areaUnits()
-        print "measured {} in {}".format(area, QgsUnitTypes.toString(units))
+        print("measured {} in {}".format(area, QgsUnitTypes.toString(units)))
         self.assertAlmostEqual(area, 184149.37, delta=1.0)
         self.assertEqual(units, QgsUnitTypes.SquareMeters)
 

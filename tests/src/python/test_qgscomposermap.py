@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import range
 __author__ = '(C) 2012 by Dr. Horst Düster / Dr. Marco Hugentobler'
 __date__ = '20/08/2012'
 __copyright__ = 'Copyright 2012, The QGIS Project'

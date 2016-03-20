@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from __future__ import print_function
 __author__ = 'Matthias Kuhn'
 __date__ = '2015-04-23'
 __copyright__ = 'Copyright 2015, The QGIS Project'
@@ -70,7 +71,7 @@ class TestPyQgsPostgresProvider(unittest.TestCase, ProviderTestCase):
         self.assertEqual(fields.at(fields.indexFromName('time_field')).type(), QVariant.Time)
         self.assertEqual(fields.at(fields.indexFromName('datetime_field')).type(), QVariant.DateTime)
 
-        f = vl.getFeatures(QgsFeatureRequest()).next()
+        f = next(vl.getFeatures(QgsFeatureRequest()))
 
         date_idx = vl.fieldNameIndex('date_field')
         assert isinstance(f.attributes()[date_idx], QDate)
@@ -85,7 +86,7 @@ class TestPyQgsPostgresProvider(unittest.TestCase, ProviderTestCase):
     def testQueryLayers(self):
         def test_query(dbconn, query, key):
             ql = QgsVectorLayer('%s srid=4326 table="%s" (geom) key=\'%s\' sql=' % (dbconn, query.replace('"', '\\"'), key), "testgeom", "postgres")
-            print query, key
+            print(query, key)
             assert(ql.isValid())
 
         test_query(self.dbconn, '(SELECT NULL::integer "Id1", NULL::integer "Id2", NULL::geometry(Point, 4326) geom LIMIT 0)', '"Id1","Id2"')
@@ -95,7 +96,7 @@ class TestPyQgsPostgresProvider(unittest.TestCase, ProviderTestCase):
             vl = QgsVectorLayer('%s srid=4326 table="qgis_test".%s (geom) sql=' % (dbconn, table_name), "testgeom", "postgres")
             assert(vl.isValid())
             for f in vl.getFeatures():
-                print f.geometry().exportToWkt(), wkt
+                print(f.geometry().exportToWkt(), wkt)
                 assert f.geometry().exportToWkt() == wkt
 
         test_table(self.dbconn, 'p2d', 'Polygon ((0 0, 1 0, 1 1, 0 1, 0 0))')
@@ -152,7 +153,7 @@ class TestPyQgsPostgresProvider(unittest.TestCase, ProviderTestCase):
     def testSignedIdentifiers(self):
         def test_query_attribute(dbconn, query, att, val, fidval):
             ql = QgsVectorLayer('%s table="%s" (g) key=\'%s\' sql=' % (dbconn, query.replace('"', '\\"'), att), "testgeom", "postgres")
-            print query, att
+            print(query, att)
             assert(ql.isValid())
             features = ql.getFeatures()
             att_idx = ql.fieldNameIndex(att)

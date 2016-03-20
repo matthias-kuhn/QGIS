@@ -16,6 +16,7 @@
 *                                                                         *
 ***************************************************************************
 """
+from __future__ import print_function
 
 __author__ = 'Massimo Endrighi'
 __date__ = 'October 2012'
@@ -679,7 +680,7 @@ class TestQgsSymbolLayerV2(unittest.TestCase):
 
         mExpectedValue = u'skull.svg'
         mValue = os.path.basename(mSymbolLayer.path())
-        print "VALUE", mSymbolLayer.path()
+        print("VALUE", mSymbolLayer.path())
         mMessage = 'Expected "%s" got "%s"' % (mExpectedValue, mValue)
         assert mExpectedValue == mValue, mMessage
 

@@ -6,6 +6,8 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from __future__ import print_function
+from builtins import object
 __author__ = 'Matthias Kuhn'
 __date__ = '2015-04-27'
 __copyright__ = 'Copyright 2015, The QGIS Project'
@@ -118,11 +120,11 @@ class ProviderTestCase(object):
             self.enableCompiler()
             self.runGetFeatureTests(self.provider)
         except AttributeError:
-            print 'Provider does not support compiling'
+            print('Provider does not support compiling')
 
     def testSubsetString(self):
         if not self.provider.supportsSubsetString():
-            print 'Provider does not support subset strings'
+            print('Provider does not support subset strings')
             return
 
         subset = self.getSubsetString()
@@ -173,7 +175,7 @@ class ProviderTestCase(object):
             self.enableCompiler()
             self.runOrderByTests()
         except AttributeError:
-            print 'Provider does not support compiling'
+            print('Provider does not support compiling')
 
     def runOrderByTests(self):
         request = QgsFeatureRequest().addOrderBy('cnt')
@@ -392,7 +394,7 @@ class ProviderTestCase(object):
                  'cnt': set([-200, 300, 100, 200, 400]),
                  'name': set(['Pear', 'Orange', 'Apple', 'Honey', NULL]),
                  'name2': set(['NuLl', 'PEaR', 'oranGe', 'Apple', 'Honey'])}
-        for field, expected in tests.iteritems():
+        for field, expected in tests.items():
             result = set([f[field] for f in self.provider.getFeatures(QgsFeatureRequest().setSubsetOfAttributes([field], self.provider.fields()))])
             self.assertEqual(result, expected, 'Expected {}, got {}'.format(expected, result))
 

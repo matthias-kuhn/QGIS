@@ -10,6 +10,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import object
 __author__ = 'Larry Shaffer'
 __date__ = '07/16/2013'
 __copyright__ = 'Copyright 2013, The QGIS Project'

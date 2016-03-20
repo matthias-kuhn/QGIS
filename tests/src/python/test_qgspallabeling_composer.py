@@ -10,6 +10,9 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import str
+from builtins import range
+from builtins import object
 
 __author__ = 'Larry Shaffer'
 __date__ = '2014/02/21'
@@ -63,8 +66,8 @@ if not PDFUTIL:
 
 # output kind enum
 # noinspection PyClassHasNoInit
-class OutputKind():
-    Img, Svg, Pdf = range(3)
+class OutputKind(object):
+    Img, Svg, Pdf = list(range(3))
 
 
 # noinspection PyShadowingNames

@@ -6,6 +6,8 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from __future__ import print_function
+from builtins import range
 __author__ = 'Tim Sutton'
 __date__ = '20/08/2012'
 __copyright__ = 'Copyright 2012, The QGIS Project'
@@ -413,7 +415,7 @@ class TestQgsGeometry(unittest.TestCase):
             QgsPoint(30, 20),
             QgsPoint(20, 20),
         ]])
-        print 'Clip: %s' % myClipPolygon.exportToWkt()
+        print('Clip: %s' % myClipPolygon.exportToWkt())
         writeShape(myMemoryLayer, 'clipGeometryBefore.shp')
         fit = myProvider.getFeatures()
         myFeatures = []
@@ -432,7 +434,7 @@ class TestQgsGeometry(unittest.TestCase):
                 # print 'Original: %s' % myGeometry.exportToWkt()
                 # print 'Combined: %s' % myCombinedGeometry.exportToWkt()
                 # print 'Difference: %s' % myDifferenceGeometry.exportToWkt()
-                print 'Symmetrical: %s' % mySymmetricalGeometry.exportToWkt()
+                print('Symmetrical: %s' % mySymmetricalGeometry.exportToWkt())
 
                 myExpectedWkt = 'Polygon ((20 20, 20 30, 30 30, 30 20, 20 20))'
 

@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from builtins import str
 __author__ = 'Chris Crook'
 __date__ = '3/10/2014'
 __copyright__ = 'Copyright 2014, The QGIS Project'

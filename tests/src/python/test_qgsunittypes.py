@@ -6,6 +6,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from __future__ import print_function
 __author__ = 'Nyall Dawson'
 __date__ = '03.02.2016'
 __copyright__ = 'Copyright 2016, The QGIS Project'
@@ -41,7 +42,7 @@ class TestQgsUnitTypes(unittest.TestCase):
                     QGis.NauticalMiles: QgsUnitTypes.Standard
                     }
 
-        for t in expected.keys():
+        for t in list(expected.keys()):
             self.assertEqual(QgsUnitTypes.unitType(t), expected[t])
 
     def testEncodeDecodeDistanceUnits(self):
@@ -93,7 +94,7 @@ class TestQgsUnitTypes(unittest.TestCase):
 
         # Test that string is cleaned before conversion
         res, ok = QgsUnitTypes.stringToDistanceUnit(' {}  '.format(QgsUnitTypes.toString(QGis.Feet).upper()))
-        print ' {}  '.format(QgsUnitTypes.toString(QGis.Feet).upper())
+        print(' {}  '.format(QgsUnitTypes.toString(QGis.Feet).upper()))
         assert ok
         self.assertEqual(res, QGis.Feet)
 
@@ -111,7 +112,7 @@ class TestQgsUnitTypes(unittest.TestCase):
                     QgsUnitTypes.UnknownAreaUnit: QgsUnitTypes.UnknownType,
                     }
 
-        for t in expected.keys():
+        for t in list(expected.keys()):
             self.assertEqual(QgsUnitTypes.unitType(t), expected[t])
 
     def testEncodeDecodeAreaUnits(self):
@@ -207,8 +208,8 @@ class TestQgsUnitTypes(unittest.TestCase):
                     QGis.UnknownUnit: {QGis.Meters: 1.0, QGis.Kilometers: 1.0, QGis.Feet: 1.0, QGis.Yards: 1.0, QGis.Miles: 1.0, QGis.Degrees: 1.0, QGis.NauticalMiles: 1.0}
                     }
 
-        for from_unit in expected.keys():
-            for to_unit in expected[from_unit].keys():
+        for from_unit in list(expected.keys()):
+            for to_unit in list(expected[from_unit].keys()):
                 expected_factor = expected[from_unit][to_unit]
                 res = QgsUnitTypes.fromUnitToUnitFactor(from_unit, to_unit)
                 self.assertAlmostEqual(res,
@@ -236,8 +237,8 @@ class TestQgsUnitTypes(unittest.TestCase):
                     QgsUnitTypes.SquareNauticalMiles: {QgsUnitTypes.SquareMeters: 3429904, QgsUnitTypes.SquareKilometers: 3.4299040, QgsUnitTypes.SquareFeet: 36919179.39391434, QgsUnitTypes.SquareYards: 4102131.04376826, QgsUnitTypes.SquareMiles: 1.324293337, QgsUnitTypes.Hectares: 342.9904000000, QgsUnitTypes.Acres: 847.54773631, QgsUnitTypes.SquareNauticalMiles: 1.0, QgsUnitTypes.SquareDegrees: 0.000276783083025, QgsUnitTypes.UnknownAreaUnit: 1.0},
                     QgsUnitTypes.SquareDegrees: {QgsUnitTypes.SquareMeters: 12392029030.5, QgsUnitTypes.SquareKilometers: 12392.029030499, QgsUnitTypes.SquareFeet: 133386690365.5682220, QgsUnitTypes.SquareYards: 14820743373.9520263, QgsUnitTypes.SquareMiles: 4784.5891573967, QgsUnitTypes.Hectares: 1239202.903050, QgsUnitTypes.Acres: 3062137.060733889, QgsUnitTypes.SquareNauticalMiles: 3612.93757215, QgsUnitTypes.SquareDegrees: 1.0, QgsUnitTypes.UnknownAreaUnit: 1.0}}
 
-        for from_unit in expected.keys():
-            for to_unit in expected[from_unit].keys():
+        for from_unit in list(expected.keys()):
+            for to_unit in list(expected[from_unit].keys()):
                 expected_factor = expected[from_unit][to_unit]
                 res = QgsUnitTypes.fromUnitToUnitFactor(from_unit, to_unit)
                 self.assertAlmostEqual(res,
@@ -264,7 +265,7 @@ class TestQgsUnitTypes(unittest.TestCase):
                     QGis.NauticalMiles: QgsUnitTypes.SquareNauticalMiles
                     }
 
-        for t in expected.keys():
+        for t in list(expected.keys()):
             self.assertEqual(QgsUnitTypes.distanceToAreaUnit(t), expected[t])
 
     def testEncodeDecodeAngleUnits(self):
@@ -322,8 +323,8 @@ class TestQgsUnitTypes(unittest.TestCase):
                     QgsUnitTypes.Turn: {QgsUnitTypes.AngleDegrees: 360.0, QgsUnitTypes.Radians: 6.2831853071795, QgsUnitTypes.Gon: 400.0, QgsUnitTypes.MinutesOfArc: 21600, QgsUnitTypes.SecondsOfArc: 1296000, QgsUnitTypes.Turn: 1}
                     }
 
-        for from_unit in expected.keys():
-            for to_unit in expected[from_unit].keys():
+        for from_unit in list(expected.keys()):
+            for to_unit in list(expected[from_unit].keys()):
                 expected_factor = expected[from_unit][to_unit]
                 res = QgsUnitTypes.fromUnitToUnitFactor(from_unit, to_unit)
                 self.assertAlmostEqual(res,
