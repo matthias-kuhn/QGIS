@@ -10,7 +10,7 @@ cache:
     - /home/travis/vars
 
 before_install:
-  - cat /home/travis/vars/test2
+  - cat /home/travis/vars/test2 || True
   - echo "test" > /home/travis/vars/test2
   - docker pull ubuntu:15.10
   - docker run ubuntu:15.10 /bin/sh -v/usr/src /home/travis -c "mkdir /home/travis/vars; cat /home/travis/vars/test; echo 'yummie' > /home/travis/vars/test;"
