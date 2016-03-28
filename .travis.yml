@@ -16,7 +16,7 @@ before_install:
 #  - docker run ubuntu:15.10 /bin/sh -v/usr/src /home/travis -c "mkdir /home/travis/vars; cat /home/travis/vars/test; echo 'yummie' > /home/travis/vars/test;"
 
 script:
-  - python -c 'C'
+  - python -c "print('hi')"
 
 git:
   depth: 30
