@@ -25,7 +25,7 @@ from qgis.core import (QgsVectorLayer,
                        )
 from PyQt.QtCore import QDate, QTime, QDateTime, QVariant, QDir
 import os
-import osgeo
+import osgeo.gdal
 import platform
 from qgis.testing import start_app, unittest
 from utilities import writeShape, compareWkt
