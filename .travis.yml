@@ -34,7 +34,6 @@ matrix:
             - libspatialindex-dev
             - libspatialite-dev
             - libsqlite3-dev
-            - lighttpd
             - pkg-config
             - poppler-utils
             - pyqt4-dev-tools
