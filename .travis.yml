@@ -1,7 +1,7 @@
 sudo: false
 
 before_install:
-  - ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/linuxbrew/go/install)"
+  - yes | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/linuxbrew/go/install)"
   - brew install qgis
 
 install:
