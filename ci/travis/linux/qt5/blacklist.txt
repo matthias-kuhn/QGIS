@@ -20,7 +20,6 @@ PyQgsPalLabelingComposer
 PyQgsPalLabelingPlacement
 PyQgsPalLabelingServer
 PyQgsPostgresProvider
-PyQgsRangeWidgets
 PyQgsRasterLayer
 PyQgsRelationEditWidget
 PyQgsRulebasedRenderer
@@ -39,8 +38,6 @@ qgis_composereffectstest
 qgis_composerlabeltest
 qgis_composermapgridtest
 qgis_composermultiframetest
-qgis_composertabletest
-qgis_composertablev2test
 qgis_composerutils
 qgis_fieldtest
 qgis_openstreetmaptest
