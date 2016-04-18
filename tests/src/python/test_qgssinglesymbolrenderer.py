@@ -19,7 +19,7 @@
 
 __author__ = 'Matthias Kuhn'
 __date__ = 'December 2015'
-__copyright__ = '(C) 2015, Matthiasd Kuhn'
+__copyright__ = '(C) 2015, Matthias Kuhn'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
@@ -37,13 +37,10 @@ from qgis.core import (QgsVectorLayer,
                        QgsFillSymbolV2,
                        QgsFeatureRequest
                        )
-from qgis.testing import start_app, unittest
+from qgis.testing import unittest
 from qgis.testing.mocked import get_iface
 from utilities import unitTestDataPath
 
-# Convenience instances in case you may need them
-# not used in this test
-start_app()
 TEST_DATA_DIR = unitTestDataPath()
 
 
@@ -68,9 +65,6 @@ class TestQgsSingleSymbolRenderer(unittest.TestCase):
         self.mapsettings.setExtent(QgsRectangle(-163, 22, -70, 52))
         self.mapsettings.setLayers(rendered_layers)
 
-    def tearDown(self):
-        QgsMapLayerRegistry.instance().removeAllMapLayers()
-
     def testOrderBy(self):
         self.renderer.setOrderBy(QgsFeatureRequest.OrderBy([QgsFeatureRequest.OrderByClause('Value', False)]))
         self.renderer.setOrderByEnabled(True)
@@ -79,12 +73,11 @@ class TestQgsSingleSymbolRenderer(unittest.TestCase):
         renderchecker = QgsMultiRenderChecker()
         renderchecker.setMapSettings(self.mapsettings)
         renderchecker.setControlName('expected_singlesymbol_orderby')
-        result = renderchecker.runTest('singlesymbol_orderby')
-        assert result
+        self.assertTrue(renderchecker.runTest('singlesymbol_orderby'))
 
         # disable order by and retest
         self.renderer.setOrderByEnabled(False)
-        result = renderchecker.runTest('single')
+        self.assertTrue(renderchecker.runTest('single'))
 
 
 if __name__ == '__main__':

@@ -175,6 +175,7 @@ void QgsMssqlFeatureIterator::BuildStatement( const QgsFeatureRequest& request )
 
   //NOTE - must be last added!
   mExpressionCompiled = false;
+  mCompileStatus = NoCompilation;
   if ( request.filterType() == QgsFeatureRequest::FilterExpression )
   {
     if ( QSettings().value( "/qgis/compileExpressions", true ).toBool() )
@@ -192,6 +193,7 @@ void QgsMssqlFeatureIterator::BuildStatement( const QgsFeatureRequest& request )
 
         //if only partial success when compiling expression, we need to double-check results using QGIS' expressions
         mExpressionCompiled = ( result == QgsSqlExpressionCompiler::Complete );
+        mCompileStatus = ( mExpressionCompiled ? Compiled : PartiallyCompiled );
         limitAtProvider = mExpressionCompiled;
       }
       else
@@ -315,6 +317,14 @@ bool QgsMssqlFeatureIterator::fetchFeature( QgsFeature& feature )
         g->fromWkb( wkb, mParser.GetWkbLen() );
         feature.setGeometry( g );
       }
+      else
+      {
+        feature.setGeometry( nullptr );
+      }
+    }
+    else
+    {
+      feature.setGeometry( nullptr );
     }
 
     feature.setValid( true );
@@ -361,7 +371,10 @@ bool QgsMssqlFeatureIterator::rewind()
     //try with fallback statement
     result = mQuery->exec( mOrderByClause.isEmpty() ? mFallbackStatement : mFallbackStatement + mOrderByClause );
     if ( result )
+    {
       mExpressionCompiled = false;
+      mCompileStatus = NoCompilation;
+    }
   }
 
   if ( !result && !mOrderByClause.isEmpty() )
@@ -380,6 +393,7 @@ bool QgsMssqlFeatureIterator::rewind()
     {
       mExpressionCompiled = false;
       mOrderByCompiled = false;
+      mCompileStatus = NoCompilation;
     }
   }
 

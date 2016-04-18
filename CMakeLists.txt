@@ -742,16 +742,18 @@ IF (EXISTS ${CMAKE_SOURCE_DIR}/.git/index)
   IF(GITCOMMAND)
     IF(WIN32)
       ADD_CUSTOM_COMMAND(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.inc
         COMMAND for /f \"usebackq tokens=1\" %%a in "(`\"${GITCOMMAND}\" log -n1 --oneline`)" do echo \#define QGSVERSION \"%%a\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
+        COMMAND for /f \"usebackq tokens=1\" %%a in "(`\"${GITCOMMAND}\" log -n1 --oneline`)" do echo PROJECT_NUMBER = \"${COMPLETE_VERSION}-${RELEASE_NAME} \(%%a\)\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.inc
         COMMAND ${CMAKE_COMMAND} -DSRC=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp -DDST=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h -P ${CMAKE_SOURCE_DIR}/cmake/CopyIfChanged.cmake
         MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/.git/index
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       )
     ELSE(WIN32)
       ADD_CUSTOM_COMMAND(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.inc
         COMMAND ${GITCOMMAND} log -n1 --pretty=\#define\\ QGSVERSION\\ \\"%h\\" >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
+        COMMAND ${GITCOMMAND} log -n1 --pretty='PROJECT_NUMBER = \"${COMPLETE_VERSION}-${RELEASE_NAME} \(%h\)\"' >${CMAKE_CURRENT_BINARY_DIR}/qgsversion.inc
         COMMAND ${GITCOMMAND} config remote.$$\(${GITCOMMAND} config branch.$$\(${GITCOMMAND} name-rev --name-only HEAD\).remote\).url | sed -e 's/^/\#define QGS_GIT_REMOTE_URL \"/' -e 's/$$/\"/' >>${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp
         COMMAND ${CMAKE_COMMAND} -DSRC=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h.temp -DDST=${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h -P ${CMAKE_SOURCE_DIR}/cmake/CopyIfChanged.cmake
         MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/.git/index
@@ -762,10 +764,12 @@ IF (EXISTS ${CMAKE_SOURCE_DIR}/.git/index)
     MESSAGE(STATUS "git marker, but no git found - version will be unknown")
     SET(REVISION "unknown")
     FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h "#define QGSVERSION \"unknown\"")
+    FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.inc "${COMPLETE_VERSION}-${RELEASE_NAME}")
   ENDIF(GITCOMMAND)
 ELSE (EXISTS ${CMAKE_SOURCE_DIR}/.git/index)
   SET(REVISION "exported")
   FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h "#define QGSVERSION \"exported\"")
+  FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.inc "${COMPLETE_VERSION}-${RELEASE_NAME}")
 ENDIF (EXISTS ${CMAKE_SOURCE_DIR}/.git/index)
 
 ADD_CUSTOM_TARGET(version ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/qgsversion.h)

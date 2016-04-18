@@ -25,6 +25,7 @@ from qgis.core import (QgsVectorLayer,
                        )
 from PyQt.QtCore import QDate, QTime, QDateTime, QVariant, QDir
 import os
+import osgeo.gdal
 import platform
 from qgis.testing import start_app, unittest
 from utilities import writeShape, compareWkt
@@ -98,7 +99,7 @@ class TestQgsVectorLayer(unittest.TestCase):
         #shapefiles do not support datetime types, result should be string
         self.assertEqual(fields.at(fields.indexFromName('dt_f')).type(), QVariant.String)
 
-        f = created_layer.getFeatures(QgsFeatureRequest()).next()
+        f = next(created_layer.getFeatures(QgsFeatureRequest()))
 
         date_idx = created_layer.fieldNameIndex('date_f')
         assert isinstance(f.attributes()[date_idx], QDate)
@@ -151,7 +152,7 @@ class TestQgsVectorLayer(unittest.TestCase):
         self.assertEqual(fields.at(fields.indexFromName('time_f')).type(), QVariant.Time)
         self.assertEqual(fields.at(fields.indexFromName('dt_f')).type(), QVariant.DateTime)
 
-        f = created_layer.getFeatures(QgsFeatureRequest()).next()
+        f = next(created_layer.getFeatures(QgsFeatureRequest()))
 
         date_idx = created_layer.fieldNameIndex('date_f')
         assert isinstance(f.attributes()[date_idx], QDate)
@@ -163,8 +164,6 @@ class TestQgsVectorLayer(unittest.TestCase):
         assert isinstance(f.attributes()[datetime_idx], QDateTime)
         self.assertEqual(f.attributes()[datetime_idx], QDateTime(QDate(2014, 3, 5), QTime(13, 45, 22)))
 
-    # This test fails on Travis Linux build for unknown reason (probably GDAL version related)
-    @unittest.expectedFailure(os.environ.get('TRAVIS') and 'linux' in platform.system().lower())
     def testWriteShapefileWithZ(self):
         """Check writing geometries with Z dimension to an ESRI shapefile."""
 
@@ -202,7 +201,7 @@ class TestQgsVectorLayer(unittest.TestCase):
 
             # Open result and check
             created_layer = QgsVectorLayer(u'{}|layerid=0'.format(dest_file_name), u'test', u'ogr')
-            f = created_layer.getFeatures(QgsFeatureRequest()).next()
+            f = next(created_layer.getFeatures(QgsFeatureRequest()))
             g = f.geometry()
             wkt = g.exportToWkt()
             expWkt = 'PointZ (1 2 3)'
@@ -224,7 +223,7 @@ class TestQgsVectorLayer(unittest.TestCase):
 
             # Open result and check
             created_layer_from_shp = QgsVectorLayer(u'{}|layerid=0'.format(dest_file_name), u'test', u'ogr')
-            f = created_layer_from_shp.getFeatures(QgsFeatureRequest()).next()
+            f = next(created_layer_from_shp.getFeatures(QgsFeatureRequest()))
             g = f.geometry()
             wkt = g.exportToWkt()
             assert compareWkt(expWkt, wkt), "saving geometry with Z failed: mismatch Expected:\n%s\nGot:\n%s\n" % (expWkt, wkt)
@@ -262,7 +261,7 @@ class TestQgsVectorLayer(unittest.TestCase):
 
         # Open result and check
         created_layer = QgsVectorLayer(u'{}|layerid=0'.format(dest_file_name), u'test', u'ogr')
-        f = created_layer.getFeatures(QgsFeatureRequest()).next()
+        f = next(created_layer.getFeatures(QgsFeatureRequest()))
         g = f.geometry()
         wkt = g.exportToWkt()
         expWkt = 'MultiPoint ((1 2))'
@@ -303,7 +302,7 @@ class TestQgsVectorLayer(unittest.TestCase):
         # Open result and check
         created_layer = QgsVectorLayer(u'{}|layerid=0'.format(dest_file_name), u'test', u'ogr')
         self.assertEqual(created_layer.fields().count(), 4)
-        f = created_layer.getFeatures(QgsFeatureRequest()).next()
+        f = next(created_layer.getFeatures(QgsFeatureRequest()))
         self.assertEqual(f['id'], 1)
         self.assertEqual(f['field1'], 11)
         self.assertEqual(f['field2'], 12)
@@ -323,12 +322,12 @@ class TestQgsVectorLayer(unittest.TestCase):
         # Open result and check
         created_layer = QgsVectorLayer(u'{}|layerid=0'.format(dest_file_name), u'test', u'ogr')
         self.assertEqual(created_layer.fields().count(), 2)
-        f = created_layer.getFeatures(QgsFeatureRequest()).next()
+        f = next(created_layer.getFeatures(QgsFeatureRequest()))
         self.assertEqual(f['field1'], 11)
         self.assertEqual(f['field3'], 13)
 
         #finally test writing no attributes
-        dest_file_name = os.path.join(str(QDir.tempPath()), 'subset_attributes.shp')
+        dest_file_name = os.path.join(str(QDir.tempPath()), 'no_attributes.shp')
         write_result = QgsVectorFileWriter.writeAsVectorFormat(
             ml,
             dest_file_name,
@@ -345,7 +344,7 @@ class TestQgsVectorLayer(unittest.TestCase):
         self.assertEqual(created_layer.fields()[0].name(), 'FID')
         # in this case we also check that the geometry exists, to make sure feature has been correctly written
         # even without attributes
-        f = created_layer.getFeatures(QgsFeatureRequest()).next()
+        f = next(created_layer.getFeatures(QgsFeatureRequest()))
         g = f.geometry()
         wkt = g.exportToWkt()
         expWkt = 'Point (1 2)'

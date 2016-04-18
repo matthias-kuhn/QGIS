@@ -362,7 +362,32 @@ void QgsEllipseSymbolLayerV2::stopRender( QgsSymbolV2RenderContext & )
 
 QgsEllipseSymbolLayerV2* QgsEllipseSymbolLayerV2::clone() const
 {
-  return dynamic_cast< QgsEllipseSymbolLayerV2* >( QgsEllipseSymbolLayerV2::create( properties() ) );
+  QgsEllipseSymbolLayerV2* m = new QgsEllipseSymbolLayerV2();
+  m->setSymbolName( mSymbolName );
+  m->setSymbolWidth( mSymbolWidth );
+  m->setSymbolHeight( mSymbolHeight );
+  m->setOutlineStyle( mOutlineStyle );
+  m->setOffset( mOffset );
+  m->setOffsetUnit( mOffsetUnit );
+  m->setOffsetMapUnitScale( mOffsetMapUnitScale );
+  m->setOutlineStyle( mOutlineStyle );
+  m->setPenJoinStyle( mPenJoinStyle );
+  m->setOutlineWidth( mOutlineWidth );
+  m->setColor( color() );
+  m->setOutlineColor( mOutlineColor );
+  m->setSymbolWidthUnit( mSymbolWidthUnit );
+  m->setSymbolWidthMapUnitScale( mSymbolWidthMapUnitScale );
+  m->setSymbolHeightUnit( mSymbolHeightUnit );
+  m->setSymbolHeightMapUnitScale( mSymbolHeightMapUnitScale );
+  m->setOutlineWidthUnit( mOutlineWidthUnit );
+  m->setOutlineWidthMapUnitScale( mOutlineWidthMapUnitScale );
+  m->setAngle( mAngle );
+  m->setHorizontalAnchorPoint( mHorizontalAnchorPoint );
+  m->setVerticalAnchorPoint( mVerticalAnchorPoint );
+
+  copyDataDefinedProperties( m );
+  copyPaintEffect( m );
+  return m;
 }
 
 void QgsEllipseSymbolLayerV2::toSld( QDomDocument &doc, QDomElement &element, const QgsStringMap& props ) const
@@ -574,6 +599,14 @@ void QgsEllipseSymbolLayerV2::preparePath( const QString& symbolName, QgsSymbolV
   {
     mPainterPath.addRect( QRectF( -size.width() / 2.0, -size.height() / 2.0, size.width(), size.height() ) );
   }
+  else if ( symbolName == "diamond" )
+  {
+    mPainterPath.moveTo( -size.width() / 2.0, 0 );
+    mPainterPath.lineTo( 0, size.height() / 2.0 );
+    mPainterPath.lineTo( size.width() / 2.0, 0 );
+    mPainterPath.lineTo( 0, -size.height() / 2.0 );
+    mPainterPath.lineTo( -size.width() / 2.0, 0 );
+  }
   else if ( symbolName == "cross" )
   {
     mPainterPath.moveTo( 0, -size.height() / 2.0 );
@@ -696,17 +729,17 @@ QRectF QgsEllipseSymbolLayerV2::bounds( QPointF point, QgsSymbolV2RenderContext&
   return symbolBounds;
 }
 
-bool QgsEllipseSymbolLayerV2::writeDxf( QgsDxfExport& e, double mmMapUnitScaleFactor, const QString& layerName, QgsSymbolV2RenderContext *context, const QgsFeature*, QPointF shift ) const
+bool QgsEllipseSymbolLayerV2::writeDxf( QgsDxfExport& e, double mmMapUnitScaleFactor, const QString& layerName, QgsSymbolV2RenderContext &context, QPointF shift ) const
 {
   //width
   double symbolWidth = mSymbolWidth;
 
   if ( hasDataDefinedProperty( QgsSymbolLayerV2::EXPR_WIDTH ) ) //1. priority: data defined setting on symbol layer le
   {
-    context->setOriginalValueVariable( mSymbolWidth );
-    symbolWidth = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_WIDTH, *context, mSymbolWidth ).toDouble();
+    context.setOriginalValueVariable( mSymbolWidth );
+    symbolWidth = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_WIDTH, context, mSymbolWidth ).toDouble();
   }
-  else if ( context->renderHints() & QgsSymbolV2::DataDefinedSizeScale ) //2. priority: is data defined size on symbol level
+  else if ( context.renderHints() & QgsSymbolV2::DataDefinedSizeScale ) //2. priority: is data defined size on symbol level
   {
     symbolWidth = mSize;
   }
@@ -719,10 +752,10 @@ bool QgsEllipseSymbolLayerV2::writeDxf( QgsDxfExport& e, double mmMapUnitScaleFa
   double symbolHeight = mSymbolHeight;
   if ( hasDataDefinedProperty( QgsSymbolLayerV2::EXPR_HEIGHT ) ) //1. priority: data defined setting on symbol layer level
   {
-    context->setOriginalValueVariable( mSymbolHeight );
-    symbolHeight = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_HEIGHT, *context, mSymbolHeight ).toDouble();
+    context.setOriginalValueVariable( mSymbolHeight );
+    symbolHeight = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_HEIGHT, context, mSymbolHeight ).toDouble();
   }
-  else if ( context->renderHints() & QgsSymbolV2::DataDefinedSizeScale ) //2. priority: is data defined size on symbol level
+  else if ( context.renderHints() & QgsSymbolV2::DataDefinedSizeScale ) //2. priority: is data defined size on symbol level
   {
     symbolHeight = mSize;
   }
@@ -736,8 +769,8 @@ bool QgsEllipseSymbolLayerV2::writeDxf( QgsDxfExport& e, double mmMapUnitScaleFa
 
   if ( hasDataDefinedProperty( QgsSymbolLayerV2::EXPR_OUTLINE_WIDTH ) )
   {
-    context->setOriginalValueVariable( mOutlineWidth );
-    outlineWidth = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_OUTLINE_WIDTH, *context, mOutlineWidth ).toDouble();
+    context.setOriginalValueVariable( mOutlineWidth );
+    outlineWidth = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_OUTLINE_WIDTH, context, mOutlineWidth ).toDouble();
   }
   if ( mOutlineWidthUnit == QgsSymbolV2::MM )
   {
@@ -749,8 +782,8 @@ bool QgsEllipseSymbolLayerV2::writeDxf( QgsDxfExport& e, double mmMapUnitScaleFa
   QColor fc = mColor;
   if ( hasDataDefinedProperty( QgsSymbolLayerV2::EXPR_FILL_COLOR ) )
   {
-    context->setOriginalValueVariable( QgsSymbolLayerV2Utils::encodeColor( mColor ) );
-    QString colorString = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_FILL_COLOR, *context, QVariant(), &ok ).toString();
+    context.setOriginalValueVariable( QgsSymbolLayerV2Utils::encodeColor( mColor ) );
+    QString colorString = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_FILL_COLOR, context, QVariant(), &ok ).toString();
     if ( ok )
       fc = QgsSymbolLayerV2Utils::decodeColor( colorString );
   }
@@ -759,8 +792,8 @@ bool QgsEllipseSymbolLayerV2::writeDxf( QgsDxfExport& e, double mmMapUnitScaleFa
   QColor oc = mOutlineColor;
   if ( hasDataDefinedProperty( QgsSymbolLayerV2::EXPR_OUTLINE_COLOR ) )
   {
-    context->setOriginalValueVariable( QgsSymbolLayerV2Utils::encodeColor( mOutlineColor ) );
-    QString colorString = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_OUTLINE_COLOR, *context, QVariant(), &ok ).toString();
+    context.setOriginalValueVariable( QgsSymbolLayerV2Utils::encodeColor( mOutlineColor ) );
+    QString colorString = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_OUTLINE_COLOR, context, QVariant(), &ok ).toString();
     if ( ok )
       oc = QgsSymbolLayerV2Utils::decodeColor( colorString );
   }
@@ -769,22 +802,22 @@ bool QgsEllipseSymbolLayerV2::writeDxf( QgsDxfExport& e, double mmMapUnitScaleFa
   QString symbolName = mSymbolName;
   if ( hasDataDefinedProperty( QgsSymbolLayerV2::EXPR_SYMBOL_NAME ) )
   {
-    context->setOriginalValueVariable( mSymbolName );
-    symbolName = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_SYMBOL_NAME, *context, mSymbolName ).toString();
+    context.setOriginalValueVariable( mSymbolName );
+    symbolName = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_SYMBOL_NAME, context, mSymbolName ).toString();
   }
 
   //offset
   double offsetX = 0;
   double offsetY = 0;
-  markerOffset( *context, offsetX, offsetY );
+  markerOffset( context, offsetX, offsetY );
   QPointF off( offsetX, offsetY );
 
   //priority for rotation: 1. data defined symbol level, 2. symbol layer rotation (mAngle)
   double rotation = 0.0;
   if ( hasDataDefinedProperty( QgsSymbolLayerV2::EXPR_ROTATION ) )
   {
-    context->setOriginalValueVariable( mAngle );
-    rotation = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_ROTATION, *context, mAngle ).toDouble() + mLineAngle;
+    context.setOriginalValueVariable( mAngle );
+    rotation = evaluateDataDefinedProperty( QgsSymbolLayerV2::EXPR_ROTATION, context, mAngle ).toDouble() + mLineAngle;
   }
   else if ( !qgsDoubleNear( mAngle + mLineAngle, 0.0 ) )
   {

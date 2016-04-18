@@ -6,6 +6,11 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
 __author__ = 'Alessandro Pasotti'
 __date__ = '25/05/2015'
 __copyright__ = 'Copyright 2015, The QGIS Project'
@@ -14,9 +19,11 @@ __revision__ = '$Format:%H$'
 
 import os
 import re
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
 from mimetools import Message
-from StringIO import StringIO
+from io import StringIO
 from qgis.server import QgsServer
 from qgis.core import QgsMessageLog
 from qgis.testing import unittest
@@ -63,7 +70,7 @@ class TestQgsServer(unittest.TestCase):
         """Using an empty query string (returns an XML exception)
         we are going to test if headers and body are returned correctly"""
         # Test as a whole
-        header, body = [str(_v) for _v in self.server.handleRequest()]
+        header, body = [bytes(_v) for _v in self.server.handleRequest()]
         response = header + body
         expected = 'Content-Length: 206\nContent-Type: text/xml; charset=utf-8\n\n<ServiceExceptionReport version="1.3.0" xmlns="http://www.opengis.net/ogc">\n <ServiceException code="Service configuration error">Service unknown or unsupported</ServiceException>\n</ServiceExceptionReport>\n'
         self.assertEqual(response, expected)
@@ -130,7 +137,7 @@ class TestQgsServer(unittest.TestCase):
         self.assertTrue(filter2 in serverIface.filters()[100])
         self.assertEqual(filter1, serverIface.filters()[101][0])
         self.assertEqual(filter2, serverIface.filters()[200][0])
-        header, body = [str(_v) for _v in self.server.handleRequest('service=simple')]
+        header, body = [bytes(_v) for _v in self.server.handleRequest('service=simple')]
         response = header + body
         expected = 'Content-type: text/plain\n\nHello from SimpleServer!Hello from Filter1!Hello from Filter2!'
         self.assertEqual(response, expected)
@@ -142,7 +149,7 @@ class TestQgsServer(unittest.TestCase):
         self.assertTrue(filter2 in serverIface.filters()[100])
         self.assertEqual(filter1, serverIface.filters()[101][0])
         self.assertEqual(filter2, serverIface.filters()[200][0])
-        header, body = [str(_v) for _v in self.server.handleRequest('service=simple')]
+        header, body = [bytes(_v) for _v in self.server.handleRequest('service=simple')]
         response = header + body
         expected = 'Content-type: text/plain\n\nHello from SimpleServer!Hello from Filter1!Hello from Filter2!'
         self.assertEqual(response, expected)
@@ -152,10 +159,10 @@ class TestQgsServer(unittest.TestCase):
         project = self.testdata_path + "test+project.qgs"
         assert os.path.exists(project), "Project file not found: " + project
 
-        query_string = 'MAP=%s&SERVICE=WMS&VERSION=1.3&REQUEST=%s' % (urllib.quote(project), request)
+        query_string = 'MAP=%s&SERVICE=WMS&VERSION=1.3&REQUEST=%s' % (urllib.parse.quote(project), request)
         if extra is not None:
             query_string += extra
-        header, body = [str(_v) for _v in self.server.handleRequest(query_string)]
+        header, body = [bytes(_v) for _v in self.server.handleRequest(query_string)]
         response = header + body
         f = open(self.testdata_path + (request.lower() if not reference_file else reference_file) + '.txt')
         expected = f.read()
@@ -206,8 +213,8 @@ class TestQgsServer(unittest.TestCase):
         project = self.testdata_path + "test+project_inspire.qgs"
         assert os.path.exists(project), "Project file not found: " + project
 
-        query_string = 'MAP=%s&SERVICE=WMS&VERSION=1.3.0&REQUEST=%s' % (urllib.quote(project), request)
-        header, body = [str(_v) for _v in self.server.handleRequest(query_string)]
+        query_string = 'MAP=%s&SERVICE=WMS&VERSION=1.3.0&REQUEST=%s' % (urllib.parse.quote(project), request)
+        header, body = [bytes(_v) for _v in self.server.handleRequest(query_string)]
         response = header + body
         f = open(self.testdata_path + request.lower() + '_inspire.txt')
         expected = f.read()
@@ -235,8 +242,8 @@ class TestQgsServer(unittest.TestCase):
         project = self.testdata_path + "test+project_wfs.qgs"
         assert os.path.exists(project), "Project file not found: " + project
 
-        query_string = 'MAP=%s&SERVICE=WFS&VERSION=1.0.0&REQUEST=%s' % (urllib.quote(project), request)
-        header, body = [str(_v) for _v in self.server.handleRequest(query_string)]
+        query_string = 'MAP=%s&SERVICE=WFS&VERSION=1.0.0&REQUEST=%s' % (urllib.parse.quote(project), request)
+        header, body = [bytes(_v) for _v in self.server.handleRequest(query_string)]
         self.assert_headers(header, body)
         response = header + body
         f = open(self.testdata_path + 'wfs_' + request.lower() + '.txt')
@@ -269,8 +276,8 @@ class TestQgsServer(unittest.TestCase):
         project = self.testdata_path + "test+project_wfs.qgs"
         assert os.path.exists(project), "Project file not found: " + project
 
-        query_string = 'MAP=%s&SERVICE=WFS&VERSION=1.0.0&REQUEST=%s' % (urllib.quote(project), request)
-        header, body = [str(_v) for _v in self.server.handleRequest(query_string)]
+        query_string = 'MAP=%s&SERVICE=WFS&VERSION=1.0.0&REQUEST=%s' % (urllib.parse.quote(project), request)
+        header, body = [bytes(_v) for _v in self.server.handleRequest(query_string)]
         self.assert_headers(header, body)
         response = header + body
         f = open(self.testdata_path + 'wfs_getfeature_' + requestid + '.txt')
@@ -290,8 +297,8 @@ class TestQgsServer(unittest.TestCase):
         self.assertEqual(response, expected, msg=u"request %s failed.\n Query: %s\n Expected:\n%s\n\n Response:\n%s"
                                                  % (query_string,
                                                     request,
-                                                    unicode(expected, errors='replace'),
-                                                    unicode(response, errors='replace')))
+                                                    str(expected, errors='replace'),
+                                                    str(response, errors='replace')))
 
     def test_getfeature(self):
         tests = []
@@ -313,7 +320,7 @@ class TestQgsServer(unittest.TestCase):
             #'HEIGHT': '20', # optional
             'LAYER': u'testlayer+èé',
         }
-        qs = '&'.join([u"%s=%s" % (k, v) for k, v in parms.iteritems()])
+        qs = '&'.join([u"%s=%s" % (k, v) for k, v in parms.items()])
         h, r = self.server.handleRequest(qs)
         self.assertEquals(-1, h.find('Content-Type: text/xml; charset=utf-8'), "Header: %s\nResponse:\n%s" % (h, r))
         self.assertNotEquals(-1, h.find('Content-Type: image/png'), "Header: %s\nResponse:\n%s" % (h, r))

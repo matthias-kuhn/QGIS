@@ -37,6 +37,11 @@
 #include "qgsvectorlayer.h"
 #include "qgsmaplayerregistry.h"
 #include "qgsunittypes.h"
+#include "qgstextlabelfeature.h"
+
+#include "pal/feature.h"
+#include "pal/pointset.h"
+#include "pal/labelposition.h"
 
 #include <QIODevice>
 
@@ -865,7 +870,7 @@ void QgsDxfExport::writeBlocks()
     writeGroup( 1, "" );
 
     // maplayer 0 -> block receives layer from INSERT statement
-    ml->writeDxf( *this, mapUnitScaleFactor( mSymbologyScaleDenominator, ml->sizeUnit(), mMapUnits ), "0", &ctx, nullptr );
+    ml->writeDxf( *this, mapUnitScaleFactor( mSymbologyScaleDenominator, ml->sizeUnit(), mMapUnits ), "0", ctx );
 
     writeGroup( 0, "ENDBLK" );
     writeHandle();
@@ -942,12 +947,32 @@ void QgsDxfExport::writeEntities()
         attributes << layerAttr;
     }
 
-    QgsDxfLabelProvider* lp = new QgsDxfLabelProvider( vl, this );
-    engine.addProvider( lp );
-    if ( !lp->prepare( ctx, attributes ) )
+    const QgsAbstractVectorLayerLabeling *labeling = vl->labeling();
+    QgsDxfLabelProvider *lp = nullptr;
+    QgsDxfRuleBasedLabelProvider *rblp = nullptr;
+    if ( dynamic_cast<const QgsRuleBasedLabeling*>( labeling ) )
     {
-      engine.removeProvider( lp );
-      lp = nullptr;
+      const QgsRuleBasedLabeling *rbl = dynamic_cast<const QgsRuleBasedLabeling*>( labeling );
+      rblp = new QgsDxfRuleBasedLabelProvider( *rbl, vl, this );
+      rblp->reinit( vl );
+      engine.addProvider( rblp );
+
+      if ( !rblp->prepare( ctx, attributes ) )
+      {
+        engine.removeProvider( rblp );
+        rblp = nullptr;
+      }
+    }
+    else
+    {
+      lp = new QgsDxfLabelProvider( vl, this, nullptr );
+      engine.addProvider( lp );
+
+      if ( !lp->prepare( ctx, attributes ) )
+      {
+        engine.removeProvider( lp );
+        lp = nullptr;
+      }
     }
 
     if ( mSymbologyExport == QgsDxfExport::SymbolLayerSymbology &&
@@ -959,7 +984,7 @@ void QgsDxfExport::writeEntities()
       continue;
     }
 
-    QgsFeatureRequest freq = QgsFeatureRequest().setSubsetOfAttributes( attributes, vl->fields() );
+    QgsFeatureRequest freq = QgsFeatureRequest().setSubsetOfAttributes( attributes, vl->fields() ).setExpressionContext( ctx.expressionContext() );
     if ( !mExtent.isEmpty() )
     {
       freq.setFilterRect( mExtent );
@@ -1011,6 +1036,10 @@ void QgsDxfExport::writeEntities()
         if ( lp )
         {
           lp->registerDxfFeature( fet, ctx, lName );
+        }
+        else if ( rblp )
+        {
+          rblp->registerDxfFeature( fet, ctx, lName );
         }
       }
     }
@@ -3300,7 +3329,7 @@ void QgsDxfExport::endSection()
   writeGroup( 0, "ENDSEC" );
 }
 
-void QgsDxfExport::writePoint( const QgsPoint& pt, const QString& layer, const QColor& color, const QgsFeature* f, const QgsSymbolLayerV2* symbolLayer, const QgsSymbolV2* symbol )
+void QgsDxfExport::writePoint( const QgsPoint& pt, const QString& layer, const QColor& color, QgsSymbolV2RenderContext &ctx, const QgsSymbolLayerV2* symbolLayer, const QgsSymbolV2* symbol, double angle )
 {
 #if 0
   // debug: draw rectangle for debugging
@@ -3327,9 +3356,7 @@ void QgsDxfExport::writePoint( const QgsPoint& pt, const QString& layer, const Q
     const QgsMarkerSymbolLayerV2* msl = dynamic_cast< const QgsMarkerSymbolLayerV2* >( symbolLayer );
     if ( msl && symbol )
     {
-      QgsRenderContext ct;
-      QgsSymbolV2RenderContext ctx( ct, QgsSymbolV2::MapUnit, symbol->alpha(), false, symbol->renderHints(), f );
-      if ( symbolLayer->writeDxf( *this, mapUnitScaleFactor( mSymbologyScaleDenominator, msl->sizeUnit(), mMapUnits ), layer, &ctx, f, QPointF( pt.x(), pt.y() ) ) )
+      if ( symbolLayer->writeDxf( *this, mapUnitScaleFactor( mSymbologyScaleDenominator, msl->sizeUnit(), mMapUnits ), layer, ctx, QPointF( pt.x(), pt.y() ) ) )
       {
         return;
       }
@@ -3345,6 +3372,7 @@ void QgsDxfExport::writePoint( const QgsPoint& pt, const QString& layer, const Q
     writeGroup( 100, "AcDbBlockReference" );
     writeGroup( 8, layer );
     writeGroup( 2, blockIt.value() ); // Block name
+    writeGroup( 50, angle ); // angle
     writeGroup( 0, pt );  // Insertion point (in OCS)
   }
 }
@@ -3630,10 +3658,12 @@ void QgsDxfExport::addFeature( QgsSymbolV2RenderContext& ctx, const QString& lay
   Qt::BrushStyle brushStyle( Qt::NoBrush );
   double width = -1;
   double offset = 0.0;
+  double angle = 0.0;
   if ( mSymbologyExport != NoSymbology && symbolLayer )
   {
     width = symbolLayer->dxfWidth( *this, ctx );
     offset = symbolLayer->dxfOffset( *this, ctx );
+    angle = symbolLayer->dxfAngle( ctx );
     penStyle = symbolLayer->dxfPenStyle();
     brushStyle = symbolLayer->dxfBrushStyle();
 
@@ -3650,7 +3680,7 @@ void QgsDxfExport::addFeature( QgsSymbolV2RenderContext& ctx, const QString& lay
   // single point
   if ( geometryType == QGis::WKBPoint || geometryType == QGis::WKBPoint25D )
   {
-    writePoint( geom->asPoint(), layer, penColor, fet, symbolLayer, symbol );
+    writePoint( geom->asPoint(), layer, penColor, ctx, symbolLayer, symbol, angle );
     return;
   }
 
@@ -3661,7 +3691,7 @@ void QgsDxfExport::addFeature( QgsSymbolV2RenderContext& ctx, const QString& lay
     QgsMultiPoint::const_iterator it = multiPoint.constBegin();
     for ( ; it != multiPoint.constEnd(); ++it )
     {
-      writePoint( *it, layer, penColor, fet, symbolLayer, symbol );
+      writePoint( *it, layer, penColor, ctx, symbolLayer, symbol, angle );
     }
 
     return;
@@ -4168,4 +4198,113 @@ QString QgsDxfExport::layerName( QgsVectorLayer *vl ) const
 {
   Q_ASSERT( vl );
   return mLayerTitleAsName && !vl->title().isEmpty() ? vl->title() : vl->name();
+}
+
+void QgsDxfExport::drawLabel( QString layerId, QgsRenderContext& context, pal::LabelPosition* label, const QgsPalLayerSettings &settings )
+{
+  Q_UNUSED( context );
+  QgsTextLabelFeature* lf = dynamic_cast<QgsTextLabelFeature*>( label->getFeaturePart()->feature() );
+  if ( !lf )
+    return;
+
+  //label text
+  QString txt = lf->text( label->getPartId() );
+
+  //angle
+  double angle = label->getAlpha() * 180 / M_PI;
+
+  QgsFeatureId fid = label->getFeaturePart()->featureId();
+  QString dxfLayer = mDxfLayerNames[layerId][fid];
+
+  //debug: show label rectangle
+#if 0
+  QgsPolyline line;
+  for ( int i = 0; i < 4; ++i )
+  {
+    line.append( QgsPoint( label->getX( i ), label->getY( i ) ) );
+  }
+  writePolyline( line, dxfLayer, "CONTINUOUS", 1, 0.01, true );
+#endif
+
+  QString wrapchr = settings.wrapChar.isEmpty() ? "\n" : settings.wrapChar;
+
+  //add the direction symbol if needed
+  if ( !txt.isEmpty() && settings.placement == QgsPalLayerSettings::Line && settings.addDirectionSymbol )
+  {
+    bool prependSymb = false;
+    QString symb = settings.rightDirectionSymbol;
+
+    if ( label->getReversed() )
+    {
+      prependSymb = true;
+      symb = settings.leftDirectionSymbol;
+    }
+
+    if ( settings.reverseDirectionSymbol )
+    {
+      if ( symb == settings.rightDirectionSymbol )
+      {
+        prependSymb = true;
+        symb = settings.leftDirectionSymbol;
+      }
+      else
+      {
+        prependSymb = false;
+        symb = settings.rightDirectionSymbol;
+      }
+    }
+
+    if ( settings.placeDirectionSymbol == QgsPalLayerSettings::SymbolAbove )
+    {
+      prependSymb = true;
+      symb = symb + wrapchr;
+    }
+    else if ( settings.placeDirectionSymbol == QgsPalLayerSettings::SymbolBelow )
+    {
+      prependSymb = false;
+      symb = wrapchr + symb;
+    }
+
+    if ( prependSymb )
+    {
+      txt.prepend( symb );
+    }
+    else
+    {
+      txt.append( symb );
+    }
+  }
+
+  txt = txt.replace( wrapchr, "\\P" );
+
+  if ( settings.textFont.underline() )
+  {
+    txt.prepend( "\\L" ).append( "\\l" );
+  }
+
+  if ( settings.textFont.overline() )
+  {
+    txt.prepend( "\\O" ).append( "\\o" );
+  }
+
+  if ( settings.textFont.strikeOut() )
+  {
+    txt.prepend( "\\K" ).append( "\\k" );
+  }
+
+  txt.prepend( QString( "\\f%1|i%2|b%3;\\H%4;\\W0.75;" )
+               .arg( settings.textFont.family() )
+               .arg( settings.textFont.italic() ? 1 : 0 )
+               .arg( settings.textFont.bold() ? 1 : 0 )
+               .arg( label->getHeight() / ( 1 + txt.count( "\\P" ) ) * 0.75 ) );
+
+  writeMText( dxfLayer, txt, QgsPoint( label->getX(), label->getY() ), label->getWidth() * 1.1, angle, settings.textColor );
+}
+
+void QgsDxfExport::registerDxfLayer( QString layerId, QgsFeatureId fid, QString layerName )
+{
+  if ( !mDxfLayerNames.contains( layerId ) )
+    mDxfLayerNames[ layerId ] = QMap<QgsFeatureId, QString>();
+
+  mDxfLayerNames[layerId][fid] = layerName;
 }

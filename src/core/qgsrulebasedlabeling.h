@@ -19,6 +19,7 @@
 #include <QMap>
 
 #include "qgsvectorlayerlabeling.h"
+#include "qgsvectorlayerlabelprovider.h"
 
 class QDomDocument;
 class QDomElement;
@@ -28,6 +29,7 @@ class QgsFeature;
 class QgsPalLayerSettings;
 class QgsRenderContext;
 class QgsGeometry;
+class QgsRuleBasedLabelProvider;
 
 /**
  * @class QgsRuleBasedLabeling
@@ -41,7 +43,6 @@ class CORE_EXPORT QgsRuleBasedLabeling : public QgsAbstractVectorLayerLabeling
     class Rule;
     typedef QList<Rule*> RuleList;
     typedef QMap<Rule*, QgsVectorLayerLabelProvider*> RuleToProviderMap;
-
 
     /**
      * @class QgsRuleBasedLabeling::Rule
@@ -214,7 +215,7 @@ class CORE_EXPORT QgsRuleBasedLabeling : public QgsAbstractVectorLayerLabeling
         // evaluation
 
         //! add providers
-        void createSubProviders( QgsVectorLayer* layer, RuleToProviderMap& subProviders );
+        void createSubProviders( QgsVectorLayer* layer, RuleToProviderMap& subProviders, QgsRuleBasedLabelProvider *provider );
 
         //! call prepare() on sub-providers and populate attributeNames
         void prepare( const QgsRenderContext& context, QStringList& attributeNames, RuleToProviderMap& subProviders );
@@ -285,14 +286,12 @@ class CORE_EXPORT QgsRuleBasedLabeling : public QgsAbstractVectorLayerLabeling
 
     virtual QString type() const override;
     virtual QDomElement save( QDomDocument& doc ) const override;
-    virtual QgsVectorLayerLabelProvider* provider( QgsVectorLayer* layer ) const override;
+    virtual QgsVectorLayerLabelProvider *provider( QgsVectorLayer* layer ) const override;
 
   protected:
     Rule* mRootRule;
 };
 
-
-#include "qgsvectorlayerlabelprovider.h"
 
 /**
  * @class QgsRuleBasedLabelProvider
@@ -311,8 +310,10 @@ class CORE_EXPORT QgsRuleBasedLabelProvider : public QgsVectorLayerLabelProvider
 
     virtual void registerFeature( QgsFeature& feature, QgsRenderContext& context, QgsGeometry* obstacleGeometry = nullptr ) override;
 
-    // new methods
+    //! create a label provider
+    virtual QgsVectorLayerLabelProvider *createProvider( QgsVectorLayer *layer, bool withFeatureLoop, const QgsPalLayerSettings *settings );
 
+    //! return subproviders
     virtual QList<QgsAbstractLabelProvider*> subProviders() override;
 
   protected:

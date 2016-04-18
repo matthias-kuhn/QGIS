@@ -27,7 +27,7 @@ __revision__ = '$Format:%H$'
 
 import os
 
-from PyQt.QtCore import QPyNullVariant, QCoreApplication, QSettings
+from PyQt.QtCore import QCoreApplication, QSettings
 from PyQt.QtGui import QIcon
 from processing.tools.system import defaultOutputFolder
 import processing.tools.dataobjects
@@ -189,7 +189,7 @@ class ProcessingConfig:
         if name in ProcessingConfig.settings.keys():
             v = ProcessingConfig.settings[name].value
             try:
-                if isinstance(v, QPyNullVariant):
+                if v.isNull():
                     v = None
             except:
                 pass

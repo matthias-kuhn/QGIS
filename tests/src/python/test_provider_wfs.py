@@ -228,6 +228,67 @@ class TestPyQgsWFSProvider(unittest.TestCase, ProviderTestCase):
   </wfs:member>
 </wfs:FeatureCollection>""")
 
+        with open(sanitize(endpoint, """?SERVICE=WFS&REQUEST=GetFeature&VERSION=2.0.0&TYPENAMES=my:typename&FILTER=<fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0">
+ <fes:And>
+  <fes:PropertyIsGreaterThan>
+   <fes:ValueReference>cnt</fes:ValueReference>
+   <fes:Literal>100</fes:Literal>
+  </fes:PropertyIsGreaterThan>
+  <fes:PropertyIsLessThan>
+   <fes:ValueReference>cnt</fes:ValueReference>
+   <fes:Literal>400</fes:Literal>
+  </fes:PropertyIsLessThan>
+ </fes:And>
+</fes:Filter>
+&RESULTTYPE=hits"""), 'wb') as f:
+            f.write("""
+<wfs:FeatureCollection
+                       xmlns:wfs="http://www.opengis.net/wfs/2.0"
+                       xmlns:gml="http://www.opengis.net/gml/3.2"
+                       numberMatched="2" numberReturned="0" timeStamp="2016-03-25T14:51:48.998Z">
+</wfs:FeatureCollection>""")
+
+        with open(sanitize(endpoint, """?SERVICE=WFS&REQUEST=GetFeature&VERSION=2.0.0&TYPENAMES=my:typename&SRSNAME=urn:ogc:def:crs:EPSG::4326&FILTER=<fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0">
+ <fes:And>
+  <fes:PropertyIsGreaterThan>
+   <fes:ValueReference>cnt</fes:ValueReference>
+   <fes:Literal>100</fes:Literal>
+  </fes:PropertyIsGreaterThan>
+  <fes:PropertyIsLessThan>
+   <fes:ValueReference>cnt</fes:ValueReference>
+   <fes:Literal>400</fes:Literal>
+  </fes:PropertyIsLessThan>
+ </fes:And>
+</fes:Filter>
+"""), 'wb') as f:
+            f.write("""
+<wfs:FeatureCollection
+                       xmlns:wfs="http://www.opengis.net/wfs/2.0"
+                       xmlns:gml="http://www.opengis.net/gml/3.2"
+                       xmlns:my="http://my"
+                       numberMatched="2" numberReturned="2" timeStamp="2016-03-25T14:51:48.998Z">
+  <wfs:member>
+    <my:typename gml:id="typename.1">
+      <gml:boundedBy><gml:Envelope srsName="urn:ogc:def:crs:EPSG::4326"><gml:lowerCorner>70.8 -68.2</gml:lowerCorner><gml:upperCorner>70.8 -68.2</gml:upperCorner></gml:Envelope></gml:boundedBy>
+      <my:geometryProperty><gml:Point srsName="urn:ogc:def:crs:EPSG::4326" gml:id="typename.geom.1"><gml:pos>70.8 -68.2</gml:pos></gml:Point></my:geometryProperty>
+      <my:pk>2</my:pk>
+      <my:cnt>200</my:cnt>
+      <my:name>Apple</my:name>
+      <my:name2>Apple</my:name2>
+      <my:num_char>2</my:num_char>
+    </my:typename>
+  </wfs:member>
+  <wfs:member>
+    <my:typename gml:id="typename.3">
+      <my:pk>3</my:pk>
+      <my:cnt>300</my:cnt>
+      <my:name>Pear</my:name>
+      <my:name2>PEaR</my:name2>
+      <my:num_char>3</my:num_char>
+    </my:typename>
+  </wfs:member>
+</wfs:FeatureCollection>""")
+
     @classmethod
     def tearDownClass(cls):
         """Run after all tests"""
@@ -276,7 +337,8 @@ class TestPyQgsWFSProvider(unittest.TestCase, ProviderTestCase):
     <xsd:complexContent>
       <xsd:extension base="gml:AbstractFeatureType">
         <xsd:sequence>
-          <xsd:element maxOccurs="1" minOccurs="0" name="intfield" nillable="true" type="xsd:int"/>
+          <xsd:element maxOccurs="1" minOccurs="0" name="INTFIELD" nillable="true" type="xsd:int"/>
+          <xsd:element maxOccurs="1" minOccurs="0" name="GEOMETRY" nillable="true" type="xsd:int"/>
           <xsd:element maxOccurs="1" minOccurs="0" name="longfield" nillable="true" type="xsd:long"/>
           <xsd:element maxOccurs="1" minOccurs="0" name="stringfield" nillable="true" type="xsd:string"/>
           <xsd:element maxOccurs="1" minOccurs="0" name="geometryProperty" nillable="true" type="gml:PointPropertyType"/>
@@ -291,7 +353,7 @@ class TestPyQgsWFSProvider(unittest.TestCase, ProviderTestCase):
         vl = QgsVectorLayer(u"url='http://" + endpoint + u"' typename='my:typename' version='1.0.0'", u'test', u'WFS')
         assert vl.isValid()
         self.assertEquals(vl.wkbType(), QgsWKBTypes.Point)
-        self.assertEquals(len(vl.fields()), 3)
+        self.assertEquals(len(vl.fields()), 4)
         self.assertEquals(vl.featureCount(), 0)
         reference = QgsGeometry.fromRect(
             QgsRectangle(-71.123, 66.33, -65.32, 78.3))
@@ -309,15 +371,19 @@ class TestPyQgsWFSProvider(unittest.TestCase, ProviderTestCase):
     <my:typename fid="typename.0">
       <my:geometryProperty>
           <gml:Point srsName="http://www.opengis.net/gml/srs/epsg.xml#4326"><gml:coordinates decimal="." cs="," ts=" ">2,49</gml:coordinates></gml:Point></my:geometryProperty>
-      <my:intfield>1</my:intfield>
+      <my:INTFIELD>1</my:INTFIELD>
+      <my:GEOMETRY>2</my:GEOMETRY>
       <my:longfield>1234567890123</my:longfield>
       <my:stringfield>foo</my:stringfield>
     </my:typename>
   </gml:featureMember>
 </wfs:FeatureCollection>""")
 
-        values = [f['intfield'] for f in vl.getFeatures()]
+        values = [f['INTFIELD'] for f in vl.getFeatures()]
         self.assertEquals(values, [1])
+
+        values = [f['GEOMETRY'] for f in vl.getFeatures()]
+        self.assertEquals(values, [2])
 
         values = [f['longfield'] for f in vl.getFeatures()]
         self.assertEquals(values, [1234567890123])
