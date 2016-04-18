@@ -93,7 +93,7 @@ class GdalUtils:
                 if retry_count < 5:
                     retry_count += 1
                 else:
-                    raise IOError(e.message + u'\nTried 5 times without success. Last iteration stopped after reading {} line(s).\nLast line(s):\n{}'.format(len(loglines), u'\n'.join(loglines[-10:])))
+                    raise IOError(repr(e) + u'\nTried 5 times without success. Last iteration stopped after reading {} line(s).\nLast line(s):\n{}'.format(len(loglines), u'\n'.join(loglines[-10:])))
 
         ProcessingLog.addToLog(ProcessingLog.LOG_INFO, loglines)
         GdalUtils.consoleOutput = loglines
