@@ -12,7 +12,6 @@ PyQgsGeometryTest
 PyQgsLocalServer
 PyQgsMapUnitScale
 PyQgsMemoryProvider
-PyQgsNetworkContentFetcher
 PyQgsNullSymbolRenderer
 PyQgsPalLabelingBase
 PyQgsPalLabelingCanvas
@@ -20,7 +19,6 @@ PyQgsPalLabelingComposer
 PyQgsPalLabelingPlacement
 PyQgsPalLabelingServer
 PyQgsPostgresProvider
-PyQgsRasterLayer
 PyQgsRelationEditWidget
 PyQgsRulebasedRenderer
 PyQgsServer
