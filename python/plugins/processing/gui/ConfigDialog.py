@@ -29,8 +29,7 @@ import os
 
 from PyQt import uic
 from PyQt.QtCore import (Qt,
-                         QEvent,
-                         QPyNullVariant)
+                         QEvent)
 from PyQt.QtWidgets import (QFileDialog,
                             QDialog,
                             QStyle,
@@ -338,8 +337,11 @@ class SettingDelegate(QStyledItemDelegate):
         return QStyledItemDelegate.eventFilter(self, editor, event)
 
     def convertValue(self, value):
-        if value is None or isinstance(value, QPyNullVariant):
-            return ""
+        try:
+            if value is None or value.isNull():
+                return ""
+        except AttributeError:
+            pass
         try:
             return int(value)
         except:

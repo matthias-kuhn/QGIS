@@ -26,15 +26,25 @@ The content of this file is based on
 # this will disable the dbplugin if the connector raise an ImportError
 from .connector import OracleDBConnector
 
-from PyQt.QtCore import Qt, QSettings, QPyNullVariant
+from PyQt.QtCore import Qt, QSettings
 from PyQt.QtGui import QIcon, QKeySequence
 from PyQt.QtWidgets import QAction, QApplication, QMessageBox
 
 from qgis.core import QgsVectorLayer
 
-from ..plugin import ConnectionError, InvalidDataException, DBPlugin, \
-    Database, Schema, Table, VectorTable, TableField, TableConstraint, \
-    TableIndex, TableTrigger
+from ..plugin import (
+    ConnectionError,
+    DBPlugin,
+    Database,
+    InvalidDataException,
+    Schema,
+    Table,
+    TableConstraint,
+    TableField,
+    TableIndex,
+    TableTrigger,
+    VectorTable
+)
 
 from qgis.core import QgsCredentials
 
@@ -487,12 +497,12 @@ class ORTableField(TableField):
 
         self.primaryKey = False
         self.num = int(self.num)
-        if isinstance(self.charMaxLen, QPyNullVariant):
+        if not self.charMaxLen:
             self.charMaxLen = None
         else:
             self.charMaxLen = int(self.charMaxLen)
 
-        if isinstance(self.modifier, QPyNullVariant):
+        if not self.modifier:
             self.modifier = None
         else:
             self.modifier = int(self.modifier)
@@ -502,7 +512,7 @@ class ORTableField(TableField):
         else:
             self.notNull = True
 
-        if isinstance(self.comment, QPyNullVariant):
+        if not self.comment:
             self.comment = u""
 
         # find out whether fields are part of primary key
@@ -571,22 +581,22 @@ class ORTableConstraint(TableConstraint):
         else:
             self.type = ORTableConstraint.TypeUnknown
 
-        if isinstance(row[6], QPyNullVariant):
+        if not row[6]:
             self.checkSource = u""
         else:
             self.checkSource = row[6]
 
-        if isinstance(row[8], QPyNullVariant):
+        if not row[8]:
             self.foreignTable = u""
         else:
             self.foreignTable = row[8]
 
-        if isinstance(row[7], QPyNullVariant):
+        if not row[7]:
             self.foreignOnDelete = u""
         else:
             self.foreignOnDelete = row[7]
 
-        if isinstance(row[9], QPyNullVariant):
+        if not row[9]:
             self.foreignKey = u""
         else:
             self.foreignKey = row[9]
