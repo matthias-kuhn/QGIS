@@ -47,6 +47,8 @@ class CORE_EXPORT QgsAttributeTableConfig
       Type mType;    //!< The type of this column.
       QString mName; //!< The name of the attribute if this column represents a field
       bool mHidden;  //!< Flag that controls if the column is hidden
+
+      bool operator== ( const ColumnConfig& other ) const;
     };
 
     /**
@@ -119,6 +121,8 @@ class CORE_EXPORT QgsAttributeTableConfig
      * Set the sort expression used for sorting.
      */
     void setSortExpression( const QString& sortExpression );
+
+    bool operator!= ( const QgsAttributeTableConfig& other ) const;
 
   private:
     QVector<ColumnConfig> mColumns;

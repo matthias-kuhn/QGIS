@@ -187,6 +187,11 @@ void QgsAttributeTableConfig::setSortExpression( const QString& sortExpression )
   mSortExpression = sortExpression;
 }
 
+bool QgsAttributeTableConfig::operator!=( const QgsAttributeTableConfig& other ) const
+{
+  return mSortExpression != other.mSortExpression || mColumns != other.mColumns || mActionWidgetStyle != other.mActionWidgetStyle;
+}
+
 void QgsAttributeTableConfig::writeXml( QDomNode& node ) const
 {
   QDomDocument doc( node.ownerDocument() );
@@ -220,4 +225,9 @@ void QgsAttributeTableConfig::writeXml( QDomNode& node ) const
   configElement.appendChild( columnsElement );
 
   node.appendChild( configElement );
+}
+
+bool QgsAttributeTableConfig::ColumnConfig::operator== ( const ColumnConfig& other ) const
+{
+  return mType == other.mType && mName == other.mName && mHidden == other.mHidden;
 }
