@@ -16,6 +16,11 @@
 #include "qgsproject.h"
 #include "qgsrelationmanager.h"
 
+QgsAttributeEditorContainer::~QgsAttributeEditorContainer()
+{
+  qDeleteAll( mChildren );
+}
+
 QgsEditFormConfig::QgsEditFormConfig( QObject* parent )
     : QObject( parent )
     , mEditorLayout( GeneratedLayout )
@@ -266,7 +271,7 @@ void QgsEditFormConfig::readXml( const QDomNode& node )
   {
     QDomElement elem = attributeEditorFormNodeList.at( i ).toElement();
 
-    QgsAttributeEditorElement *attributeEditorWidget = attributeEditorElementFromDomElement( elem, this );
+    QgsAttributeEditorElement* attributeEditorWidget = attributeEditorElementFromDomElement( elem, nullptr );
     addTab( attributeEditorWidget );
   }
 
@@ -409,7 +414,7 @@ void QgsEditFormConfig::writeXml( QDomNode& node ) const
   //// END TODO
 }
 
-QgsAttributeEditorElement* QgsEditFormConfig::attributeEditorElementFromDomElement( QDomElement &elem, QObject* parent )
+QgsAttributeEditorElement* QgsEditFormConfig::attributeEditorElementFromDomElement( QDomElement &elem, QgsAttributeEditorElement* parent )
 {
   QgsAttributeEditorElement* newElement = nullptr;
 
@@ -426,7 +431,7 @@ QgsAttributeEditorElement* QgsEditFormConfig::attributeEditorElementFromDomEleme
     if ( ok )
       container->setIsGroupBox( isGroupBox );
     else
-      container->setIsGroupBox( qobject_cast<QgsAttributeEditorContainer*>( parent ) );
+      container->setIsGroupBox( parent );
 
     QDomNodeList childNodeList = elem.childNodes();
 

@@ -15,24 +15,18 @@
  *                                                                         *
  ***************************************************************************/
 
-class QgsAttributeEditorElement : QObject
+class QgsAttributeEditorElement
 {
 %TypeHeaderCode
 #include "qgsvectorlayer.h"
 %End
 
 %ConvertToSubClassCode
-  QgsAttributeEditorElement* e = qobject_cast<QgsAttributeEditorElement*>( sipCpp );
-
-  sipType = 0;
-  if ( e )
+  switch ( sipCpp->type() )
   {
-    switch ( e->type() )
-    {
-      case QgsAttributeEditorElement::AeTypeContainer: sipType = sipType_QgsAttributeEditorContainer; break;
-      case QgsAttributeEditorElement::AeTypeField:     sipType = sipType_QgsAttributeEditorField; break;
-      case QgsAttributeEditorElement::AeTypeRelation:  sipType = sipType_QgsAttributeEditorRelation; break;
-    }
+    case QgsAttributeEditorElement::AeTypeContainer: sipType = sipType_QgsAttributeEditorContainer; break;
+    case QgsAttributeEditorElement::AeTypeField:     sipType = sipType_QgsAttributeEditorField; break;
+    case QgsAttributeEditorElement::AeTypeRelation:  sipType = sipType_QgsAttributeEditorRelation; break;
   }
 %End
 
@@ -54,7 +48,7 @@ class QgsAttributeEditorElement : QObject
      * @param name
      * @param parent
      */
-    QgsAttributeEditorElement( AttributeEditorType type, const QString& name, QObject *parent /TransferThis/ = NULL );
+    QgsAttributeEditorElement( AttributeEditorType type, const QString& name, QgsAttributeEditorElement* parent /TransferThis/ = nullptr );
 
     //! Destructor
     virtual ~QgsAttributeEditorElement();
@@ -72,6 +66,13 @@ class QgsAttributeEditorElement : QObject
      * @return The type
      */
     AttributeEditorType type() const;
+
+    /**
+     * Get the parent of this element.
+     *
+     * @note Added in QGIS 3.0
+     */
+    QgsAttributeEditorElement* parent() const;
 
     /**
      * Is reimplemented in classes inheriting from this to serialize it.
@@ -96,7 +97,7 @@ class QgsAttributeEditorContainer : QgsAttributeEditorElement
      * @param name   The name to show as title
      * @param parent The parent. May be another container.
      */
-    QgsAttributeEditorContainer( const QString& name, QObject *parent  /TransferThis/ );
+    QgsAttributeEditorContainer( const QString& name, QgsAttributeEditorElement* parent /TransferThis/ );
 
     //! Destructor
     ~QgsAttributeEditorContainer();
@@ -182,7 +183,7 @@ class QgsAttributeEditorField : QgsAttributeEditorElement
      * @param idx    The index of the field which should be embedded
      * @param parent The parent of this widget (used as container)
      */
-    QgsAttributeEditorField( const QString& name, int idx, QObject *parent /TransferThis/ );
+    QgsAttributeEditorField( const QString& name, int idx, QgsAttributeEditorElement* parent /TransferThis/ );
 
     //! Destructor
     ~QgsAttributeEditorField();
@@ -218,7 +219,7 @@ class QgsAttributeEditorRelation : QgsAttributeEditorElement
      * @param relationId   The id of the relation to embed
      * @param parent       The parent (used as container)
      */
-    QgsAttributeEditorRelation( const QString& name, const QString &relationId, QObject *parent /TransferThis/ );
+    QgsAttributeEditorRelation( const QString& name, const QString &relationId, QgsAttributeEditorElement* parent /TransferThis/ );
 
     /**
      * Creates a new element which embeds a relation.
@@ -227,7 +228,7 @@ class QgsAttributeEditorRelation : QgsAttributeEditorElement
      * @param relation     The relation to embed
      * @param parent       The parent (used as container)
      */
-    QgsAttributeEditorRelation( const QString& name, const QgsRelation& relation, QObject *parent /TransferThis/);
+    QgsAttributeEditorRelation( const QString& name, const QgsRelation& relation, QgsAttributeEditorElement* parent /TransferThis/);
 
     //! Destructor
     ~QgsAttributeEditorRelation();
@@ -606,5 +607,5 @@ class QgsEditFormConfig : QObject
     /**
      * Deserialize drag and drop designer elements.
      */
-    QgsAttributeEditorElement* attributeEditorElementFromDomElement( QDomElement &elem, QObject* parent );
+    QgsAttributeEditorElement* attributeEditorElementFromDomElement( QDomElement &elem, QgsAttributeEditorElement* parent );
 };

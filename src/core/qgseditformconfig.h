@@ -36,11 +36,9 @@ class QgsRelationManager;
  * Or it can be a relation and embed the form of several children of another
  * layer.
  */
-class CORE_EXPORT QgsAttributeEditorElement : public QObject
+class CORE_EXPORT QgsAttributeEditorElement
 {
-    Q_OBJECT
   public:
-
     enum AttributeEditorType
     {
       AeTypeContainer, //!< A container
@@ -56,10 +54,10 @@ class CORE_EXPORT QgsAttributeEditorElement : public QObject
      * @param name
      * @param parent
      */
-    QgsAttributeEditorElement( AttributeEditorType type, const QString& name, QObject *parent = nullptr )
-        : QObject( parent )
-        , mType( type )
+    QgsAttributeEditorElement( AttributeEditorType type, const QString& name, QgsAttributeEditorElement* parent = nullptr )
+        : mType( type )
         , mName( name )
+        , mParent( parent )
     {}
 
     //! Destructor
@@ -80,6 +78,13 @@ class CORE_EXPORT QgsAttributeEditorElement : public QObject
     AttributeEditorType type() const { return mType; }
 
     /**
+     * Get the parent of this element.
+     *
+     * @note Added in QGIS 3.0
+     */
+    QgsAttributeEditorElement* parent() const { return mParent; }
+
+    /**
      * Is reimplemented in classes inheriting from this to serialize it.
      *
      * @param doc The QDomDocument which is used to create new XML elements
@@ -91,6 +96,7 @@ class CORE_EXPORT QgsAttributeEditorElement : public QObject
   protected:
     AttributeEditorType mType;
     QString mName;
+    QgsAttributeEditorElement* mParent;
 };
 
 
@@ -100,8 +106,6 @@ class CORE_EXPORT QgsAttributeEditorElement : public QObject
  */
 class CORE_EXPORT QgsAttributeEditorContainer : public QgsAttributeEditorElement
 {
-    Q_OBJECT
-
   public:
     /**
      * Creates a new attribute editor container
@@ -109,14 +113,14 @@ class CORE_EXPORT QgsAttributeEditorContainer : public QgsAttributeEditorElement
      * @param name   The name to show as title
      * @param parent The parent. May be another container.
      */
-    QgsAttributeEditorContainer( const QString& name, QObject *parent )
+    QgsAttributeEditorContainer( const QString& name, QgsAttributeEditorElement* parent )
         : QgsAttributeEditorElement( AeTypeContainer, name, parent )
         , mIsGroupBox( true )
         , mColumnCount( 1 )
     {}
 
     //! Destructor
-    virtual ~QgsAttributeEditorContainer() {}
+    virtual ~QgsAttributeEditorContainer();
 
     /**
      * Will serialize this containers information into a QDomElement for saving it in an XML file.
@@ -190,8 +194,6 @@ class CORE_EXPORT QgsAttributeEditorContainer : public QgsAttributeEditorElement
  */
 class CORE_EXPORT QgsAttributeEditorField : public QgsAttributeEditorElement
 {
-    Q_OBJECT
-
   public:
     /**
      * Creates a new attribute editor element which represents a field
@@ -200,7 +202,7 @@ class CORE_EXPORT QgsAttributeEditorField : public QgsAttributeEditorElement
      * @param idx    The index of the field which should be embedded
      * @param parent The parent of this widget (used as container)
      */
-    QgsAttributeEditorField( const QString& name, int idx, QObject *parent )
+    QgsAttributeEditorField( const QString& name, int idx, QgsAttributeEditorElement *parent )
         : QgsAttributeEditorElement( AeTypeField, name, parent )
         , mIdx( idx )
     {}
@@ -232,8 +234,6 @@ class CORE_EXPORT QgsAttributeEditorField : public QgsAttributeEditorElement
  */
 class CORE_EXPORT QgsAttributeEditorRelation : public QgsAttributeEditorElement
 {
-    Q_OBJECT
-
   public:
     /**
      * Creates a new element which embeds a relation.
@@ -242,7 +242,7 @@ class CORE_EXPORT QgsAttributeEditorRelation : public QgsAttributeEditorElement
      * @param relationId   The id of the relation to embed
      * @param parent       The parent (used as container)
      */
-    QgsAttributeEditorRelation( const QString& name, const QString &relationId, QObject *parent )
+    QgsAttributeEditorRelation( const QString& name, const QString &relationId, QgsAttributeEditorElement* parent )
         : QgsAttributeEditorElement( AeTypeRelation, name, parent )
         , mRelationId( relationId ) {}
 
@@ -253,7 +253,7 @@ class CORE_EXPORT QgsAttributeEditorRelation : public QgsAttributeEditorElement
      * @param relation     The relation to embed
      * @param parent       The parent (used as container)
      */
-    QgsAttributeEditorRelation( const QString& name, const QgsRelation& relation, QObject *parent )
+    QgsAttributeEditorRelation( const QString& name, const QgsRelation& relation, QgsAttributeEditorElement* parent )
         : QgsAttributeEditorElement( AeTypeRelation, name, parent )
         , mRelationId( relation.id() )
         , mRelation( relation ) {}
@@ -649,7 +649,7 @@ class CORE_EXPORT QgsEditFormConfig : public QObject
     /**
      * Deserialize drag and drop designer elements.
      */
-    QgsAttributeEditorElement* attributeEditorElementFromDomElement( QDomElement &elem, QObject* parent );
+    QgsAttributeEditorElement* attributeEditorElementFromDomElement( QDomElement &elem, QgsAttributeEditorElement* parent );
 
   private slots:
     void onRelationsLoaded();

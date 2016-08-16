@@ -827,7 +827,7 @@ void QgsFieldsProperties::updateFieldRenamingStatus()
   }
 }
 
-QgsAttributeEditorElement* QgsFieldsProperties::createAttributeEditorWidget( QTreeWidgetItem* item, QObject *parent , bool forceGroup )
+QgsAttributeEditorElement* QgsFieldsProperties::createAttributeEditorWidget( QTreeWidgetItem* item, QgsAttributeEditorElement* parent , bool forceGroup )
 {
   QgsAttributeEditorElement *widgetDef = nullptr;
 
@@ -951,7 +951,7 @@ void QgsFieldsProperties::apply()
   {
     QTreeWidgetItem* tabItem = mDesignerTree->invisibleRootItem()->child( t );
 
-    mLayer->editFormConfig()->addTab( createAttributeEditorWidget( tabItem, mLayer, false ) );
+    mLayer->editFormConfig()->addTab( createAttributeEditorWidget( tabItem, nullptr, false ) );
   }
 
   mLayer->editFormConfig()->setLayout(( QgsEditFormConfig::EditorLayout ) mEditorLayoutComboBox->currentIndex() );

@@ -722,7 +722,7 @@ class QgsVectorLayer : QgsMapLayer
      * @param elem the DOM element
      * @param parent the QObject which will own this object
      */
-    QgsAttributeEditorElement* attributeEditorElementFromDomElement( QDomElement &elem, QObject* parent );
+    QgsAttributeEditorElement* attributeEditorElementFromDomElement( QDomElement &elem, QgsAttributeEditorElement* parent );
 
     /** Read the symbology for the current layer from the Dom node supplied.
      * @param node node that will contain the symbology definition for this layer.
