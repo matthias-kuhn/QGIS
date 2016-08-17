@@ -151,6 +151,11 @@ class CORE_EXPORT QgsFeature
      */
     QgsFeature & operator=( QgsFeature const & rhs );
 
+    /**
+     * Compares two features
+     */
+    bool operator==( const QgsFeature& other ) const;
+
     //! Destructor
     virtual ~QgsFeature();
 

@@ -41,15 +41,30 @@ QgsFeature::QgsFeature( const QgsFields &fields, QgsFeatureId id )
   initAttributes( d->fields.count() );
 }
 
-QgsFeature::QgsFeature( QgsFeature const & rhs )
+QgsFeature::QgsFeature( const QgsFeature& rhs )
     : d( rhs.d )
 {
 }
 
-QgsFeature & QgsFeature::operator=( QgsFeature const & rhs )
+QgsFeature & QgsFeature::operator=( const QgsFeature & rhs )
 {
   d = rhs.d;
   return *this;
+}
+
+bool QgsFeature::operator ==( const QgsFeature& other ) const
+{
+  if ( d == other.d )
+    return true;
+
+  if ( d->fid == other.d->fid
+       && d->valid == other.d->valid
+       && d->fields == other.d->fields
+       && d->attributes == other.d->attributes
+       && d->geometry == other.d->geometry )
+    return true;
+
+  return false;
 }
 
 QgsFeature::~QgsFeature()
