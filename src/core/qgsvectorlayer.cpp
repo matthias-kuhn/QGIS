@@ -3863,6 +3863,12 @@ QList<QgsAttributeEditorElement*> QgsAttributeEditorContainer::findElements( Qgs
   return results;
 }
 
+void QgsAttributeEditorContainer::clear()
+{
+  qDeleteAll( mChildren );
+  mChildren.clear();
+}
+
 QDomElement QgsAttributeEditorField::toDomElement( QDomDocument& doc ) const
 {
   QDomElement elem = doc.createElement( "attributeEditorField" );

@@ -23,6 +23,7 @@ QgsAttributeEditorContainer::~QgsAttributeEditorContainer()
 
 QgsEditFormConfig::QgsEditFormConfig( QObject* parent )
     : QObject( parent )
+    , mInvisibleRootContainer( new QgsAttributeEditorContainer( QString::null, nullptr ) )
     , mEditorLayout( GeneratedLayout )
     , mInitCodeSource( CodeSourceNone )
     , mSuppressForm( SuppressDefault )
@@ -89,6 +90,16 @@ bool QgsEditFormConfig::removeWidgetConfig( int fieldIdx )
     return false;
 
   return mWidgetConfigs.remove( mFields.at( fieldIdx ).name() );
+}
+
+QgsEditFormConfig::~QgsEditFormConfig()
+{
+  delete mInvisibleRootContainer;
+}
+
+QgsAttributeEditorContainer*QgsEditFormConfig::invisibleRootContainer()
+{
+  return mInvisibleRootContainer;
 }
 
 void QgsEditFormConfig::setUiForm( const QString& ui )
@@ -366,10 +377,12 @@ void QgsEditFormConfig::writeXml( QDomNode& node ) const
   {
     QDomElement tabsElem = doc.createElement( "attributeEditorForm" );
 
-    for ( QList< QgsAttributeEditorElement* >::const_iterator it = mAttributeEditorElements.constBegin(); it != mAttributeEditorElements.constEnd(); ++it )
+    QDomElement rootElem = mInvisibleRootContainer->toDomElement( doc );
+    QDomNodeList elemList = rootElem.childNodes();
+
+    for ( int i = 0; i < elemList.size(); ++i )
     {
-      QDomElement attributeEditorWidgetElem = ( *it )->toDomElement( doc );
-      tabsElem.appendChild( attributeEditorWidgetElem );
+      tabsElem.appendChild( elemList.at( i ) );
     }
 
     node.appendChild( tabsElem );
@@ -463,24 +476,15 @@ QgsAttributeEditorElement* QgsEditFormConfig::attributeEditorElementFromDomEleme
 
 void QgsEditFormConfig::onRelationsLoaded()
 {
-  Q_FOREACH ( QgsAttributeEditorElement* elem, mAttributeEditorElements )
+  QList<QgsAttributeEditorElement*> relations = mInvisibleRootContainer->findElements( QgsAttributeEditorElement::AeTypeRelation );
+
+  Q_FOREACH ( QgsAttributeEditorElement* relElem, relations )
   {
-    if ( elem->type() == QgsAttributeEditorElement::AeTypeContainer )
-    {
-      QgsAttributeEditorContainer* cont = dynamic_cast< QgsAttributeEditorContainer* >( elem );
-      if ( !cont )
-        continue;
+    QgsAttributeEditorRelation* rel = dynamic_cast< QgsAttributeEditorRelation* >( relElem );
+    if ( !rel )
+      continue;
 
-      QList<QgsAttributeEditorElement*> relations = cont->findElements( QgsAttributeEditorElement::AeTypeRelation );
-      Q_FOREACH ( QgsAttributeEditorElement* relElem, relations )
-      {
-        QgsAttributeEditorRelation* rel = dynamic_cast< QgsAttributeEditorRelation* >( relElem );
-        if ( !rel )
-          continue;
-
-        rel->init( QgsProject::instance()->relationManager() );
-      }
-    }
+    rel->init( QgsProject::instance()->relationManager() );
   }
 }
 

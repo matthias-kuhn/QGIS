@@ -168,6 +168,8 @@ class CORE_EXPORT QgsAttributeEditorContainer : public QgsAttributeEditorElement
      */
     virtual QList<QgsAttributeEditorElement*> findElements( AttributeEditorType type ) const;
 
+    void clear();
+
     /**
      * Change the name of this container
      */
@@ -353,22 +355,31 @@ class CORE_EXPORT QgsEditFormConfig : public QObject
       CodeSourceEnvironment = 3       //!< Use the python code available in the python environment
     };
 
-    /**
-     * This is only useful in combination with EditorLayout::TabLayout.
-     *
-     * Adds a new element to the layout.
-     */
-    void addTab( QgsAttributeEditorElement* data ) { mAttributeEditorElements.append( data ); }
+    ~QgsEditFormConfig();
 
     /**
-     * Returns a list of tabs for EditorLayout::TabLayout.
+     * Adds a new element to the invisible root container in the layout.
+     *
+     * This is only useful in combination with EditorLayout::TabLayout.
      */
-    QList< QgsAttributeEditorElement* > tabs() const { return mAttributeEditorElements; }
+    void addTab( QgsAttributeEditorElement* data ) { mInvisibleRootContainer->addChildElement( data ); }
+
+    /**
+     * Returns a list of tabs for EditorLayout::TabLayout obtained from the invisible root container.
+     */
+    QList< QgsAttributeEditorElement* > tabs() const { return mInvisibleRootContainer->children(); }
 
     /**
      * Clears all the tabs for the attribute editor form with EditorLayout::TabLayout.
      */
-    void clearTabs() { mAttributeEditorElements.clear(); }
+    void clearTabs() { mInvisibleRootContainer->clear(); }
+
+    /**
+     * Get the invisible root container for the drag and drop designer form (EditorLayout::TabLayout).
+     *
+     * @note Added in QGIS 3
+     */
+    QgsAttributeEditorContainer* invisibleRootContainer();
 
     /** Get the active layout style for the attribute editor for this layer */
     EditorLayout layout() const { return mEditorLayout; }
@@ -673,8 +684,8 @@ class CORE_EXPORT QgsEditFormConfig : public QObject
     void setFields( const QgsFields& fields );
 
   private:
-    /** Stores a list of attribute editor elements (Each holding a tree structure for a tab in the attribute editor)*/
-    QList< QgsAttributeEditorElement* > mAttributeEditorElements;
+    /** The invisible root container for attribute editors in the drag and drop designer */
+    QgsAttributeEditorContainer* mInvisibleRootContainer;
 
     /** Map that stores the tab for attributes in the edit form. Key is the tab order and value the tab name*/
     QList< TabData > mTabs;
