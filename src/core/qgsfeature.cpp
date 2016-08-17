@@ -93,6 +93,21 @@ void QgsFeature::setFeatureId( QgsFeatureId id )
   d->fid = id;
 }
 
+/***************************************************************************
+ * This class is considered CRITICAL and any change MUST be accompanied with
+ * full unit tests in testqgsfeature.cpp.
+ * See details in QEP #17
+ ****************************************************************************/
+
+void QgsFeature::setId( QgsFeatureId id )
+{
+  if ( id == d->fid )
+    return;
+
+  d.detach();
+  d->fid = id;
+}
+
 QgsAttributes QgsFeature::attributes() const
 {
   return d->attributes;
