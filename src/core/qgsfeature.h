@@ -145,11 +145,11 @@ class CORE_EXPORT QgsFeature
 
     /** Copy constructor
      */
-    QgsFeature( const QgsFeature & rhs );
+    QgsFeature( const QgsFeature& rhs );
 
     /** Assignment operator
      */
-    QgsFeature & operator=( QgsFeature const & rhs );
+    QgsFeature& operator=( const QgsFeature& rhs );
 
     /**
      * Compares two features
