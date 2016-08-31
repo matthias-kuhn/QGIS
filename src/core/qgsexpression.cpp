@@ -3065,6 +3065,7 @@ static QVariant fcnGetLayerProperty( const QVariantList& values, const QgsExpres
 
 bool QgsExpression::registerFunction( QgsExpression::Function* function, bool transferOwnership )
 {
+  // Q_ASSERT( transferOwnership );
   int fnIdx = functionIndex( function->name() );
   if ( fnIdx != -1 )
   {
@@ -3073,6 +3074,7 @@ bool QgsExpression::registerFunction( QgsExpression::Function* function, bool tr
   QgsExpression::gmFunctions.append( function );
   if ( transferOwnership )
     QgsExpression::gmOwnedFunctions.append( function );
+  QgsDebugMsg( QString( "Registering expression function %1 (%2)" ).arg( function->name(), QString::number( gmFunctions.size() ) ) );
   return true;
 }
 
@@ -3160,7 +3162,7 @@ const QStringList& QgsExpression::BuiltinFunctions()
 QList<QgsExpression::Function*> QgsExpression::gmFunctions;
 QList<QgsExpression::Function*> QgsExpression::gmOwnedFunctions;
 
-const QList<QgsExpression::Function*>& QgsExpression::Functions()
+QList<QgsExpression::Function*> QgsExpression::Functions()
 {
   // The construction of the list isn't thread-safe, and without the mutex,
   // crashes in the WFS provider may occur, since it can parse expressions
@@ -3461,6 +3463,7 @@ bool QgsExpression::isFunctionName( const QString &name )
 int QgsExpression::functionIndex( const QString &name )
 {
   int count = functionCount();
+
   for ( int i = 0; i < count; i++ )
   {
     if ( QString::compare( name, Functions()[i]->name(), Qt::CaseInsensitive ) == 0 )

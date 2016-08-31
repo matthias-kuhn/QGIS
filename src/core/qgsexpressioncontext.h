@@ -259,7 +259,7 @@ class CORE_EXPORT QgsExpressionContext
 
     QgsExpressionContext& operator=( const QgsExpressionContext& other );
 
-    QgsExpressionContext& operator=( QgsExpressionContext && other );
+//    QgsExpressionContext& operator=( QgsExpressionContext && other );
 
     ~QgsExpressionContext();
 

@@ -600,7 +600,7 @@ class CORE_EXPORT QgsExpression
 
     //! @note not available in Python bindings
     static QList<Function*> gmFunctions;
-    static const QList<Function*>& Functions();
+    static QList<Function*> Functions();
 
     //! @note not available in Python bindings
     static QStringList gmBuiltinFunctions;

@@ -68,7 +68,7 @@ class GUI_EXPORT QgsMapLayerProxyModel : public QSortFilterProxyModel
      * @note added in 2.3
      */
     QgsMapLayerProxyModel* setFilters( const QgsMapLayerProxyModel::Filters& filters );
-    const Filters& filters() const { return mFilters; }
+    Filters filters() const { return mFilters; }
 
     //! offer the possibility to except some layers to be listed
     void setExceptedLayerList( const QList<QgsMapLayer*>& exceptList );

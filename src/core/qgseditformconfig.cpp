@@ -144,6 +144,7 @@ QgsEditFormConfig::~QgsEditFormConfig()
 void QgsEditFormConfig::addTab( QgsAttributeEditorElement* data )
 {
   d.detach();
+  d->mConfiguredRootContainer = true;
   d->mInvisibleRootContainer->addChildElement( data );
 }
 
@@ -429,7 +430,6 @@ void QgsEditFormConfig::readXml( const QDomNode& node )
 
     if ( attributeEditorFormNodeList.size() )
     {
-      d->mConfiguredRootContainer = true;
       clearTabs();
 
       for ( int i = 0; i < attributeEditorFormNodeList.size(); i++ )

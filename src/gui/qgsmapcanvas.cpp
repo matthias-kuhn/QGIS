@@ -294,10 +294,8 @@ void QgsMapCanvas::setLayerSet( QList<QgsMapCanvasLayer> &layers )
   // create layer set
   QStringList layerSet, layerSetOverview;
 
-  int i;
-  for ( i = 0; i < layers.size(); i++ )
+  Q_FOREACH ( QgsMapCanvasLayer& lyr, layers )
   {
-    QgsMapCanvasLayer &lyr = layers[i];
     if ( !lyr.layer() )
     {
       continue;

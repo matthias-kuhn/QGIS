@@ -216,7 +216,7 @@ QgsExpressionContext::QgsExpressionContext( const QgsExpressionContext& other )
   mHighlightedVariables = other.mHighlightedVariables;
   mCachedValues = other.mCachedValues;
 }
-
+/*
 QgsExpressionContext& QgsExpressionContext::operator=( QgsExpressionContext && other )
 {
   if ( this != &other )
@@ -231,7 +231,7 @@ QgsExpressionContext& QgsExpressionContext::operator=( QgsExpressionContext && o
   }
   return *this;
 }
-
+*/
 QgsExpressionContext& QgsExpressionContext::operator=( const QgsExpressionContext & other )
 {
   qDeleteAll( mStack );
