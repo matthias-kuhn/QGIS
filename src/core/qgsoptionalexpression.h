@@ -28,6 +28,7 @@
  *
  * Added in QGIS 3.0
  */
+template CORE_EXPORT class QgsOptional<QgsExpression>;
 typedef QgsOptional<QgsExpression> QgsOptionalExpression;
 
 #endif // QGSOPTIONALEXPRESSION_H
