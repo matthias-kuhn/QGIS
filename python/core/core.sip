@@ -21,6 +21,7 @@
 %Include qgsaggregatecalculator.sip
 %Include qgsattributetableconfig.sip
 %Include qgsattributeeditorelement.sip
+%Include qgsbearingutils.sip
 %Include qgsbrowsermodel.sip
 %Include qgsclipper.sip
 %Include qgscolorramp.sip
@@ -110,6 +111,7 @@
 %Include qgspointlocator.sip
 %Include qgsproject.sip
 %Include qgsprojectproperty.sip
+%Include qgssnappingconfig.sip
 %Include qgsprojectversion.sip
 %Include qgsprovidermetadata.sip
 %Include qgsproviderregistry.sip

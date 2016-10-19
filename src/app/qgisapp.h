@@ -40,49 +40,50 @@ class QValidator;
 class QgisAppInterface;
 class QgisAppStyleSheet;
 class QgsAnnotationItem;
+class QgsAuthManager;
+class QgsBookmarks;
 class QgsClipboard;
 class QgsComposer;
 class QgsComposerManager;
 class QgsComposerView;
-class QgsCustomDropHandler;
-class QgsStatusBarCoordinatesWidget;
-class QgsStatusBarMagnifierWidget;
-class QgsStatusBarScaleWidget;
 class QgsContrastEnhancement;
+class QgsCoordinateReferenceSystem;
+class QgsCustomDropHandler;
 class QgsCustomLayerOrderWidget;
 class QgsDockWidget;
 class QgsDoubleSpinBox;
 class QgsFeature;
+class QgsFeatureStore;
 class QgsGeometry;
 class QgsLayerTreeMapCanvasBridge;
 class QgsLayerTreeView;
 class QgsMapCanvas;
 class QgsMapLayer;
 class QgsMapLayerConfigWidgetFactory;
+class QgsMapOverviewCanvas;
 class QgsMapTip;
 class QgsMapTool;
 class QgsMapToolAdvancedDigitizing;
-class QgsMapOverviewCanvas;
 class QgsPluginLayer;
+class QgsPluginLayer;
+class QgsPluginManager;
 class QgsPoint;
 class QgsProviderRegistry;
 class QgsPythonUtils;
+class QgsRasterLayer;
 class QgsRectangle;
+class QgsRuntimeProfiler;
 class QgsSnappingUtils;
+class QgsSnappingWidget;
+class QgsStatusBarCoordinatesWidget;
+class QgsStatusBarMagnifierWidget;
+class QgsStatusBarScaleWidget;
 class QgsTransactionGroup;
 class QgsUndoWidget;
 class QgsUserInputDockWidget;
 class QgsVectorLayer;
 class QgsVectorLayerTools;
 class QgsWelcomePage;
-class QgsRasterLayer;
-class QgsPluginLayer;
-class QgsCoordinateReferenceSystem;
-class QgsFeatureStore;
-class QgsAuthManager;
-class QgsPluginManager;
-class QgsRuntimeProfiler;
-class QgsBookmarks;
 
 class QDomDocument;
 class QNetworkReply;
@@ -91,7 +92,6 @@ class QAuthenticator;
 
 class QgsBrowserDockWidget;
 class QgsAdvancedDigitizingDockWidget;
-class QgsSnappingDialog;
 class QgsGPSInformationWidget;
 class QgsStatisticalSummaryDockWidget;
 class QgsMapCanvasTracer;
@@ -203,6 +203,10 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     void openProject( const QString & fileName );
 
     void openLayerDefinition( const QString & filename );
+
+    //! Open a composer template file and create a new composition
+    void openTemplate( const QString& fileName );
+
     /** Opens a qgis project file
       @returns false if unable to open the project
       */
@@ -722,6 +726,10 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
 #endif
 
   private slots:
+    void onTransactionGroupsChanged();
+
+    void onSnappingConfigChanged();
+
     //! validate a SRS
     void validateCrs( QgsCoordinateReferenceSystem &crs );
 
@@ -1331,6 +1339,9 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     /** Set the layer for the map style dock. Doesn't show the style dock */
     void setMapStyleDockLayer( QgsMapLayer *layer );
 
+    //! Handles processing of dropped mimedata
+    void dropEventTimeout();
+
   signals:
     /** Emitted when a key is pressed and we want non widget sublasses to be able
       to pick up on this (e.g. maplayer) */
@@ -1732,7 +1743,10 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     QgsStatisticalSummaryDockWidget* mStatisticalSummaryDockWidget;
     QgsBookmarks* mBookMarksDockWidget;
 
-    QgsSnappingDialog *mSnappingDialog;
+    //! snapping widget
+    QgsSnappingWidget *mSnappingWidget;
+    QWidget *mSnappingDialogContainer;
+    QgsSnappingWidget *mSnappingDialogWidget;
 
     QgsPluginManager *mPluginManager;
     QgsDockWidget *mMapStylingDock;

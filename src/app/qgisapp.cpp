@@ -17,9 +17,6 @@
  *                                                                         *
  ***************************************************************************/
 
-//
-// QT4 includes make sure to use the new <CamelCase> style!
-//
 #include <QAction>
 #include <QApplication>
 #include <QBitmap>
@@ -30,6 +27,7 @@
 #include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QDialog>
+#include <QDialogButtonBox>
 #include <QDir>
 #include <QEvent>
 #include <QFile>
@@ -214,7 +212,7 @@
 #include "qgsselectbyformdialog.h"
 #include "qgsshortcutsmanager.h"
 #include "qgssinglebandgrayrenderer.h"
-#include "qgssnappingdialog.h"
+#include "qgssnappingwidget.h"
 #include "qgssourceselectdialog.h"
 #include "qgssponsors.h"
 #include "qgsstatisticalsummarydockwidget.h"
@@ -589,6 +587,7 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
     , mInternalClipboard( nullptr )
     , mShowProjectionTab( false )
     , mPythonUtils( nullptr )
+    , mSnappingWidget( nullptr )
     , mMapStylingDock( nullptr )
     , mComposerManager( nullptr )
     , mpTileScaleWidget( nullptr )
@@ -758,8 +757,8 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   startProfile( "Snapping utils" );
   mSnappingUtils = new QgsMapCanvasSnappingUtils( mMapCanvas, this );
   mMapCanvas->setSnappingUtils( mSnappingUtils );
-  connect( QgsProject::instance(), SIGNAL( snapSettingsChanged() ), mSnappingUtils, SLOT( readConfigFromProject() ) );
-  connect( this, SIGNAL( projectRead() ), mSnappingUtils, SLOT( readConfigFromProject() ) );
+  connect( QgsProject::instance(), &QgsProject::snappingConfigChanged, this, &QgisApp::onSnappingConfigChanged );
+
   endProfile();
 
   functionProfile( &QgisApp::createActions, this, "Create actions" );
@@ -807,8 +806,28 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   endProfile();
 
   startProfile( "Snapping dialog" );
-  mSnappingDialog = new QgsSnappingDialog( this, mMapCanvas );
-  mSnappingDialog->setObjectName( "SnappingOption" );
+  mSnappingDialogWidget = new QgsSnappingWidget( QgsProject::instance(), mMapCanvas, this );
+  QString mainSnappingWidgetMode = QSettings().value( "/qgis/mainSnappingWidgetMode", "dialog" ).toString();
+  if ( mainSnappingWidgetMode == "dock" )
+  {
+    QgsDockWidget* dock = new QgsDockWidget( tr( "Snapping and Digitizing Options" ), QgisApp::instance() );
+    dock->setAllowedAreas( Qt::AllDockWidgetAreas );
+    dock->setWidget( mSnappingDialogWidget );
+    dock->setObjectName( "Snapping and Digitizing Options" );
+    addDockWidget( Qt::LeftDockWidgetArea, dock );
+    mSnappingDialogContainer = dock;
+    dock->hide();
+  }
+  else
+  {
+    QDialog* dialog = new QDialog( this );
+    dialog->setWindowTitle( tr( "Project snapping settings" ) );
+    QVBoxLayout* layout = new QVBoxLayout( dialog );
+    QDialogButtonBox* button = new QDialogButtonBox( QDialogButtonBox::Close );
+    layout->addWidget( mSnappingDialogWidget );
+    layout->addWidget( button );
+    mSnappingDialogContainer = dialog;
+  }
   endProfile();
 
   mBrowserWidget = new QgsBrowserDockWidget( tr( "Browser Panel" ), this );
@@ -1160,7 +1179,8 @@ QgisApp::QgisApp()
     , mAdvancedDigitizingDockWidget( nullptr )
     , mStatisticalSummaryDockWidget( nullptr )
     , mBookMarksDockWidget( nullptr )
-    , mSnappingDialog( nullptr )
+    , mSnappingWidget( nullptr )
+    , mSnappingDialogContainer( nullptr )
     , mPluginManager( nullptr )
     , mMapStylingDock( nullptr )
     , mMapStyleWidget( nullptr )
@@ -1287,10 +1307,17 @@ void QgisApp::dragEnterEvent( QDragEnterEvent *event )
 
 void QgisApp::dropEvent( QDropEvent *event )
 {
-  mMapCanvas->freeze();
+  // dragging app is locked for the duration of dropEvent. This causes explorer windows to hang
+  // while large projects/layers are loaded. So instead we return from dropEvent as quickly as possible
+  // and do the actual handling of the drop after a very short timeout
+  QTimer* timer = new QTimer( this );
+  timer->setSingleShot( true );
+  timer->setInterval( 50 );
+
   // get the file list
   QList<QUrl>::iterator i;
   QList<QUrl>urls = event->mimeData()->urls();
+  QStringList files;
   for ( i = urls.begin(); i != urls.end(); ++i )
   {
     QString fileName = i->toLocalFile();
@@ -1343,18 +1370,43 @@ void QgisApp::dropEvent( QDropEvent *event )
     // so we test for length to make sure we have something
     if ( !fileName.isEmpty() )
     {
-      openFile( fileName );
+      files << fileName;
     }
   }
+  timer->setProperty( "files", files );
 
+  QgsMimeDataUtils::UriList lst;
   if ( QgsMimeDataUtils::isUriList( event->mimeData() ) )
   {
-    QgsMimeDataUtils::UriList lst = QgsMimeDataUtils::decodeUriList( event->mimeData() );
+    lst = QgsMimeDataUtils::decodeUriList( event->mimeData() );
+  }
+  timer->setProperty( "uris", QVariant::fromValue( lst ) );
+
+  connect( timer, SIGNAL( timeout() ), this, SLOT( dropEventTimeout() ) );
+
+  event->acceptProposedAction();
+  timer->start();
+}
+
+void QgisApp::dropEventTimeout()
+{
+  mMapCanvas->freeze();
+  QStringList files = sender()->property( "files" ).toStringList();
+  sender()->deleteLater();
+
+  Q_FOREACH ( const QString& file, files )
+  {
+    openFile( file );
+  }
+
+  QgsMimeDataUtils::UriList lst = sender()->property( "uris" ).value<QgsMimeDataUtils::UriList>();
+  if ( !lst.isEmpty() )
+  {
     handleDropUriList( lst );
   }
+
   mMapCanvas->freeze( false );
   mMapCanvas->refresh();
-  event->acceptProposedAction();
 }
 
 
@@ -2016,6 +2068,18 @@ void QgisApp::createToolBars()
   << mWebToolBar
   << mLabelToolBar;
 
+
+  // snapping widget as tool bar
+  QString simpleSnappingWidgetMode = QSettings().value( "/qgis/simpleSnappingWidgetMode", "toolbar" ).toString();
+  if ( simpleSnappingWidgetMode != "statusbar" )
+  {
+    mSnappingWidget = new QgsSnappingWidget( QgsProject::instance(), mMapCanvas, mSnappingToolBar );
+    mSnappingWidget->setObjectName( "mSnappingWidget" );
+    //mSnappingWidget->setFont( myFont );
+    connect( mSnappingWidget, SIGNAL( snapSettingsChanged() ), QgsProject::instance(), SIGNAL( snapSettingsChanged() ) );
+    mSnappingToolBar->addWidget( mSnappingWidget );
+  }
+
   QList<QAction*> toolbarMenuActions;
   // Set action names so that they can be used in customization
   Q_FOREACH ( QToolBar *toolBar, toolbarMenuToolBars )
@@ -2362,6 +2426,17 @@ void QgisApp::createStatusBar()
   mRotationLabel->setText( tr( "Rotation" ) );
   mRotationLabel->setToolTip( tr( "Current clockwise map rotation in degrees" ) );
   statusBar()->addPermanentWidget( mRotationLabel, 0 );
+
+  // snapping widget
+  QString simpleSnappingWidgetMode = QSettings().value( "/qgis/simpleSnappingWidgetMode", "toolbar" ).toString();
+  if ( simpleSnappingWidgetMode == "statusbar" )
+  {
+    mSnappingWidget = new QgsSnappingWidget( QgsProject::instance(), mMapCanvas, statusBar() );
+    mSnappingWidget->setObjectName( "mSnappingWidget" );
+    mSnappingWidget->setFont( myFont );
+    connect( mSnappingWidget, SIGNAL( snapSettingsChanged() ), QgsProject::instance(), SIGNAL( snapSettingsChanged() ) );
+    statusBar()->addPermanentWidget( mSnappingWidget, 0 );
+  }
 
   mRotationEdit = new QgsDoubleSpinBox( statusBar() );
   mRotationEdit->setObjectName( "mRotationEdit" );
@@ -2740,6 +2815,8 @@ void QgisApp::setupConnections()
 
   connect( this, SIGNAL( projectRead() ),
            this, SLOT( fileOpenedOKAfterLaunch() ) );
+
+  connect( QgsProject::instance(), &QgsProject::transactionGroupsChanged, this, &QgisApp::onTransactionGroupsChanged );
 
   // connect preview modes actions
   connect( mActionPreviewModeOff, SIGNAL( triggered() ), this, SLOT( disablePreviewMode() ) );
@@ -4435,9 +4512,7 @@ void QgisApp::fileNew( bool thePromptToSaveFlag, bool forceBlank )
   QgsCoordinateReferenceSystem srs = QgsCoordinateReferenceSystem::fromOgcWmsCrs( defCrs );
   mMapCanvas->setDestinationCrs( srs );
   // write the projections _proj string_ to project settings
-  prj->writeEntry( "SpatialRefSys", "/ProjectCRSProj4String", srs.toProj4() );
-  prj->writeEntry( "SpatialRefSys", "/ProjectCrs", srs.authid() );
-  prj->writeEntry( "SpatialRefSys", "/ProjectCRSID", static_cast< int >( srs.srsid() ) );
+  prj->setCrs( srs );
   prj->setDirty( false );
   if ( srs.mapUnits() != QgsUnitTypes::DistanceUnknownUnit )
   {
@@ -5120,6 +5195,47 @@ void QgisApp::openLayerDefinition( const QString & path )
   }
 }
 
+void QgisApp::openTemplate( const QString& fileName )
+{
+  QFile templateFile;
+  templateFile.setFileName( fileName );
+
+  if ( !templateFile.open( QIODevice::ReadOnly ) )
+  {
+    messageBar()->pushMessage( tr( "Load template" ), tr( "Could not read template file" ), QgsMessageBar::WARNING );
+    return;
+  }
+
+  QString title;
+  if ( !uniqueComposerTitle( this, title, true ) )
+  {
+    return;
+  }
+
+  QgsComposer* newComposer = createNewComposer( title );
+  if ( !newComposer )
+  {
+    messageBar()->pushMessage( tr( "Load template" ), tr( "Could not create composer" ), QgsMessageBar::WARNING );
+    return;
+  }
+
+  bool loadedOk = false;
+  QDomDocument templateDoc;
+  if ( templateDoc.setContent( &templateFile, false ) )
+  {
+    loadedOk = newComposer->loadFromTemplate( templateDoc, true );
+    newComposer->activate();
+  }
+
+  if ( !loadedOk )
+  {
+    newComposer->close();
+    deleteComposer( newComposer );
+    newComposer = nullptr;
+    messageBar()->pushMessage( tr( "Load template" ), tr( "Could not load template file" ), QgsMessageBar::WARNING );
+  }
+}
+
 // Open the project file corresponding to the
 // path at the given index in mRecentProjectPaths
 void QgisApp::openProject( QAction *action )
@@ -5245,6 +5361,10 @@ void QgisApp::openFile( const QString & fileName )
   else if ( fi.completeSuffix() == "qlr" )
   {
     openLayerDefinition( fileName );
+  }
+  else if ( fi.completeSuffix() == "qpt" )
+  {
+    openTemplate( fileName );
   }
   else if ( fi.completeSuffix() == "py" )
   {
@@ -7102,7 +7222,7 @@ void QgisApp::offsetPointSymbol()
 
 void QgisApp::snappingOptions()
 {
-  mSnappingDialog->show();
+  mSnappingDialogContainer->show();
 }
 
 void QgisApp::splitFeatures()
@@ -7261,7 +7381,7 @@ void QgisApp::selectByForm()
 
   myDa.setSourceCrs( vlayer->crs().srsid() );
   myDa.setEllipsoidalMode( mMapCanvas->mapSettings().hasCrsTransformEnabled() );
-  myDa.setEllipsoid( QgsProject::instance()->readEntry( "Measure", "/Ellipsoid", GEO_NONE ) );
+  myDa.setEllipsoid( QgsProject::instance()->ellipsoid() );
 
   QgsAttributeEditorContext context;
   context.setDistanceArea( myDa );
@@ -8537,6 +8657,7 @@ void QgisApp::setProjectCrsFromLayer()
   QgsCoordinateReferenceSystem crs = mLayerTreeView->currentLayer()->crs();
   mMapCanvas->freeze();
   mMapCanvas->setDestinationCrs( crs );
+  QgsProject::instance()->setCrs( crs );
   if ( crs.mapUnits() != QgsUnitTypes::DistanceUnknownUnit )
   {
     mMapCanvas->setMapUnits( crs.mapUnits() );
@@ -11123,6 +11244,19 @@ void QgisApp::keyPressEvent( QKeyEvent * e )
   {
     e->ignore();
   }
+}
+
+void QgisApp::onTransactionGroupsChanged()
+{
+  Q_FOREACH ( QgsTransactionGroup* tg, QgsProject::instance()->transactionGroups().values() )
+  {
+    connect( tg, SIGNAL( commitError( QString ) ), this, SLOT( displayMessage( QString, QString, QgsMessageBar::MessageLevel ) ), Qt::UniqueConnection );
+  }
+}
+
+void QgisApp::onSnappingConfigChanged()
+{
+  mSnappingUtils->setConfig( QgsProject::instance()->snappingConfig() );
 }
 
 void QgisApp::startProfile( const QString& name )

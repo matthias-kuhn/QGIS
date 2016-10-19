@@ -85,6 +85,7 @@ SET(QGIS_CORE_SRCS
   qgsaggregatecalculator.cpp
   qgsattributetableconfig.cpp
   qgsattributeeditorelement.cpp
+  qgsbearingutils.cpp
   qgsbrowsermodel.cpp
   qgscachedfeatureiterator.cpp
   qgscacheindex.cpp
@@ -178,6 +179,7 @@ SET(QGIS_CORE_SRCS
   qgspointlocator.cpp
   qgsproject.cpp
   qgsprojectfiletransform.cpp
+  qgssnappingconfig.cpp
   qgsprojectproperty.cpp
   qgsprojectversion.cpp
   qgsprovidermetadata.cpp
@@ -477,6 +479,7 @@ SET(QGIS_CORE_MOC_HDRS
   qgsofflineediting.h
   qgsowsconnection.h
   qgspluginlayer.h
+  qgspoint.h
   qgspointlocator.h
   qgsproject.h
   qgsrelationmanager.h
@@ -600,6 +603,7 @@ SET(QGIS_CORE_HDRS
   qgsannotation.h
   qgsattributetableconfig.h
   qgsattributeeditorelement.h
+  qgsbearingutils.h
   qgscachedfeatureiterator.h
   qgscacheindex.h
   qgscacheindexfeatureid.h
@@ -671,11 +675,11 @@ SET(QGIS_CORE_HDRS
   qgspainting.h
   qgspallabeling.h
   qgspluginlayerregistry.h
-  qgspoint.h
   qgspointlocator.h
   qgsproject.h
   qgsprojectfiletransform.h
   qgsprojectproperty.h
+  qgssnappingconfig.h
   qgsprojectversion.h
   qgsprovidermetadata.h
   qgsproviderregistry.h
@@ -690,6 +694,7 @@ SET(QGIS_CORE_HDRS
   qgsscaleutils.h
   qgssimplifymethod.h
   qgssnapper.h
+  qgssnappingconfig.h
   qgssnappingutils.h
   qgsspatialindex.h
   qgssqlexpressioncompiler.h

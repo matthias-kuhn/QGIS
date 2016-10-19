@@ -89,6 +89,7 @@ const QString QgsSymbolLayer::EXPR_INTERVAL( "interval" );
 const QString QgsSymbolLayer::EXPR_OFFSET_ALONG_LINE( "offset_along_line" );
 const QString QgsSymbolLayer::EXPR_HORIZONTAL_ANCHOR_POINT( "horizontal_anchor_point" );
 const QString QgsSymbolLayer::EXPR_VERTICAL_ANCHOR_POINT( "vertical_anchor_point" );
+const QString QgsSymbolLayer::EXPR_LAYER_ENABLED( "enabled" );
 
 QgsDataDefined *QgsSymbolLayer::getDataDefinedProperty( const QString &property ) const
 {
@@ -261,6 +262,7 @@ void QgsSymbolLayer::setPaintEffect( QgsPaintEffect *effect )
 
 QgsSymbolLayer::QgsSymbolLayer( QgsSymbol::SymbolType type, bool locked )
     : mType( type )
+    , mEnabled( true )
     , mLocked( locked )
     , mRenderingPass( 0 )
     , mPaintEffect( nullptr )

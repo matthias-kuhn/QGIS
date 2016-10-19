@@ -68,6 +68,22 @@ class QgsSymbolLayer
     virtual ~QgsSymbolLayer();
 
     /**
+     * Returns true if symbol layer is enabled and will be drawn.
+     * @note added in QGIS 3.0
+     * @see setEnabled()
+     */
+    bool enabled() const;
+
+    /**
+     * Sets whether symbol layer is enabled and should be drawn. Disabled
+     * layers are not drawn, but remain part of the symbol and can be re-enabled
+     * when desired.
+     * @note added in QGIS 3.0
+     * @see enabled()
+     */
+    void setEnabled( bool enabled );
+
+    /**
      * The fill color.
      */
     virtual QColor color() const;
@@ -261,15 +277,18 @@ class QgsSymbolLayer
      */
     void setPaintEffect( QgsPaintEffect* effect /Transfer/);
 
-  protected:
-    QgsSymbolLayer( QgsSymbol::SymbolType type, bool locked = false );
-
     /** Prepares all data defined property expressions for evaluation. This should
      * be called prior to evaluating data defined properties.
      * @param context symbol render context
      * @note added in QGIS 2.12
      */
     virtual void prepareExpressions( const QgsSymbolRenderContext& context );
+
+    //! Data defined layer enabled string
+    static const QString EXPR_LAYER_ENABLED;
+
+  protected:
+    QgsSymbolLayer( QgsSymbol::SymbolType type, bool locked = false );
 
     /** Saves all data defined properties to a string map.
      * @param stringMap destination string map

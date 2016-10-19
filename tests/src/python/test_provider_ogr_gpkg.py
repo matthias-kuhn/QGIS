@@ -17,12 +17,10 @@ import qgis  # NOQA
 import os
 import tempfile
 import shutil
-import glob
 from osgeo import gdal, ogr
 
-from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsFeatureRequest
+from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsRectangle
 from qgis.testing import start_app, unittest
-from utilities import unitTestDataPath
 
 start_app()
 
@@ -57,14 +55,14 @@ class TestPyQgsOGRProviderGpkg(unittest.TestCase):
 
         tmpfile = os.path.join(self.basetestpath, 'testSingleToMultiPolygonPromotion.gpkg')
         ds = ogr.GetDriverByName('GPKG').CreateDataSource(tmpfile)
-        lyr = ds.CreateLayer('test', geom_type=ogr.wkbMultiPolygon)
+        ds.CreateLayer('test', geom_type=ogr.wkbMultiPolygon)
         ds = None
 
         vl = QgsVectorLayer('{}|layerid=0'.format(tmpfile), 'test', 'ogr')
         f = QgsFeature()
         f.setGeometry(QgsGeometry.fromWkt('POLYGON ((0 0,0 1,1 1,0 0))'))
         vl.dataProvider().addFeatures([f])
-        got = [f for f in vl.getFeatures()][0]
+        got = [feat for feat in vl.getFeatures()][0]
         got_geom = got.geometry()
         reference = QgsGeometry.fromWkt('MultiPolygon (((0 0, 0 1, 1 1, 0 0)))')
         # The geometries must be binarily identical
@@ -75,7 +73,7 @@ class TestPyQgsOGRProviderGpkg(unittest.TestCase):
 
         tmpfile = os.path.join(self.basetestpath, 'testCurveGeometryType.gpkg')
         ds = ogr.GetDriverByName('GPKG').CreateDataSource(tmpfile)
-        lyr = ds.CreateLayer('test', geom_type=ogr.wkbCurvePolygon)
+        ds.CreateLayer('test', geom_type=ogr.wkbCurvePolygon)
         ds = None
 
         vl = QgsVectorLayer('{}'.format(tmpfile), 'test', 'ogr')
@@ -83,7 +81,7 @@ class TestPyQgsOGRProviderGpkg(unittest.TestCase):
         f = QgsFeature()
         f.setGeometry(QgsGeometry.fromWkt('POLYGON ((0 0,0 1,1 1,0 0))'))
         vl.dataProvider().addFeatures([f])
-        got = [f for f in vl.getFeatures()][0]
+        got = [feat for feat in vl.getFeatures()][0]
         got_geom = got.geometry()
         reference = QgsGeometry.fromWkt('CurvePolygon (((0 0, 0 1, 1 1, 0 0)))')
         # The geometries must be binarily identical
@@ -148,13 +146,58 @@ class TestPyQgsOGRProviderGpkg(unittest.TestCase):
 
     @unittest.expectedFailure(int(gdal.VersionInfo('VERSION_NUM')) < GDAL_COMPUTE_VERSION(2, 0, 0))
     # We need GDAL 2.0 to issue PRAGMA journal_mode
-    def testBug15351_closeIter_commit_closeProvider(self):
-        self.internalTestBug15351('closeIter_commit_closeProvider')
+    def testBug15351_commit_closeProvider_closeIter(self):
+        self.internalTestBug15351('commit_closeProvider_closeIter')
 
     @unittest.expectedFailure(int(gdal.VersionInfo('VERSION_NUM')) < GDAL_COMPUTE_VERSION(2, 0, 0))
     # We need GDAL 2.0 to issue PRAGMA journal_mode
     def testBug15351_commit_closeIter_closeProvider(self):
         self.internalTestBug15351('commit_closeIter_closeProvider')
+
+    @unittest.expectedFailure(int(gdal.VersionInfo('VERSION_NUM')) < GDAL_COMPUTE_VERSION(2, 1, 2))
+    def testGeopackageExtentUpdate(self):
+        ''' test http://hub.qgis.org/issues/15273 '''
+        tmpfile = os.path.join(self.basetestpath, 'testGeopackageExtentUpdate.gpkg')
+        ds = ogr.GetDriverByName('GPKG').CreateDataSource(tmpfile)
+        lyr = ds.CreateLayer('test', geom_type=ogr.wkbPoint)
+        f = ogr.Feature(lyr.GetLayerDefn())
+        f.SetGeometry(ogr.CreateGeometryFromWkt('POINT(0 0)'))
+        lyr.CreateFeature(f)
+        f = ogr.Feature(lyr.GetLayerDefn())
+        f.SetGeometry(ogr.CreateGeometryFromWkt('POINT(1 1)'))
+        lyr.CreateFeature(f)
+        f = None
+        f = ogr.Feature(lyr.GetLayerDefn())
+        f.SetGeometry(ogr.CreateGeometryFromWkt('POINT(1 0.5)'))
+        lyr.CreateFeature(f)
+        f = None
+        gdal.ErrorReset()
+        ds.ExecuteSQL('RECOMPUTE EXTENT ON test')
+        has_error = gdal.GetLastErrorMsg() != ''
+        ds = None
+        if has_error:
+            print('Too old GDAL trunk version. Please update')
+            return
+
+        vl = QgsVectorLayer(u'{}'.format(tmpfile), u'test', u'ogr')
+
+        # Test moving a geometry that touches the bbox
+        self.assertTrue(vl.startEditing())
+        self.assertTrue(vl.changeGeometry(1, QgsGeometry.fromWkt('Point (0.5 0)')))
+        self.assertTrue(vl.commitChanges())
+        reference = QgsGeometry.fromRect(QgsRectangle(0.5, 0.0, 1.0, 1.0))
+        provider_extent = QgsGeometry.fromRect(vl.extent())
+        self.assertTrue(QgsGeometry.compare(provider_extent.asPolygon()[0], reference.asPolygon()[0], 0.00001),
+                        provider_extent.asPolygon()[0])
+
+        # Test deleting a geometry that touches the bbox
+        self.assertTrue(vl.startEditing())
+        self.assertTrue(vl.deleteFeature(2))
+        self.assertTrue(vl.commitChanges())
+        reference = QgsGeometry.fromRect(QgsRectangle(0.5, 0.0, 1.0, 0.5))
+        provider_extent = QgsGeometry.fromRect(vl.extent())
+        self.assertTrue(QgsGeometry.compare(provider_extent.asPolygon()[0], reference.asPolygon()[0], 0.00001),
+                        provider_extent.asPolygon()[0])
 
 if __name__ == '__main__':
     unittest.main()
