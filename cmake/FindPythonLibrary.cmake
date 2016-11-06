@@ -31,19 +31,6 @@ if(EXISTS "${PYTHON_INCLUDE_PATH}" AND EXISTS "${PYTHON_LIBRARY}" AND EXISTS "${
   set(PYTHONLIBRARY_FOUND TRUE)
 else(EXISTS "${PYTHON_INCLUDE_PATH}" AND EXISTS "${PYTHON_LIBRARY}" AND EXISTS "${PYTHON_SITE_PACKAGES_DIR}")
 
-  set(_custom_python_fw FALSE)
-  if(APPLE AND PYTHON_CUSTOM_FRAMEWORK)
-    if("${PYTHON_CUSTOM_FRAMEWORK}" MATCHES "Python\\.framework")
-      STRING(REGEX REPLACE "(.*Python\\.framework).*$" "\\1" _python_fw "${PYTHON_CUSTOM_FRAMEWORK}")
-      set(PYTHON_EXECUTABLE "${_python_fw}/Versions/Current/bin/python")
-      set(PYTHON_INCLUDE_PATH "${_python_fw}/Versions/Current/Headers")
-      set(PYTHON_LIBRARY "${_python_fw}/Versions/Current/Python")
-      if(EXISTS "${PYTHON_EXECUTABLE}" AND EXISTS "${PYTHON_INCLUDE_PATH}" AND EXISTS "${PYTHON_LIBRARY}")
-        set(_custom_python_fw TRUE)
-      endif()
-    endif("${PYTHON_CUSTOM_FRAMEWORK}" MATCHES "Python\\.framework")
-  endif(APPLE AND PYTHON_CUSTOM_FRAMEWORK)
-
   FIND_PACKAGE(PythonInterp 3)
 
   if(PYTHONINTERP_FOUND)
