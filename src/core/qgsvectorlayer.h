@@ -430,8 +430,8 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer, public QgsExpressionConte
       InvalidLayer = 4, //!< Edit failed due to invalid layer
     };
 
-    //! Selection behaviour
-    enum SelectBehaviour
+    //! Selection behavior
+    enum SelectBehavior
     {
       SetSelection, //!< Set selection, removing any existing selection
       AddToSelection, //!< Add selection to current selection
@@ -607,34 +607,34 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer, public QgsExpressionConte
     /**
      * Select features found within the search rectangle (in layer's coordinates)
      * @param rect search rectangle
-     * @param behaviour selection type, allows adding to current selection, removing
+     * @param behavior selection type, allows adding to current selection, removing
      * from selection, etc.
      * @see invertSelectionInRectangle(QgsRectangle & rect)
      * @see selectByExpression()
      * @see selectByIds()
      */
-    void selectByRect( QgsRectangle & rect, SelectBehaviour behaviour = SetSelection );
+    void selectByRect( QgsRectangle & rect, SelectBehavior behavior = SetSelection );
 
     /** Select matching features using an expression.
      * @param expression expression to evaluate to select features
-     * @param behaviour selection type, allows adding to current selection, removing
+     * @param behavior selection type, allows adding to current selection, removing
      * from selection, etc.
      * @note added in QGIS 2.16
      * @see selectByRect()
      * @see selectByIds()
      */
-    void selectByExpression( const QString& expression, SelectBehaviour behaviour = SetSelection );
+    void selectByExpression( const QString& expression, SelectBehavior behavior = SetSelection );
 
     /** Select matching features using a list of feature IDs. Will emit the
      * selectionChanged() signal with the clearAndSelect flag set.
      * @param ids feature IDs to select
-     * @param behaviour selection type, allows adding to current selection, removing
+     * @param behavior selection type, allows adding to current selection, removing
      * from selection, etc.
      * @note added in QGIS 2.16
      * @see selectByRect()
      * @see selectByExpression()
      */
-    void selectByIds( const QgsFeatureIds &ids, SelectBehaviour behaviour = SetSelection );
+    void selectByIds( const QgsFeatureIds &ids, SelectBehavior behavior = SetSelection );
 
     /**
      * Modifies the current selection on this layer
@@ -765,9 +765,9 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer, public QgsExpressionConte
      * @param uiFileContent
      * @param msgError
      */
-    virtual void saveStyleToDatabase( const QString& name, const QString& description,
-                                      bool useAsDefault, const QString& uiFileContent,
-                                      QString &msgError );
+    void saveStyleToDatabase( const QString& name, const QString& description,
+                              bool useAsDefault, const QString& uiFileContent,
+                              QString &msgError );
 
     /**
      * Lists all the style in db split into related to the layer and not related to
@@ -777,13 +777,13 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer, public QgsExpressionConte
      * @param msgError
      * @return the number of styles related to current layer
      */
-    virtual int listStylesInDatabase( QStringList &ids, QStringList &names,
-                                      QStringList &descriptions, QString &msgError );
+    int listStylesInDatabase( QStringList &ids, QStringList &names,
+                              QStringList &descriptions, QString &msgError );
 
     /**
      * Will return the named style corresponding to style id provided
      */
-    virtual QString getStyleFromDatabase( const QString& styleId, QString &msgError );
+    QString getStyleFromDatabase( const QString& styleId, QString &msgError );
 
     /**
      * Load a named style from file/local db/datasource db
@@ -791,7 +791,7 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer, public QgsExpressionConte
      * @param theResultFlag will be set to true if a named style is correctly loaded
      * @param loadFromLocalDb if true forces to load from local db instead of datasource one
      */
-    virtual QString loadNamedStyle( const QString &theURI, bool &theResultFlag, bool loadFromLocalDb );
+    QString loadNamedStyle( const QString &theURI, bool &theResultFlag, bool loadFromLocalDb );
 
     /**
      * Calls loadNamedStyle( theURI, theResultFlag, false );
@@ -874,13 +874,13 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer, public QgsExpressionConte
      *               and data store.
      * @return true, when setting the subset string was successful, false otherwise
      */
-    virtual bool setSubsetString( const QString& subset );
+    bool setSubsetString( const QString& subset );
 
     /**
      * Get the string (typically sql) used to define a subset of the layer
      * @return The subset string or QString::null if not implemented by the provider
      */
-    virtual QString subsetString() const;
+    QString subsetString() const;
 
     /**
      * Query the layer for features specified in request.
@@ -1099,7 +1099,7 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer, public QgsExpressionConte
     virtual bool isSpatial() const override;
 
     //! Returns true if the provider has been modified since the last commit
-    virtual bool isModified() const;
+    bool isModified() const;
 
     /** Snaps a point to the closest vertex if there is one within the snapping tolerance
      *  @param point       The point which is set to the position of a vertex if there is one within the snapping tolerance.
@@ -1697,7 +1697,7 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer, public QgsExpressionConte
     /** Update the extents for the layer. This is necessary if features are
      *  added/deleted or the layer has been subsetted.
      */
-    virtual void updateExtents();
+    void updateExtents();
 
     //! Check if there is a join with a layer that will be removed
     void checkJoinLayerRemove( const QString& theLayerId );

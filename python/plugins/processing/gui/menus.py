@@ -8,6 +8,7 @@ from processing.core.ProcessingConfig import ProcessingConfig, Setting
 from processing.gui.MessageDialog import MessageDialog
 from processing.gui.AlgorithmDialog import AlgorithmDialog
 from qgis.utils import iface
+from qgis.core import QgsApplication
 from processing.gui.MessageBarProgress import MessageBarProgress
 from processing.gui.AlgorithmExecutor import runalg
 from processing.gui.Postprocessing import handleAlgorithmResults
@@ -73,45 +74,45 @@ defaultMenuEntries.update({'qgis:definecurrentprojection': managementToolsMenu,
 
 rasterMenu = Processing.tr('&Raster')
 projectionsMenu = rasterMenu + "/" + Processing.tr('Projections')
-defaultMenuEntries.update({'gdal:warpreproject':projectionsMenu,
-                           'gdal:assignprojection':projectionsMenu,
-                           'gdal:extractprojection':projectionsMenu})
+defaultMenuEntries.update({'gdal:warpreproject': projectionsMenu,
+                           'gdal:assignprojection': projectionsMenu,
+                           'gdal:extractprojection': projectionsMenu})
 conversionMenu = rasterMenu + "/" + Processing.tr('Conversion')
-defaultMenuEntries.update({'gdal:rasterize':conversionMenu,
-                           'gdal:rasterize_over':conversionMenu,
-                           'gdal:polygonize':conversionMenu,
-                           'gdal:translate':conversionMenu,
-                           'gdal:rgbtopct':conversionMenu,
-                           'gdal:pcttorgb':conversionMenu})
+defaultMenuEntries.update({'gdal:rasterize': conversionMenu,
+                           'gdal:rasterize_over': conversionMenu,
+                           'gdal:polygonize': conversionMenu,
+                           'gdal:translate': conversionMenu,
+                           'gdal:rgbtopct': conversionMenu,
+                           'gdal:pcttorgb': conversionMenu})
 extractionMenu = rasterMenu + "/" + Processing.tr('Extraction')
-defaultMenuEntries.update({'gdal:contour':extractionMenu,
-                           'gdal:cliprasterbyextent':extractionMenu,
-                           'gdal:cliprasterbymasklayer':extractionMenu})
+defaultMenuEntries.update({'gdal:contour': extractionMenu,
+                           'gdal:cliprasterbyextent': extractionMenu,
+                           'gdal:cliprasterbymasklayer': extractionMenu})
 analysisMenu = rasterMenu + "/" + Processing.tr('Analysis')
-defaultMenuEntries.update({'gdal:sieve':analysisMenu,
-                           'gdal:nearblack':analysisMenu,
-                           'gdal:fillnodata':analysisMenu,
-                           'gdal:proximity':analysisMenu,
-                           'gdal:griddatametrics':analysisMenu,
-                           'gdal:gridaverage':analysisMenu,
-                           'gdal:gridinvdist':analysisMenu,
-                           'gdal:gridnearestneighbor':analysisMenu,
-                           'gdal:aspect':analysisMenu,
-                           'gdal:hillshade':analysisMenu,
-                           'gdal:roughness':analysisMenu,
-                           'gdal:slope':analysisMenu,
-                           'gdal:tpi':analysisMenu,
-                           'gdal:tri':analysisMenu})
+defaultMenuEntries.update({'gdal:sieve': analysisMenu,
+                           'gdal:nearblack': analysisMenu,
+                           'gdal:fillnodata': analysisMenu,
+                           'gdal:proximity': analysisMenu,
+                           'gdal:griddatametrics': analysisMenu,
+                           'gdal:gridaverage': analysisMenu,
+                           'gdal:gridinvdist': analysisMenu,
+                           'gdal:gridnearestneighbor': analysisMenu,
+                           'gdal:aspect': analysisMenu,
+                           'gdal:hillshade': analysisMenu,
+                           'gdal:roughness': analysisMenu,
+                           'gdal:slope': analysisMenu,
+                           'gdal:tpi': analysisMenu,
+                           'gdal:tri': analysisMenu})
 miscMenu = rasterMenu + "/" + Processing.tr('Miscellaneous')
-defaultMenuEntries.update({'gdal:buildvirtualraster':miscMenu,
-                           'gdal:merge':miscMenu,
-                           'gdal:rasterinfo':miscMenu,
-                           'gdal:overviews':miscMenu,
-                           'gdal:tileindex':miscMenu})
+defaultMenuEntries.update({'gdal:buildvirtualraster': miscMenu,
+                           'gdal:merge': miscMenu,
+                           'gdal:rasterinfo': miscMenu,
+                           'gdal:overviews': miscMenu,
+                           'gdal:tileindex': miscMenu})
 
 
 def initializeMenus():
-    for provider in algList.providers:
+    for provider in QgsApplication.processingRegistry().providers():
         for alg in provider.algs:
             d = defaultMenuEntries.get(alg.commandLineName(), "")
             setting = Setting(menusSettingsGroup, "MENU_" + alg.commandLineName(),
@@ -219,10 +220,10 @@ def _executeAlgorithm(alg):
                 pass
             canvas.setMapTool(prevMapTool)
     else:
-        progress = MessageBarProgress()
-        runalg(alg, progress)
-        handleAlgorithmResults(alg, progress)
-        progress.close()
+        feedback = MessageBarProgress()
+        runalg(alg, feedback)
+        handleAlgorithmResults(alg, feedback)
+        feedback.close()
 
 
 def getMenu(name, parent):

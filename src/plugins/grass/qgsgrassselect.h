@@ -28,17 +28,17 @@ class QgsGrassSelect: public QDialog, private Ui::QgsGrassSelectBase
   public:
     //! Constructor
     //QgsGrassSelect(QWidget *parent = 0, int type = VECTOR );
-    QgsGrassSelect( QWidget *parent, int type = VECTOR );
+    QgsGrassSelect( QWidget *parent, int type = Vector );
 
     ~QgsGrassSelect();
 
-    enum TYPE
+    enum Type
     {
-      MAPSET,
-      VECTOR,
-      RASTER,
-      GROUP, // group of rasters, used in selectedType
-      MAPCALC // file in $MAPSET/mapcalc directory (used by QgsGrassMapcalc)
+      MapSet,
+      Vector,
+      Raster,
+      Group, // group of rasters, used in selectedType
+      MapCalc // file in $MAPSET/mapcalc directory (used by QgsGrassMapcalc)
     };
 
     QString  gisdbase;
@@ -72,7 +72,7 @@ class QgsGrassSelect: public QDialog, private Ui::QgsGrassSelectBase
 
   private:
     int type; // map type (mapset element)
-    static bool first; // called first time
+    static bool sFirst; // called first time
     static QString lastGisdbase; // Last selected values
     static QString lastLocation;
     static QString lastMapset;

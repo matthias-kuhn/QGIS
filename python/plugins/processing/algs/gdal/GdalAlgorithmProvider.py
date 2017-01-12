@@ -28,7 +28,9 @@ __revision__ = '$Format:%H$'
 import os
 from qgis.PyQt.QtGui import QIcon
 
+from qgis.core import QgsApplication
 from processing.core.AlgorithmProvider import AlgorithmProvider
+from processing.core.ProcessingConfig import ProcessingConfig, Setting
 from .GdalUtils import GdalUtils
 
 from .nearblack import nearblack
@@ -96,18 +98,33 @@ class GdalAlgorithmProvider(AlgorithmProvider):
     """
 
     def __init__(self):
-        AlgorithmProvider.__init__(self)
+        super().__init__()
         self.createAlgsList()
 
-    def getDescription(self):
+    def initializeSettings(self):
+        AlgorithmProvider.initializeSettings(self)
+        ProcessingConfig.addSetting(Setting(
+            self.name(),
+            GdalUtils.GDAL_HELP_PATH,
+            self.tr('Location of GDAL docs'),
+            GdalUtils.gdalHelpPath()))
+
+    def unload(self):
+        AlgorithmProvider.unload(self)
+        ProcessingConfig.removeSetting(GdalUtils.GDAL_HELP_PATH)
+
+    def name(self):
         version = GdalUtils.readableVersion()
         return 'GDAL ({})'.format(version)
 
-    def getName(self):
+    def id(self):
         return 'gdal'
 
-    def getIcon(self):
-        return QIcon(os.path.join(pluginPath, 'images', 'gdal.svg'))
+    def icon(self):
+        return QgsApplication.getThemeIcon("/providerGdal.svg")
+
+    def svgIconPath(self):
+        return QgsApplication.iconPath("providerGdal.svg")
 
     def _loadAlgorithms(self):
         self.algs = self.preloadedAlgs

@@ -317,21 +317,21 @@ QString QgsRasterFormatSaveOptionsWidget::validateOptions( bool gui, bool report
   bool tmpLayer = false;
   if ( !( mRasterLayer && rasterLayer->dataProvider() ) && ! mRasterFileName.isNull() )
   {
-    // temporarily override /Projections/defaultBehaviour to avoid dialog prompt
+    // temporarily override /Projections/defaultBehavior to avoid dialog prompt
     // this is taken from qgsbrowserdockwidget.cpp
     // TODO - integrate this into qgis core
     QSettings settings;
-    QString defaultProjectionOption = settings.value( QStringLiteral( "/Projections/defaultBehaviour" ), "prompt" ).toString();
-    if ( settings.value( QStringLiteral( "/Projections/defaultBehaviour" ), "prompt" ).toString() == QLatin1String( "prompt" ) )
+    QString defaultProjectionOption = settings.value( QStringLiteral( "/Projections/defaultBehavior" ), "prompt" ).toString();
+    if ( settings.value( QStringLiteral( "/Projections/defaultBehavior" ), "prompt" ).toString() == QLatin1String( "prompt" ) )
     {
-      settings.setValue( QStringLiteral( "/Projections/defaultBehaviour" ), "useProject" );
+      settings.setValue( QStringLiteral( "/Projections/defaultBehavior" ), "useProject" );
     }
     tmpLayer = true;
     rasterLayer = new QgsRasterLayer( mRasterFileName, QFileInfo( mRasterFileName ).baseName(), QStringLiteral( "gdal" ) );
-    // restore /Projections/defaultBehaviour
+    // restore /Projections/defaultBehavior
     if ( defaultProjectionOption == QLatin1String( "prompt" ) )
     {
-      settings.setValue( QStringLiteral( "/Projections/defaultBehaviour" ), defaultProjectionOption );
+      settings.setValue( QStringLiteral( "/Projections/defaultBehavior" ), defaultProjectionOption );
     }
   }
 
@@ -631,3 +631,31 @@ void QgsRasterFormatSaveOptionsWidget::showEvent( QShowEvent * event )
   QgsDebugMsg( "done" );
 }
 
+void QgsRasterFormatSaveOptionsWidget::setOptions( const QString& options )
+{
+  mOptionsTable->blockSignals( true );
+  mOptionsTable->clearContents();
+
+  QStringList values;
+  QStringList optionsList = options.trimmed().split( ' ', QString::SkipEmptyParts );
+  Q_FOREACH ( const QString &opt, optionsList )
+  {
+    int rowCount = mOptionsTable->rowCount();
+    mOptionsTable->insertRow( rowCount );
+
+    values = opt.split( '=' );
+    if ( values.count() == 2 )
+    {
+      QTableWidgetItem* nameItem = new QTableWidgetItem( values.at( 0 ) );
+      mOptionsTable->setItem( rowCount, 0, nameItem );
+      QTableWidgetItem* valueItem = new QTableWidgetItem( values.at( 1 ) );
+      mOptionsTable->setItem( rowCount, 0, valueItem );
+    }
+  }
+
+  mOptionsMap[ currentProfileKey()] = options.trimmed();
+  mOptionsLineEdit->setText( options.trimmed() );
+  mOptionsLineEdit->setCursorPosition( 0 );
+
+  mOptionsTable->blockSignals( false );
+}

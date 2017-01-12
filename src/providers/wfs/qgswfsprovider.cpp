@@ -872,7 +872,7 @@ bool QgsWFSProvider::addFeatures( QgsFeatureList &flist )
     for ( ; idIt != idList.constEnd() && featureIt != flist.end(); ++idIt, ++featureIt )
     {
       if ( map.find( *idIt ) != map.end() )
-        featureIt->setFeatureId( map[*idIt] );
+        featureIt->setId( map[*idIt] );
     }
 
     return true;
@@ -1652,11 +1652,11 @@ QGISEXTERN bool isProvider()
   // This function should normally be called just once, but better check
   // so as to avoid doing twice the initial cleanup of the temporary cache
   // (which should normally be empty, unless QGIS was killed)
-  static bool firstTime = true;
-  if ( firstTime )
+  static bool sFirstTime = true;
+  if ( sFirstTime )
   {
     QgsWFSUtils::init();
-    firstTime = false;
+    sFirstTime = false;
   }
 
   return true;

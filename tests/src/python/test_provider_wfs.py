@@ -341,10 +341,10 @@ class TestPyQgsWFSProvider(unittest.TestCase, ProviderTestCase):
         shutil.rmtree(cls.basetestpath, True)
         cls.vl = None # so as to properly close the provider and remove any temporary file
 
-    def testInconsistantUri(self):
+    def testInconsistentUri(self):
         """Test a URI with a typename that doesn't match a type of the capabilities"""
 
-        endpoint = self.__class__.basetestpath + '/fake_qgis_http_endpoint_testInconsistantUri'
+        endpoint = self.__class__.basetestpath + '/fake_qgis_http_endpoint_testInconsistentUri'
         with open(sanitize(endpoint, '?SERVICE=WFS?REQUEST=GetCapabilities?ACCEPTVERSIONS=2.0.0,1.1.0,1.0.0'), 'wb') as f:
             f.write("""
 <wfs:WFS_Capabilities version="2.0.0" xmlns="http://www.opengis.net/wfs/2.0" xmlns:wfs="http://www.opengis.net/wfs/2.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://schemas.opengis.net/gml/3.2" xmlns:fes="http://www.opengis.net/fes/2.0">
@@ -1831,9 +1831,9 @@ class TestPyQgsWFSProvider(unittest.TestCase, ProviderTestCase):
         self.assertEqual(values, [(1), (2)])
 
     def testWrongCapabilityExtent(self):
-        """Test behaviour when capability extent is wrong."""
+        """Test behavior when capability extent is wrong."""
 
-        # Note the logic that is tested is purely heuristic, trying to recover from wrong server behaviour,
+        # Note the logic that is tested is purely heuristic, trying to recover from wrong server behavior,
         # so it might be legitimate to change that at a later point.
 
         endpoint = self.__class__.basetestpath + '/fake_qgis_http_endpoint_wrong_capability_extent'

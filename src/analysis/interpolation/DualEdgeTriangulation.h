@@ -75,8 +75,8 @@ class ANALYSIS_EXPORT DualEdgeTriangulation: public Triangulation
     virtual double getYMin() const override { return yMin; }
     //! Returns the number of points
     virtual int getNumberOfPoints() const override;
-    //! Sets the behaviour of the triangulation in case of crossing forced lines
-    virtual void setForcedCrossBehaviour( Triangulation::forcedCrossBehaviour b ) override;
+    //! Sets the behavior of the triangulation in case of crossing forced lines
+    virtual void setForcedCrossBehavior( Triangulation::ForcedCrossBehavior b ) override;
     //! Sets the color of the normal edges
     virtual void setEdgeColor( int r, int g, int b ) override;
     //! Sets the color of the forced edges
@@ -123,8 +123,8 @@ class ANALYSIS_EXPORT DualEdgeTriangulation: public Triangulation
     QVector<HalfEdge*> mHalfEdge;
     //! Association to an interpolator object
     TriangleInterpolator* mTriangleInterpolator;
-    //! Member to store the behaviour in case of crossing forced segments
-    Triangulation::forcedCrossBehaviour mForcedCrossBehaviour;
+    //! Member to store the behavior in case of crossing forced segments
+    Triangulation::ForcedCrossBehavior mForcedCrossBehavior;
     //! Color to paint the normal edges
     QColor mEdgeColor;
     //! Color to paint the forced edges
@@ -140,7 +140,7 @@ class ANALYSIS_EXPORT DualEdgeTriangulation: public Triangulation
     //! Threshold for the leftOfTest to handle numerical instabilities
     //const static double leftOfTresh=0.00001;
     //! Security to prevent endless loops in 'baseEdgeOfTriangle'. It there are more iteration then this number, the point will not be inserted
-    const static int nBaseOfRuns = 300000;
+    const static int sNumBaseOfRuns = 300000;
     //! Returns the number of an edge which points to the point with number 'point' or -1 if there is an error
     int baseEdgeOfPoint( int point );
     //! Returns the number of a HalfEdge from a triangle in which 'point' is in. If the number -10 is returned, this means, that 'point' is outside the convex hull. If -5 is returned, then numerical problems with the leftOfTest occurred (and the value of the possible edge is stored in the variable 'mUnstableEdge'. -20 means, that the inserted point is exactly on an edge (the number is stored in the variable 'mEdgeWithPoint'). -25 means, that the point is already in the triangulation (the number of the point is stored in the member 'mTwiceInsPoint'. If -100 is returned, this means that something else went wrong
@@ -183,7 +183,7 @@ inline DualEdgeTriangulation::DualEdgeTriangulation()
     , yMax( 0 )
     , yMin( 0 )
     , mTriangleInterpolator( nullptr )
-    , mForcedCrossBehaviour( Triangulation::DELETE_FIRST )
+    , mForcedCrossBehavior( Triangulation::DeleteFirst )
     , mEdgeColor( 0, 255, 0 )
     , mForcedEdgeColor( 0, 0, 255 )
     , mBreakEdgeColor( 100, 100, 0 )
@@ -204,7 +204,7 @@ inline DualEdgeTriangulation::DualEdgeTriangulation( int nop, Triangulation* dec
     , yMax( 0 )
     , yMin( 0 )
     , mTriangleInterpolator( nullptr )
-    , mForcedCrossBehaviour( Triangulation::DELETE_FIRST )
+    , mForcedCrossBehavior( Triangulation::DeleteFirst )
     , mEdgeColor( 0, 255, 0 )
     , mForcedEdgeColor( 0, 0, 255 )
     , mBreakEdgeColor( 100, 100, 0 )

@@ -205,7 +205,7 @@ Renamed Classes        {#qgis_api_break_3_0_renamed_classes}
 <tr><td>QgsApplication<td>userStyleV2Path<td>userStylePath
 <tr><td>QgsComposerShape<td>setUseSymbolV2<td>setUseSymbol
 <tr><td>QgsIFeatureSelectionManager<td>selectedFeaturesIds<td>selectedFeatureIds
-<tr><td>QgsMapLayer<td>capitaliseLayerName<td>capitalizeLayerName
+<tr><td>QgsMapLayer<td>capitaliseLayerName<td>capitalizeLayerName  <!--#spellok-->
 <tr><td>QgsSymbolLayerUtils<td>createSymbolLayerV2ListFromSld<td>createSymbolLayerListFromSld
 <tr><td>QgsVectorLayer<td>editorWidgetV2Config<td>editorWidgetConfig
 <tr><td>QgsVectorLayer<td>editorWidgetV2Text<td>editorWidgetText
@@ -475,6 +475,11 @@ QgsColorBrewerColorRampDialog        {#qgis_api_break_3_0_QgsColorBrewerColorRam
 and the new ramp can be retrieved after executing the dialog by calling ramp().
 - Some internal methods which were previously public or protected were made private.
 
+QgsColorButton     {#qgis_api_break_3_0_QgsColorButton}
+--------------
+
+- Behaviour enum and its corresponding setter/getter have been renamed to Behavior <!--#spellok-->
+
 
 QgsColorRampShader        {#qgis_api_break_3_0_QgsColorRampShader}
 ------------------
@@ -582,6 +587,7 @@ QgsComposerNodesItem        {#qgis_api_break_3_0_QgsComposerNodesItem}
 
 - _readXMLStyle() has been renamed to _readXmlStyle()
 - _writeXMLStyle() has been renamed to _writeXMLStyle()
+- unselectNode() has been renamed to deselectNode() <!--#spellok-->
 
 
 QgsComposerPicture        {#qgis_api_break_3_0_QgsComposerPicture}
@@ -610,6 +616,14 @@ QgsComposerTableV2        {#qgis_api_break_3_0_QgsComposerTableV2}
 
 - rowsVisible(), rowRange(), drawHorizontalGridLines() and
  drawVerticalGridLines() were removed.
+- WrapBehaviour enum and its setter and getter methods has been renamed to WrapBehavior <!--#spellok-->
+- EmptyTableBehaviour enum and its setter and getter methods has been renamed to EmptyTableBehavior <!--#spellok-->
+
+
+ QgsComposerView        {#qgis_api_break_3_0_QgsComposerView}
+--------------------
+
+- unselectNode() has been renamed to deselectNode() <!--#spellok-->
 
 
 QgsComposition        {#qgis_api_break_3_0_QgsComposition}
@@ -625,6 +639,7 @@ were removed. Use setSnapTolerance() and snapTolerance() instead.
 - pixelFontSize(), pointFontSize(), relativeResizeRect(), relativePosition() were removed. Use the corresponding methods in QgsComposerUtils instead.
 - sortZList() was removed. Use refreshZList() instead.
 - addComposerTable(), composerTableAdded() were removed.
+- setAllUnselected() has been renamed to setAllDeselected. <!--#spellok-->
 
 
 QgsCoordinateReferenceSystem        {#qgis_api_break_3_0_QgsCoordinateReferenceSystem}
@@ -907,6 +922,7 @@ None will need to be modified, as the method will return an empty geometry if th
 - The temporary constGeometry() method has been removed. Use geometry() instead.
 - setFields( const QgsFields*, bool ) has been removed, use setFields( const QgsFields&, bool ) instead.
 - fields() no longer returns a pointer, but instead a QgsFields value.
+- The duplicate method setFeatureId() was removed. Use setId() instead.
 
 
 QgsFeatureRendererV2        {#qgis_api_break_3_0_QgsFeatureRendererV2}
@@ -1029,6 +1045,13 @@ QgsEditorWidgetFactory         {#qgis_api_break_3_0_QgsEditorWidgetFactory}
 - `alignmentFlag` has been removed. Use QgsFieldFormatter::representValue() instead
 - `createCache` has been removed. Use QgsFieldFormatter::representValue() instead
 
+
+QgsGeometryUtils         {#qgis_api_break_3_0_QgsGeometryUtils}
+----------------
+
+- componentType enum has been renamed to ComponentType and its members were CamelCased too: VERTEX, RING and PART become Vertex, Ring and Part, respectively.
+
+
 QgsGPSConnectionRegistry        {#qgis_api_break_3_0_QgsGPSConnectionRegistry}
 ------------------------
 
@@ -1138,7 +1161,7 @@ and the new ramp can be retrieved after executing the dialog by calling ramp().
 QgsLinearlyInterpolatedDiagramRenderer        {#qgis_api_break_3_0_QgsLinearlyInterpolatedDiagramRenderer}
 --------------------------------------
 
-- The classificationAttribute() and setClassificationAttribute() methods were replace by 
+- The classificationAttribute() and setClassificationAttribute() methods were replace by
 classificationField() and setClassificationField() which use the field names instead of field
 indexes.
 
@@ -1189,7 +1212,7 @@ screenUpdateRequested() were removed. These members have had no effect for a num
 - drawLabels() method was removed. It used old deprecated labeling. Replaced by labeling based on PAL library, see QgsLabelingEngine.
 - readLayerXML() was renamed to readLayerXml()
 - writeLayerXML() was renamed to writeLayerXml()
-- capitaliseLayerName() was renamed to capitalizeLayerName()
+- capitaliseLayerName() was renamed to capitalizeLayerName() <!--#spellok-->
 
 
 QgsMapLayerRegistry        {#qgis_api_break_3_0_QgsMapLayerRegistry}
@@ -1707,7 +1730,7 @@ capabilities have been removed, as they were unused and had no effect.
 - capabilities() now returns a typesafe QgsVectorDataProvider::Capabilities object, not an integer.
 - convertToProviderType() now takes a geometry reference, not a pointer.
 - geometryType() has been renamed to wkbType() to be in line with QgsVectorLayer
-- The behaviour of defaultValue() has changed from 2.x. In 2.x, defaultValue() would return a SQL
+- The behavior of defaultValue() has changed from 2.x. In 2.x, defaultValue() would return a SQL
 clause fragment which must be evaluated by the provider in order to calculate the default value. In
 QGIS 3.0 defaultValue() only returns literal, constant defaultValues. A new method defaultValueClause
 has been added which returns the SQL clause fragments which must be evaluated by the provider itself.
@@ -1819,6 +1842,23 @@ optional property map passing down layer level properties to the SLD encoders. I
 - setScaleMethodToSymbol was removed. This is now handled using data defined scaling at a symbol layer level
 - usedAttributes is now a const method and returns QSet<QString> instead of QStringList
 
+
+Processing        {#qgis_api_break_3_0_Processing}
+----------
+
+- Algorithm providers now subclass the c++ QgsProcessingProvider class, and must be adapted to the API for QgsProcessingProvider. Specifically,
+getName() should be replaced with id(), getDescription() with name(), and getIcon with icon().
+- Algorithm's processAlgorithm method now passes a QgsProcessingFeedback object instead of the loosely defined progress parameter. Algorithms will
+need to update their use of the progress argument to utilise the QgsProcessingFeedback API.
+- Similarly, Python processing scripts no longer have access to a progress variable for reporting their progress. Instead they have a feedback
+object of type QgsProcessingFeedback, and will need to adapt their use of progress reporting to the QgsProcessingFeedback API.
+- SilentProgress was removed. Use the base QgsProcessingFeedback class instead.
+
+
+Triangulation        {#qgis_api_break_3_0_Triangulation}
+-------------
+
+- forcedCrossBehaviour enum and its setter and getter have been renamed to ForcedCrossBehavior. Its members have been renamed: SnappingType_VERTICE: SnappingTypeVertex, DELETE_FIRST: DeleteFirst, INSERT_VERTEX: InsertVertex. <!--#spellok-->
 
 
 
