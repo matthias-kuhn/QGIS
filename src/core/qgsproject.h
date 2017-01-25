@@ -685,6 +685,10 @@ class CORE_EXPORT QgsProject : public QObject, public QgsExpressionContextGenera
      */
     void reloadAllLayers();
 
+    void setTranslatorFilename( const QString& filename );
+
+    QTranslator* translator() const;
+
   signals:
     //! emitted when project is being read
     void readProject( const QDomDocument& );
@@ -970,6 +974,8 @@ class CORE_EXPORT QgsProject : public QObject, public QgsExpressionContextGenera
     QScopedPointer<QgsMapThemeCollection> mMapThemeCollection;
 
     QVariantMap mCustomVariables;
+
+    QTranslator* mTranslator;
 
     QFile mFile;                 // current physical project file
     mutable QgsProjectPropertyKey mProperties;  // property hierarchy, TODO: this shouldn't be mutable

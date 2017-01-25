@@ -50,6 +50,7 @@
 #include <QDir>
 #include <QUrl>
 #include <QSettings>
+#include <QTranslator>
 
 #ifdef Q_OS_UNIX
 #include <utime.h>
@@ -320,6 +321,7 @@ QgsProject::QgsProject( QObject* parent )
     , mSnappingConfig( this )
     , mRelationManager( new QgsRelationManager( this ) )
     , mRootGroup( new QgsLayerTreeGroup )
+    , mTranslator( new QTranslator )
     , mAutoTransaction( false )
     , mEvaluateDefaultValues( false )
     , mDirty( false )
@@ -342,6 +344,7 @@ QgsProject::~QgsProject()
   delete mBadLayerHandler;
   delete mRelationManager;
   delete mRootGroup;
+  delete mTranslator;
 
   removeAllMapLayers();
 }
@@ -992,6 +995,11 @@ void QgsProject::loadEmbeddedNodes( QgsLayerTreeGroup *group )
     }
 
   }
+}
+
+QTranslator* QgsProject::translator() const
+{
+  return mTranslator;
 }
 
 QVariantMap QgsProject::customVariables() const
@@ -2349,6 +2357,11 @@ void QgsProject::reloadAllLayers()
   {
     layer->reload();
   }
+}
+
+void QgsProject::setTranslatorFilename( const QString& filename )
+{
+  mTranslator->load( filename, homePath() );
 }
 
 void QgsProject::onMapLayerDeleted( QObject* obj )

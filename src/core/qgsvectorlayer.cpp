@@ -3001,6 +3001,22 @@ void QgsVectorLayer::updateFields()
 
     mFields[ index ].setAlias( aliasIt.value() );
   }
+#if 0
+  if ( !QgsProject::instance()->translator()->isEmpty() )
+  {
+    Q_FOREACH ( QgsField& field, mFields )
+    {
+      QString context = QString( "field:%1" ).arg( mId );
+
+      QString translatedName = QgsProject::instance()->translator()->translate( context.toUtf8().constData(), field.name() );
+
+      if ( !translatedName.isNull() )
+      {
+        field.setAlias( translatedName );
+      }
+    }
+  }
+#endif
   QMap< QString, QString >::const_iterator defaultIt = mDefaultExpressionMap.constBegin();
   for ( ; defaultIt != mDefaultExpressionMap.constEnd(); ++defaultIt )
   {
