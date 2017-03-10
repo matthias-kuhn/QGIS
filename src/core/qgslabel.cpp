@@ -579,7 +579,6 @@ const unsigned char* QgsLabel::labelPoint( labelpoint& point, const unsigned cha
 #else
   Q_UNUSED( geomlen );
 #endif
-  Q_ASSERT( geom + 1 + sizeof( wkbType ) <= geomend );
 
   geom++; // skip endianness
   memcpy( &wkbType, geom, sizeof( wkbType ) );
@@ -592,7 +591,6 @@ const unsigned char* QgsLabel::labelPoint( labelpoint& point, const unsigned cha
     case QGis::WKBPoint25D:
     case QGis::WKBPoint:
     {
-      Q_ASSERT( geom + 2*sizeof( double ) <= geomend );
       double *pts = ( double * )geom;
       point.p.set( pts[0], pts[1] );
       point.angle = 0.0;
@@ -605,11 +603,9 @@ const unsigned char* QgsLabel::labelPoint( labelpoint& point, const unsigned cha
       //intentional fall-through
     case QGis::WKBLineString: // Line center
     {
-      Q_ASSERT( geom + sizeof( int ) <= geomend );
       int nPoints = *( unsigned int * )geom;
       geom += sizeof( int );
 
-      Q_ASSERT( geom + nPoints*sizeof( double )*dims <= geomend );
 
       // get line center
       double *pts = ( double * )geom;
@@ -652,17 +648,14 @@ const unsigned char* QgsLabel::labelPoint( labelpoint& point, const unsigned cha
       //intentional fall-through
     case QGis::WKBPolygon: // centroid of outer ring
     {
-      Q_ASSERT( geom + sizeof( int ) <= geomend );
       int nRings = *( unsigned int * )geom;
       geom += sizeof( int );
 
       for ( int i = 0; i < nRings; ++i )
       {
-        Q_ASSERT( geom + sizeof( int ) <= geomend );
         int nPoints = *( unsigned int * )geom;
         geom += sizeof( int );
 
-        Q_ASSERT( geom + nPoints*sizeof( double )*dims <= geomend );
 
         if ( i == 0 )
         {

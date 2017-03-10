@@ -18,6 +18,8 @@
  ***************************************************************************/
 #ifndef QGSGPSPLUGIN_H
 #define QGSGPSPLUGIN_H
+
+#include <QObject>
 #include "qgsbabelformat.h"
 #include "qgsgpsdevice.h"
 #include "qgisplugin.h"

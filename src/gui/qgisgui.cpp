@@ -16,6 +16,7 @@
 
 #include <QSettings>
 #include <QImageWriter>
+#include <QWidget>
 #include "qgsencodingfiledialog.h"
 #include "qgslogger.h"
 

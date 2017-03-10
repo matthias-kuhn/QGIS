@@ -18,6 +18,7 @@
 #include <Qt>
 #include <QPair>
 #include <QStringList>
+#include <QWidget>
 
 class QFont;
 
