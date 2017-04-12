@@ -107,6 +107,7 @@ QgsComposer::QgsComposer( QgisApp *qgis, const QString& title )
     : QMainWindow()
     , mTitle( title )
     , mQgis( qgis )
+    , mPrinter( 0 )
     , mUndoView( 0 )
     , mAtlasFeatureAction( 0 )
 {
@@ -647,6 +648,7 @@ QgsComposer::QgsComposer( QgisApp *qgis, const QString& title )
 QgsComposer::~QgsComposer()
 {
   deleteItemWidgets();
+  delete mPrinter;
 }
 
 void QgsComposer::setupTheme()
@@ -807,24 +809,38 @@ void QgsComposer::activate()
   }
 }
 
-#ifdef Q_OS_MAC
 void QgsComposer::changeEvent( QEvent* event )
 {
   QMainWindow::changeEvent( event );
   switch ( event->type() )
   {
+#ifdef Q_OS_MAC
     case QEvent::ActivationChange:
+    {
       if ( QApplication::activeWindow() == this )
       {
         mWindowAction->setChecked( true );
       }
       break;
-
+    }
+#endif
+    case QEvent::WindowStateChange:
+    {
+      /* Listen out for window un-minimisation and restore composer map states.
+       * We can't use showEvent to detect this due to QT Bug 36675 (see #6085).
+       */
+      QWindowStateChangeEvent* changeEv = static_cast< QWindowStateChangeEvent* >( event );
+      if ( changeEv->oldState() & Qt::WindowMinimized )
+      {
+        // Window restored, restore composers
+        restoreComposerMapStates();
+      }
+      break;
+    }
     default:
       break;
   }
 }
-#endif
 
 void QgsComposer::setTitle( const QString& title )
 {
@@ -1705,7 +1721,7 @@ void QgsComposer::printComposition( QgsComposer::OutputMode mode )
   }
 
   //orientation and page size are already set to QPrinter in the page setup dialog
-  QPrintDialog printDialog( &mPrinter, 0 );
+  QPrintDialog printDialog( printer(), 0 );
   if ( printDialog.exec() != QDialog::Accepted )
   {
     return;
@@ -1717,15 +1733,15 @@ void QgsComposer::printComposition( QgsComposer::OutputMode mode )
   QgsAtlasComposition* atlasMap = &mComposition->atlasComposition();
   if ( mode == QgsComposer::Single )
   {
-    mComposition->print( mPrinter, true );
+    mComposition->print( *printer(), true );
   }
   else
   {
     //prepare for first feature, so that we know paper size to begin with
     atlasMap->prepareForFeature( 0 );
 
-    mComposition->beginPrint( mPrinter, true );
-    QPainter painter( &mPrinter );
+    mComposition->beginPrint( *printer(), true );
+    QPainter painter( printer() );
 
     loadAtlasPredefinedScalesFromProject();
     if ( ! atlasMap->beginRender() && !atlasMap->featureFilterErrorString().isEmpty() )
@@ -1763,7 +1779,7 @@ void QgsComposer::printComposition( QgsComposer::OutputMode mode )
       }
 
       //start print on a new page if we're not on the first feature
-      mComposition->doPrint( mPrinter, painter, i > 0 );
+      mComposition->doPrint( *printer(), painter, i > 0 );
     }
     atlasMap->endRender();
     painter.end();
@@ -1854,6 +1870,12 @@ void QgsComposer::exportCompositionAsImage( QgsComposer::OutputMode mode )
 
     mView->setPaintingEnabled( false );
 
+    int worldFilePageNo = -1;
+    if ( mComposition->generateWorldFile() && mComposition->worldFileMap() )
+    {
+      worldFilePageNo = mComposition->worldFileMap()->page() - 1;
+    }
+
     for ( int i = 0; i < mComposition->numPages(); ++i )
     {
       if ( !mComposition->shouldExportPage( i + 1 ) )
@@ -1873,16 +1895,19 @@ void QgsComposer::exportCompositionAsImage( QgsComposer::OutputMode mode )
         return;
       }
       bool saveOk;
+      QString outputFilePath;
       if ( i == 0 )
       {
-        saveOk = image.save( fileNExt.first, fileNExt.second.toLocal8Bit().constData() );
+        outputFilePath = fileNExt.first;
       }
       else
       {
         QFileInfo fi( fileNExt.first );
-        QString outputFilePath = fi.absolutePath() + "/" + fi.baseName() + "_" + QString::number( i + 1 ) + "." + fi.suffix();
-        saveOk = image.save( outputFilePath, fileNExt.second.toLocal8Bit().constData() );
+        outputFilePath = fi.absolutePath() + "/" + fi.baseName() + "_" + QString::number( i + 1 ) + "." + fi.suffix();
       }
+
+      saveOk = image.save( outputFilePath, fileNExt.second.toLocal8Bit().constData() );
+
       if ( !saveOk )
       {
         QMessageBox::warning( this, tr( "Image export error" ),
@@ -1892,21 +1917,20 @@ void QgsComposer::exportCompositionAsImage( QgsComposer::OutputMode mode )
         mView->setPaintingEnabled( true );
         return;
       }
-    }
 
-    //
-    // Write the world file if asked to
-    if ( mComposition->generateWorldFile() )
-    {
-      double a, b, c, d, e, f;
-      mComposition->computeWorldFileParameters( a, b, c, d, e, f );
+      if ( i == worldFilePageNo )
+      {
+        // should generate world file for this page
+        double a, b, c, d, e, f;
+        mComposition->computeWorldFileParameters( a, b, c, d, e, f );
 
-      QFileInfo fi( fileNExt.first );
-      // build the world file name
-      QString worldFileName = fi.absolutePath() + "/" + fi.baseName() + "."
-                              + fi.suffix()[0] + fi.suffix()[fi.suffix().size()-1] + "w";
+        QFileInfo fi( outputFilePath );
+        // build the world file name
+        QString worldFileName = fi.absolutePath() + "/" + fi.baseName() + "."
+                                + fi.suffix()[0] + fi.suffix()[fi.suffix().size()-1] + "w";
 
-      writeWorldFile( worldFileName, a, b, c, d, e, f );
+        writeWorldFile( worldFileName, a, b, c, d, e, f );
+      }
     }
 
     mView->setPaintingEnabled( true );
@@ -1934,6 +1958,7 @@ void QgsComposer::exportCompositionAsImage( QgsComposer::OutputMode mode )
     QFileDialog dlg( this, tr( "Directory where to save image files" ) );
     dlg.setFileMode( QFileDialog::Directory );
     dlg.setOption( QFileDialog::ShowDirsOnly, true );
+    dlg.setDirectory( lastUsedDir );
 
     //
     // Build an augmented FileDialog with a combo box to select the output format
@@ -2031,6 +2056,12 @@ void QgsComposer::exportCompositionAsImage( QgsComposer::OutputMode mode )
 
       QString filename = QDir( dir ).filePath( atlasMap->currentFilename() ) + fileExt;
 
+      int worldFilePageNo = -1;
+      if ( mComposition->generateWorldFile() && mComposition->worldFileMap() )
+      {
+        worldFilePageNo = mComposition->worldFileMap()->page() - 1;
+      }
+
       for ( int i = 0; i < mComposition->numPages(); ++i )
       {
         if ( !mComposition->shouldExportPage( i + 1 ) )
@@ -2058,21 +2089,20 @@ void QgsComposer::exportCompositionAsImage( QgsComposer::OutputMode mode )
           QApplication::restoreOverrideCursor();
           return;
         }
-      }
 
-      //
-      // Write the world file if asked to
-      if ( mComposition->generateWorldFile() )
-      {
-        double a, b, c, d, e, f;
-        mComposition->computeWorldFileParameters( a, b, c, d, e, f );
+        if ( i == worldFilePageNo )
+        {
+          // should generate world file for this page
+          double a, b, c, d, e, f;
+          mComposition->computeWorldFileParameters( a, b, c, d, e, f );
 
-        QFileInfo fi( filename );
-        // build the world file name
-        QString worldFileName = fi.absolutePath() + "/" + fi.baseName() + "."
-                                + fi.suffix()[0] + fi.suffix()[fi.suffix().size()-1] + "w";
+          QFileInfo fi( imageFilename );
+          // build the world file name
+          QString worldFileName = fi.absolutePath() + "/" + fi.baseName() + "."
+                                  + fi.suffix()[0] + fi.suffix()[fi.suffix().size()-1] + "w";
 
-        writeWorldFile( worldFileName, a, b, c, d, e, f );
+          writeWorldFile( worldFileName, a, b, c, d, e, f );
+        }
       }
     }
     atlasMap->endRender();
@@ -3007,21 +3037,16 @@ void QgsComposer::resizeEvent( QResizeEvent *e )
   saveWindowState();
 }
 
+#ifdef Q_OS_MAC
 void QgsComposer::showEvent( QShowEvent* event )
 {
-  if ( event->spontaneous() ) //event from the window system
-  {
-    restoreComposerMapStates();
-  }
-
-#ifdef Q_OS_MAC
   // add to menu if (re)opening window (event not due to unminimize)
   if ( !event->spontaneous() )
   {
     mQgis->addWindow( mWindowAction );
   }
-#endif
 }
+#endif
 
 void QgsComposer::saveWindowState()
 {
@@ -3560,21 +3585,24 @@ void QgsComposer::on_mActionPageSetup_triggered()
     return;
   }
 
-  QPageSetupDialog pageSetupDialog( &mPrinter, this );
+  QPageSetupDialog pageSetupDialog( printer(), this );
   pageSetupDialog.exec();
 }
 
 void QgsComposer::restoreComposerMapStates()
 {
-  //go through maps and restore original preview modes (show on demand after loading from project file)
-  QMap< QgsComposerMap*, int >::iterator mapIt = mMapsToRestore.begin();
-  for ( ; mapIt != mMapsToRestore.end(); ++mapIt )
+  if ( !mMapsToRestore.isEmpty() )
   {
-    mapIt.key()->setPreviewMode(( QgsComposerMap::PreviewMode )( mapIt.value() ) );
-    mapIt.key()->cache();
-    mapIt.key()->update();
+    //go through maps and restore original preview modes (show on demand after loading from project file)
+    QMap< QgsComposerMap*, int >::iterator mapIt = mMapsToRestore.begin();
+    for ( ; mapIt != mMapsToRestore.end(); ++mapIt )
+    {
+      mapIt.key()->setPreviewMode(( QgsComposerMap::PreviewMode )( mapIt.value() ) );
+      mapIt.key()->cache();
+      mapIt.key()->update();
+    }
+    mMapsToRestore.clear();
   }
-  mMapsToRestore.clear();
 }
 
 void QgsComposer::populatePrintComposersMenu()
@@ -3730,11 +3758,11 @@ void QgsComposer::setPrinterPageOrientation( QString orientation )
 {
   if ( orientation == tr( "Landscape" ) )
   {
-    mPrinter.setOrientation( QPrinter::Landscape );
+    printer()->setOrientation( QPrinter::Landscape );
   }
   else
   {
-    mPrinter.setOrientation( QPrinter::Portrait );
+    printer()->setOrientation( QPrinter::Portrait );
   }
 }
 
@@ -3746,11 +3774,11 @@ void QgsComposer::setPrinterPageDefaults()
   //set printer page orientation
   if ( paperWidth > paperHeight )
   {
-    mPrinter.setOrientation( QPrinter::Landscape );
+    printer()->setOrientation( QPrinter::Landscape );
   }
   else
   {
-    mPrinter.setOrientation( QPrinter::Portrait );
+    printer()->setOrientation( QPrinter::Portrait );
   }
 }
 
@@ -3801,5 +3829,15 @@ void QgsComposer::loadAtlasPredefinedScalesFromProject()
     }
   }
   atlasMap.setPredefinedScales( pScales );
+}
+
+QPrinter *QgsComposer::printer()
+{
+  //only create the printer on demand - creating a printer object can be very slow
+  //due to QTBUG-3033
+  if ( !mPrinter )
+    mPrinter = new QPrinter();
+
+  return mPrinter;
 }
 

@@ -162,9 +162,6 @@ bool QgsVectorLayerEditBuffer::deleteFeature( QgsFeatureId fid )
 
 bool QgsVectorLayerEditBuffer::changeGeometry( QgsFeatureId fid, QgsGeometry* geom )
 {
-  if ( !( L->dataProvider()->capabilities() & QgsVectorDataProvider::ChangeGeometries ) )
-    return false;
-
   if ( !L->hasGeometryType() )
   {
     return false;
@@ -175,6 +172,8 @@ bool QgsVectorLayerEditBuffer::changeGeometry( QgsFeatureId fid, QgsGeometry* ge
     if ( !mAddedFeatures.contains( fid ) )
       return false;
   }
+  else if ( !( L->dataProvider()->capabilities() & QgsVectorDataProvider::ChangeGeometries ) )
+    return false;
 
   // TODO: check compatible geometry
 
@@ -185,13 +184,14 @@ bool QgsVectorLayerEditBuffer::changeGeometry( QgsFeatureId fid, QgsGeometry* ge
 
 bool QgsVectorLayerEditBuffer::changeAttributeValue( QgsFeatureId fid, int field, const QVariant &newValue, const QVariant &oldValue )
 {
-  if ( !( L->dataProvider()->capabilities() & QgsVectorDataProvider::ChangeAttributeValues ) )
-    return false;
-
   if ( FID_IS_NEW( fid ) )
   {
     if ( !mAddedFeatures.contains( fid ) )
       return false;
+  }
+  else if ( !( L->dataProvider()->capabilities() & QgsVectorDataProvider::ChangeAttributeValues ) )
+  {
+    return false;
   }
 
   if ( field < 0 || field >= L->pendingFields().count() ||
@@ -257,6 +257,26 @@ bool QgsVectorLayerEditBuffer::commitChanges( QStringList& commitErrors )
 
   int cap = provider->capabilities();
   bool success = true;
+
+  //
+  // update geometries
+  //
+  if ( !mChangedGeometries.isEmpty() )
+  {
+    if (( cap & QgsVectorDataProvider::ChangeGeometries ) && provider->changeGeometryValues( mChangedGeometries ) )
+    {
+      commitErrors << tr( "SUCCESS: %n geometries were changed.", "changed geometries count", mChangedGeometries.size() );
+
+      emit committedGeometriesChanges( L->id(), mChangedGeometries );
+
+      mChangedGeometries.clear();
+    }
+    else
+    {
+      commitErrors << tr( "ERROR: %n geometries not changed.", "not changed geometries count", mChangedGeometries.size() );
+      success = false;
+    }
+  }
 
   QgsFields oldFields = L->pendingFields();
 
@@ -498,26 +518,6 @@ bool QgsVectorLayerEditBuffer::commitChanges( QStringList& commitErrors )
   else
   {
     success = false;
-  }
-
-  //
-  // update geometries
-  //
-  if ( success && !mChangedGeometries.isEmpty() )
-  {
-    if (( cap & QgsVectorDataProvider::ChangeGeometries ) && provider->changeGeometryValues( mChangedGeometries ) )
-    {
-      commitErrors << tr( "SUCCESS: %n geometries were changed.", "changed geometries count", mChangedGeometries.size() );
-
-      emit committedGeometriesChanges( L->id(), mChangedGeometries );
-
-      mChangedGeometries.clear();
-    }
-    else
-    {
-      commitErrors << tr( "ERROR: %n geometries not changed.", "not changed geometries count", mChangedGeometries.size() );
-      success = false;
-    }
   }
 
   if ( !success && provider->hasErrors() )

@@ -21,6 +21,7 @@
 #include <QRegExp>
 #include <QColor>
 #include <QUuid>
+#include <QMutex>
 
 #include <math.h>
 #include <limits>
@@ -175,7 +176,13 @@ inline bool isDoubleSafe( const QVariant& v )
   if ( v.type() == QVariant::UInt ) return true;
   if ( v.type() == QVariant::LongLong ) return true;
   if ( v.type() == QVariant::ULongLong ) return true;
-  if ( v.type() == QVariant::String ) { bool ok; v.toString().toDouble( &ok ); return ok; }
+  if ( v.type() == QVariant::String )
+  {
+    bool ok;
+    double val = v.toString().toDouble( &ok );
+    ok = ok && qIsFinite( val ) && !qIsNaN( val );
+    return ok;
+  }
   return false;
 }
 
@@ -238,7 +245,7 @@ static double getDoubleValue( const QVariant& value, QgsExpression* parent )
 {
   bool ok;
   double x = value.toDouble( &ok );
-  if ( !ok )
+  if ( !ok || qIsNaN( x ) || !qIsFinite( x ) )
   {
     parent->setEvalErrorString( QObject::tr( "Cannot convert '%1' to double" ).arg( value.toString() ) );
     return 0;
@@ -1089,20 +1096,17 @@ static QVariant fcnGeomFromWKT( const QVariantList& values, const QgsFeature*, Q
 {
   QString wkt = getStringValue( values.at( 0 ), parent );
   QgsGeometry* geom = QgsGeometry::fromWkt( wkt );
-  if ( geom )
-    return QVariant::fromValue( *geom );
-  else
-    return QVariant();
+  QVariant result = geom ? QVariant::fromValue( *geom ) : QVariant();
+  delete geom;
+  return result;
 }
 static QVariant fcnGeomFromGML( const QVariantList& values, const QgsFeature*, QgsExpression* parent )
 {
   QString gml = getStringValue( values.at( 0 ), parent );
   QgsGeometry* geom = QgsOgcUtils::geometryFromGML( gml );
-
-  if ( geom )
-    return QVariant::fromValue( *geom );
-  else
-    return QVariant();
+  QVariant result = geom ? QVariant::fromValue( *geom ) : QVariant();
+  delete geom;
+  return result;
 }
 
 static QVariant fcnGeomArea( const QVariantList&, const QgsFeature* f, QgsExpression* parent )
@@ -1128,14 +1132,9 @@ static QVariant fcnBounds( const QVariantList& values, const QgsFeature*, QgsExp
 {
   QgsGeometry geom = getGeometry( values.at( 0 ), parent );
   QgsGeometry* geomBounds = QgsGeometry::fromRect( geom.boundingBox() );
-  if ( geomBounds )
-  {
-    return QVariant::fromValue( *geomBounds );
-  }
-  else
-  {
-    return QVariant();
-  }
+  QVariant result = geomBounds ? QVariant::fromValue( *geomBounds ) : QVariant();
+  delete geomBounds;
+  return result;
 }
 
 static QVariant fcnBoundsWidth( const QVariantList& values, const QgsFeature*, QgsExpression* parent )
@@ -1234,34 +1233,34 @@ static QVariant fcnBuffer( const QVariantList& values, const QgsFeature*, QgsExp
     seg = getIntValue( values.at( 2 ), parent );
 
   QgsGeometry* geom = fGeom.buffer( dist, seg );
-  if ( geom )
-    return QVariant::fromValue( *geom );
-  return QVariant();
+  QVariant result = geom ? QVariant::fromValue( *geom ) : QVariant();
+  delete geom;
+  return result;
 }
 static QVariant fcnCentroid( const QVariantList& values, const QgsFeature*, QgsExpression* parent )
 {
   QgsGeometry fGeom = getGeometry( values.at( 0 ), parent );
   QgsGeometry* geom = fGeom.centroid();
-  if ( geom )
-    return QVariant::fromValue( *geom );
-  return QVariant();
+  QVariant result = geom ? QVariant::fromValue( *geom ) : QVariant();
+  delete geom;
+  return result;
 }
 static QVariant fcnConvexHull( const QVariantList& values, const QgsFeature*, QgsExpression* parent )
 {
   QgsGeometry fGeom = getGeometry( values.at( 0 ), parent );
   QgsGeometry* geom = fGeom.convexHull();
-  if ( geom )
-    return QVariant::fromValue( *geom );
-  return QVariant();
+  QVariant result = geom ? QVariant::fromValue( *geom ) : QVariant();
+  delete geom;
+  return result;
 }
 static QVariant fcnDifference( const QVariantList& values, const QgsFeature*, QgsExpression* parent )
 {
   QgsGeometry fGeom = getGeometry( values.at( 0 ), parent );
   QgsGeometry sGeom = getGeometry( values.at( 1 ), parent );
   QgsGeometry* geom = fGeom.difference( &sGeom );
-  if ( geom )
-    return QVariant::fromValue( *geom );
-  return QVariant();
+  QVariant result = geom ? QVariant::fromValue( *geom ) : QVariant();
+  delete geom;
+  return result;
 }
 static QVariant fcnDistance( const QVariantList& values, const QgsFeature*, QgsExpression* parent )
 {
@@ -1274,27 +1273,27 @@ static QVariant fcnIntersection( const QVariantList& values, const QgsFeature*, 
   QgsGeometry fGeom = getGeometry( values.at( 0 ), parent );
   QgsGeometry sGeom = getGeometry( values.at( 1 ), parent );
   QgsGeometry* geom = fGeom.intersection( &sGeom );
-  if ( geom )
-    return QVariant::fromValue( *geom );
-  return QVariant();
+  QVariant result = geom ? QVariant::fromValue( *geom ) : QVariant();
+  delete geom;
+  return result;
 }
 static QVariant fcnSymDifference( const QVariantList& values, const QgsFeature*, QgsExpression* parent )
 {
   QgsGeometry fGeom = getGeometry( values.at( 0 ), parent );
   QgsGeometry sGeom = getGeometry( values.at( 1 ), parent );
   QgsGeometry* geom = fGeom.symDifference( &sGeom );
-  if ( geom )
-    return QVariant::fromValue( *geom );
-  return QVariant();
+  QVariant result = geom ? QVariant::fromValue( *geom ) : QVariant();
+  delete geom;
+  return result;
 }
 static QVariant fcnCombine( const QVariantList& values, const QgsFeature*, QgsExpression* parent )
 {
   QgsGeometry fGeom = getGeometry( values.at( 0 ), parent );
   QgsGeometry sGeom = getGeometry( values.at( 1 ), parent );
   QgsGeometry* geom = fGeom.combine( &sGeom );
-  if ( geom )
-    return QVariant::fromValue( *geom );
-  return QVariant();
+  QVariant result = geom ? QVariant::fromValue( *geom ) : QVariant();
+  delete geom;
+  return result;
 }
 static QVariant fcnGeomToWKT( const QVariantList& values, const QgsFeature*, QgsExpression* parent )
 {
@@ -1345,6 +1344,11 @@ static QVariant fcnFormatNumber( const QVariantList& values, const QgsFeature*, 
 {
   double value = getDoubleValue( values.at( 0 ), parent );
   int places = getIntValue( values.at( 1 ), parent );
+  if ( places < 0 )
+  {
+    parent->setEvalErrorString( QObject::tr( "Number of places must be positive" ) );
+    return QVariant();
+  }
   return QString( "%L1" ).arg( value, 0, 'f', places );
 }
 
@@ -1691,6 +1695,13 @@ QList<QgsExpression::Function*> QgsExpression::gmFunctions;
 
 const QList<QgsExpression::Function*> &QgsExpression::Functions()
 {
+  // The construction of the list isn't thread-safe, and without the mutex,
+  // crashes in the WFS provider may occur, since it can parse expressions
+  // in parallel.
+  // The mutex needs to be recursive.
+  static QMutex sFunctionsMutex( QMutex::Recursive );
+  QMutexLocker locker( &sFunctionsMutex );
+
   if ( gmFunctions.isEmpty() )
   {
     gmFunctions
@@ -2717,17 +2728,17 @@ QVariant QgsExpression::NodeColumnRef::eval( QgsExpression* /*parent*/, const Qg
 
 bool QgsExpression::NodeColumnRef::prepare( QgsExpression* parent, const QgsFields& fields )
 {
-  for ( int i = 0; i < fields.count(); ++i )
+  mIndex = fields.fieldNameIndex( mName );
+  if ( mIndex >= 0 )
   {
-    if ( QString::compare( fields[i].name(), mName, Qt::CaseInsensitive ) == 0 )
-    {
-      mIndex = i;
-      return true;
-    }
+    return true;
   }
-  parent->mEvalErrorString = QObject::tr( "Column '%1' not found" ).arg( mName );
-  mIndex = -1;
-  return false;
+  else
+  {
+    parent->mEvalErrorString = QObject::tr( "Column '%1' not found" ).arg( mName );
+    mIndex = -1;
+    return false;
+  }
 }
 
 QString QgsExpression::NodeColumnRef::dump() const

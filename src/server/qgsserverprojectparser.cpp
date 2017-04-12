@@ -17,6 +17,7 @@
 
 #include "qgsserverprojectparser.h"
 #include "qgsapplication.h"
+#include "qgsproject.h"
 #include "qgsconfigcache.h"
 #include "qgsconfigparserutils.h"
 #include "qgscrscache.h"
@@ -61,8 +62,8 @@ QgsServerProjectParser::QgsServerProjectParser( QDomDocument* xmlDoc, const QStr
       }
     }
 
-    mRestrictedLayers = findRestrictedLayers();
     mUseLayerIDs = findUseLayerIDs();
+    mRestrictedLayers = findRestrictedLayers();
 
     mCustomLayerOrder.clear();
 
@@ -76,6 +77,12 @@ QgsServerProjectParser::QgsServerProjectParser( QDomDocument* xmlDoc, const QStr
       }
     }
   }
+  // Setting the QgsProject instance fileName
+  // to help converting relative pathes to absolute
+  if ( mProjectPath != "" )
+  {
+    QgsProject::instance()->setFileName( mProjectPath );
+  }
 }
 
 QgsServerProjectParser::QgsServerProjectParser()
@@ -86,7 +93,7 @@ QgsServerProjectParser::QgsServerProjectParser()
 
 QgsServerProjectParser::~QgsServerProjectParser()
 {
-  delete mXMLDoc;
+
 }
 
 void QgsServerProjectParser::projectLayerMap( QMap<QString, QgsMapLayer*>& layerMap ) const
@@ -169,6 +176,8 @@ QgsMapLayer* QgsServerProjectParser::createLayerFromElement( const QDomElement& 
   QDomElement dataSourceElem = elem.firstChildElement( "datasource" );
   QString uri = dataSourceElem.text();
   QString absoluteUri;
+  // If QgsProject instance fileName is set,
+  // Is converting relative pathes to absolute still relevant ?
   if ( !dataSourceElem.isNull() )
   {
     //convert relative pathes to absolute ones if necessary
@@ -226,6 +235,8 @@ QgsMapLayer* QgsServerProjectParser::createLayerFromElement( const QDomElement& 
 
   if ( layer )
   {
+    if ( !QgsMapLayerRegistry::instance()->mapLayer( id ) )
+      QgsMapLayerRegistry::instance()->addMapLayer( layer, false, false );
     if ( layer->type() == QgsMapLayer::VectorLayer )
       addValueRelationLayersForLayer( dynamic_cast<QgsVectorLayer *>( layer ) );
 
@@ -265,11 +276,9 @@ QgsMapLayer* QgsServerProjectParser::createLayerFromElement( const QDomElement& 
     layer->readLayerXML( const_cast<QDomElement&>( elem ) ); //should be changed to const in QgsMapLayer
     layer->setLayerName( layerName( elem ) );
 
-    if ( layer->type() == QgsMapLayer::VectorLayer )
-    {
-      addValueRelationLayersForLayer( dynamic_cast<QgsVectorLayer *>( layer ) );
-    }
-
+    // Insert layer in registry and cache before addValueRelationLayersForLayer
+    if ( !QgsMapLayerRegistry::instance()->mapLayer( id ) )
+      QgsMapLayerRegistry::instance()->addMapLayer( layer, false, false );
     if ( useCache )
     {
       QgsMSLayerCache::instance()->insertLayer( absoluteUri, id, layer, mProjectPath );
@@ -278,6 +287,11 @@ QgsMapLayer* QgsServerProjectParser::createLayerFromElement( const QDomElement& 
     {
       //todo: fixme
       //mLayersToRemove.push_back( layer );
+    }
+
+    if ( layer->type() == QgsMapLayer::VectorLayer )
+    {
+      addValueRelationLayersForLayer( dynamic_cast<QgsVectorLayer *>( layer ) );
     }
   }
   return layer;
@@ -411,37 +425,62 @@ void QgsServerProjectParser::serviceCapabilities( QDomElement& parentElement, QD
   QDomElement keywordListElem = propertiesElement.firstChildElement( "WMSKeywordList" );
   if ( !keywordListElem.isNull() && !keywordListElem.text().isEmpty() )
   {
-    QDomElement wmsKeywordElem = doc.createElement( "KeywordList" );
-    QDomNodeList keywordList = keywordListElem.elementsByTagName( "value" );
-    for ( int i = 0; i < keywordList.size(); ++i )
+    if ( service.compare( "WMS", Qt::CaseInsensitive ) == 0 )
     {
-      QDomElement keywordElem = doc.createElement( "Keyword" );
-      QDomText keywordText = doc.createTextNode( keywordList.at( i ).toElement().text() );
-      keywordElem.appendChild( keywordText );
-      if ( sia2045 )
+      QDomElement wmsKeywordElem = doc.createElement( "KeywordList" );
+      QDomNodeList keywordList = keywordListElem.elementsByTagName( "value" );
+      for ( int i = 0; i < keywordList.size(); ++i )
       {
-        keywordElem.setAttribute( "vocabulary", "SIA_Geo405" );
+        QDomElement keywordElem = doc.createElement( "Keyword" );
+        QDomText keywordText = doc.createTextNode( keywordList.at( i ).toElement().text() );
+        keywordElem.appendChild( keywordText );
+        if ( sia2045 )
+        {
+          keywordElem.setAttribute( "vocabulary", "SIA_Geo405" );
+        }
+        wmsKeywordElem.appendChild( keywordElem );
       }
-      wmsKeywordElem.appendChild( keywordElem );
-    }
 
-    if ( keywordList.size() > 0 )
+      if ( keywordList.size() > 0 )
+      {
+        serviceElem.appendChild( wmsKeywordElem );
+      }
+    }
+    else
     {
+      QDomNodeList keywordNodeList = keywordListElem.elementsByTagName( "value" );
+      QStringList keywordList;
+      for ( int i = 0; i < keywordNodeList.size(); ++i )
+      {
+        keywordList.push_back( keywordNodeList.at( i ).toElement().text() );
+      }
+      QDomElement wmsKeywordElem = doc.createElement( "Keywords" );
+      if ( service.compare( "WCS", Qt::CaseInsensitive ) == 0 )
+        wmsKeywordElem = doc.createElement( "keywords" );
+      QDomText keywordText = doc.createTextNode( keywordList.join( ", " ) );
+      wmsKeywordElem.appendChild( keywordText );
       serviceElem.appendChild( wmsKeywordElem );
     }
   }
 
   //OnlineResource element is mandatory according to the WMS specification
   QDomElement wmsOnlineResourceElem = propertiesElement.firstChildElement( "WMSOnlineResource" );
-  QDomElement onlineResourceElem = doc.createElement( "OnlineResource" );
-  onlineResourceElem.setAttribute( "xmlns:xlink", "http://www.w3.org/1999/xlink" );
-  onlineResourceElem.setAttribute( "xlink:type", "simple" );
   if ( !wmsOnlineResourceElem.isNull() )
   {
-    onlineResourceElem.setAttribute( "xlink:href", wmsOnlineResourceElem.text() );
+    QDomElement onlineResourceElem = doc.createElement( "OnlineResource" );
+    if ( service.compare( "WFS", Qt::CaseInsensitive ) == 0 )
+    {
+      QDomText onlineResourceText = doc.createTextNode( wmsOnlineResourceElem.text() );
+      onlineResourceElem.appendChild( onlineResourceText );
+    }
+    else
+    {
+      onlineResourceElem.setAttribute( "xmlns:xlink", "http://www.w3.org/1999/xlink" );
+      onlineResourceElem.setAttribute( "xlink:type", "simple" );
+      onlineResourceElem.setAttribute( "xlink:href", wmsOnlineResourceElem.text() );
+    }
+    serviceElem.appendChild( onlineResourceElem );
   }
-
-  serviceElem.appendChild( onlineResourceElem );
 
   if ( service.compare( "WMS", Qt::CaseInsensitive ) == 0 ) //no contact information in WFS 1.0 and WCS 1.0
   {
@@ -1055,6 +1094,28 @@ QSet<QString> QgsServerProjectParser::findRestrictedLayers() const
         for ( int k = 0; k < sublayerList.size(); ++k )
         {
           restrictedLayerSet.insert( sublayerList.at( k ).toElement().attribute( "name" ) );
+        }
+      }
+    }
+  }
+
+  // wmsLayerRestrictionValues contains LayerIDs
+  if ( mUseLayerIDs )
+  {
+    QDomNodeList legendLayerList = legendElem.elementsByTagName( "legendlayer" );
+    for ( int i = 0; i < legendLayerList.size(); ++i )
+    {
+      //get name
+      QDomElement layerElem = legendLayerList.at( i ).toElement();
+      QString layerName = layerElem.attribute( "name" );
+      if ( restrictedLayerSet.contains( layerName ) ) //match: add layer id
+      {
+        // get legend layer file element
+        QDomNodeList layerfileList = layerElem.elementsByTagName( "legendlayerfile" );
+        if ( layerfileList.size() > 0 )
+        {
+          // add layer id
+          restrictedLayerSet.insert( layerfileList.at( 0 ).toElement().attribute( "layerid" ) );
         }
       }
     }

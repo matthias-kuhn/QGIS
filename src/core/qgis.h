@@ -323,7 +323,10 @@ inline void ( *cast_to_fptr( void *p ) )()
 //
 inline QString qgsDoubleToString( const double &a, const int &precision = 17 )
 {
-  return QString::number( a, 'f', precision ).remove( QRegExp( "\\.?0+$" ) );
+  if ( precision )
+    return QString::number( a, 'f', precision ).remove( QRegExp( "\\.?0+$" ) );
+  else
+    return QString::number( a, 'f', precision );
 }
 
 //
@@ -351,6 +354,14 @@ inline bool qgsDoubleNearSig( double a, double b, int significantDigits = 10 )
 
   return aexp == bexp &&
          qRound( ar * pow( 10.0, significantDigits ) ) == qRound( br * pow( 10.0, significantDigits ) );
+}
+
+//
+// a round function which returns a double to guard against overflows
+//
+inline double qgsRound( double x )
+{
+  return x < 0.0 ? std::ceil( x - 0.5 ) : std::floor( x + 0.5 );
 }
 
 bool qgsVariantLessThan( const QVariant& lhs, const QVariant& rhs );

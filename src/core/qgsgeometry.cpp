@@ -4679,7 +4679,7 @@ bool QgsGeometry::convertToMultiType()
 
 void QgsGeometry::transformVertex( QgsWkbPtr &wkbPtr, const QTransform& trans, bool hasZValue )
 {
-  double x, y, rotated_x, rotated_y;
+  qreal x, y, rotated_x, rotated_y;
 
   QgsWkbPtr tmp = wkbPtr;
   tmp >> x >> y;
@@ -4831,7 +4831,7 @@ int QgsGeometry::splitPolygonGeometry( GEOSGeometry* splitLine, QList<QgsGeometr
   //first union all the polygon rings together (to get them noded, see JTS developer guide)
   GEOSGeometry *nodedGeometry = nodeGeometries( splitLine, mGeos );
   if ( !nodedGeometry )
-    return 2; //an error occured during noding
+    return 2; //an error occurred during noding
 
   GEOSGeometry *polygons = GEOSPolygonize_r( geosinit.ctxt, &nodedGeometry, 1 );
   if ( !polygons || numberOfGeometries( polygons ) == 0 )

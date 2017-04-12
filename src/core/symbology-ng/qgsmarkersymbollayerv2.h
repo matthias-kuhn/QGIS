@@ -108,9 +108,10 @@ class CORE_EXPORT QgsSimpleMarkerSymbolLayerV2 : public QgsMarkerSymbolLayerV2
     void drawMarker( QPainter* p, QgsSymbolV2RenderContext& context );
 
     bool prepareShape( QString name = QString() );
+    bool prepareShape( QString name, QPolygonF &polygon ) const;
     bool preparePath( QString name = QString() );
 
-    /**Prepares cache image
+    /** Prepares cache image
     @return true in case of success, false if cache image size too large*/
     bool prepareCache( QgsSymbolV2RenderContext& context );
 
@@ -178,8 +179,8 @@ class CORE_EXPORT QgsSvgMarkerSymbolLayerV2 : public QgsMarkerSymbolLayerV2
     QString path() const { return mPath; }
     void setPath( QString path );
 
-    QColor fillColor() const override { return mFillColor; }
-    void setFillColor( const QColor& c ) override { mFillColor = c; }
+    QColor fillColor() const override { return color(); }
+    void setFillColor( const QColor& color ) override { setColor( color ); }
 
     QColor outlineColor() const override { return mOutlineColor; }
     void setOutlineColor( const QColor& c ) override { mOutlineColor = c; }
@@ -206,7 +207,6 @@ class CORE_EXPORT QgsSvgMarkerSymbolLayerV2 : public QgsMarkerSymbolLayerV2
 
     //param(fill), param(outline), param(outline-width) are going
     //to be replaced in memory
-    QColor mFillColor;
     QColor mOutlineColor;
     double mOutlineWidth;
     QgsSymbolV2::OutputUnit mOutlineWidthUnit;

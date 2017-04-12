@@ -128,11 +128,15 @@ QgsPostgresProvider::QgsPostgresProvider( QString const & uri )
     return;
   }
 
+  // NOTE: mValid would be true after true return from
+  // getGeometryDetails, see http://hub.qgis.org/issues/13781
+
   if ( mSpatialColType == sctTopoGeometry )
   {
     if ( !getTopoLayerInfo() ) // gets topology name and layer id
     {
       QgsMessageLog::logMessage( tr( "invalid PostgreSQL topology layer" ), tr( "PostGIS" ) );
+      mValid = false;
       disconnectDb();
       return;
     }
@@ -1103,6 +1107,9 @@ bool QgsPostgresProvider::determinePrimaryKey()
           if ( res.PQntuples() == 1 )
           {
             mPrimaryKeyType = pktTid;
+
+            QgsMessageLog::logMessage( tr( "Primary key is ctid - changing of existing features disabled (%1; %2)" ).arg( mGeometryColumn ).arg( mQuery ) );
+            mEnabledCapabilities &= ~( QgsVectorDataProvider::DeleteFeatures | QgsVectorDataProvider::ChangeAttributeValues | QgsVectorDataProvider::ChangeGeometries );
           }
           else
           {
@@ -1234,14 +1241,16 @@ QVariant QgsPostgresProvider::minimumValue( int index )
   {
     // get the field name
     const QgsField &fld = field( index );
-    QString sql = QString( "SELECT %1 FROM %2" )
-                  .arg( connectionRO()->fieldExpression( fld, "min(%1)" ) )
+    QString sql = QString( "SELECT min(%1) AS %1 FROM %2" )
+                  .arg( quotedIdentifier( fld.name() ) )
                   .arg( mQuery );
 
     if ( !mSqlWhereClause.isEmpty() )
     {
       sql += QString( " WHERE %1" ).arg( mSqlWhereClause );
     }
+
+    sql = QString( "SELECT %1 FROM (%2) foo" ).arg( connectionRO()->fieldExpression( fld ) ).arg( sql );
 
     QgsPostgresResult rmin = connectionRO()->PQexec( sql );
     return convertValue( fld.type(), rmin.PQgetvalue( 0, 0 ) );
@@ -1262,7 +1271,7 @@ void QgsPostgresProvider::uniqueValues( int index, QList<QVariant> &uniqueValues
     // get the field name
     const QgsField &fld = field( index );
     QString sql = QString( "SELECT DISTINCT %1 FROM %2" )
-                  .arg( connectionRO()->fieldExpression( fld ) )
+                  .arg( quotedIdentifier( fld.name() ) )
                   .arg( mQuery );
 
     if ( !mSqlWhereClause.isEmpty() )
@@ -1270,12 +1279,14 @@ void QgsPostgresProvider::uniqueValues( int index, QList<QVariant> &uniqueValues
       sql += QString( " WHERE %1" ).arg( mSqlWhereClause );
     }
 
-    sql +=  QString( " ORDER BY %1" ).arg( connectionRO()->fieldExpression( fld ) );
+    sql +=  QString( " ORDER BY %1" ).arg( quotedIdentifier( fld.name() ) );
 
     if ( limit >= 0 )
     {
       sql += QString( " LIMIT %1" ).arg( limit );
     }
+
+    sql = QString( "SELECT %1 FROM (%2) foo" ).arg( connectionRO()->fieldExpression( fld ) ).arg( sql );
 
     QgsPostgresResult res = connectionRO()->PQexec( sql );
     if ( res.PQresultStatus() == PGRES_TUPLES_OK )
@@ -1406,14 +1417,16 @@ QVariant QgsPostgresProvider::maximumValue( int index )
   {
     // get the field name
     const QgsField &fld = field( index );
-    QString sql = QString( "SELECT %1 FROM %2" )
-                  .arg( connectionRO()->fieldExpression( fld, "max(%1)" ) )
+    QString sql = QString( "SELECT max(%1) AS %1 FROM %2" )
+                  .arg( quotedIdentifier( fld.name() ) )
                   .arg( mQuery );
 
     if ( !mSqlWhereClause.isEmpty() )
     {
       sql += QString( " WHERE %1" ).arg( mSqlWhereClause );
     }
+
+    sql = QString( "SELECT %1 FROM (%2) foo" ).arg( connectionRO()->fieldExpression( fld ) ).arg( sql );
 
     QgsPostgresResult rmax = connectionRO()->PQexec( sql );
     return convertValue( fld.type(), rmax.PQgetvalue( 0, 0 ) );
@@ -1884,7 +1897,7 @@ bool QgsPostgresProvider::deleteFeatures( const QgsFeatureIds & id )
       dropOrphanedTopoGeoms();
     }
 
-    mShared->addFeaturesCounted( id.size() );
+    mShared->addFeaturesCounted( -id.size() );
   }
   catch ( PGException &e )
   {
@@ -3394,10 +3407,10 @@ QGISEXTERN bool saveStyle( const QString& uri, const QString& qmlStyle, const QS
   {
     res = conn->PQexec( "CREATE TABLE layer_styles("
                         "id SERIAL PRIMARY KEY"
-                        ",f_table_catalog varchar(256)"
-                        ",f_table_schema varchar(256)"
-                        ",f_table_name varchar(256)"
-                        ",f_geometry_column varchar(256)"
+                        ",f_table_catalog varchar"
+                        ",f_table_schema varchar"
+                        ",f_table_name varchar"
+                        ",f_geometry_column varchar"
                         ",styleName varchar(30)"
                         ",styleQML xml"
                         ",styleSLD xml"

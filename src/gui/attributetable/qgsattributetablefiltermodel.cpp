@@ -48,11 +48,11 @@ bool QgsAttributeTableFilterModel::lessThan( const QModelIndex &left, const QMod
 
     if ( leftSelected && !rightSelected )
     {
-      return true;
+      return sortOrder() == Qt::AscendingOrder;
     }
     else if ( rightSelected && !leftSelected )
     {
-      return false;
+      return sortOrder() == Qt::DescendingOrder;
     }
   }
 
@@ -189,8 +189,9 @@ bool QgsAttributeTableFilterModel::filterAcceptsRow( int sourceRow, const QModel
       {
         const QList<QgsFeatureId> addedFeatures = editBuffer->addedFeatures().keys();
         const QList<QgsFeatureId> changedFeatures = editBuffer->changedAttributeValues().keys();
+        const QList<QgsFeatureId> changedGeometries = editBuffer->changedGeometries().keys();
         const QgsFeatureId fid = masterModel()->rowToId( sourceRow );
-        return addedFeatures.contains( fid ) || changedFeatures.contains( fid );
+        return addedFeatures.contains( fid ) || changedFeatures.contains( fid ) || changedGeometries.contains( fid );
       }
       return false;
     }

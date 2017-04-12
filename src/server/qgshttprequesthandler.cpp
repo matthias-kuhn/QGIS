@@ -112,7 +112,7 @@ void QgsHttpRequestHandler::sendHeaders()
     QgsDebugMsg( QString( "Content format: %1" ).arg( mInfoFormat ) );
     printf( "Content-Type: " );
     printf( mInfoFormat.toLocal8Bit() );
-    if ( mInfoFormat.startsWith( "text/" ) )
+    if ( mInfoFormat.startsWith( "text/" ) || mInfoFormat.startsWith( "application/vnd.ogc.gml" ) )
       printf( "; charset=utf-8" );
     printf( "\n" );
     // size is not known when streaming
@@ -131,7 +131,6 @@ void QgsHttpRequestHandler::sendHeaders()
       printf( it.value().toLocal8Bit() );
       printf( "\n" );
     }
-    printf( "\n" );
   }
   printf( "\n" );
   mHeaders.clear();
@@ -461,7 +460,8 @@ bool QgsHttpRequestHandler::startGetFeatureResponse( QByteArray* ba, const QStri
   else
     format = "text/xml";
 
-  setHeader( "Content-Type", format );
+  setInfoFormat( format );
+  sendHeaders();
   appendBody( *ba );
   // Streaming
   sendResponse();

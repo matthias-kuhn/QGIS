@@ -504,10 +504,10 @@ int QgsWFSServer::getFeature( QgsRequestHandler& request, const QString& format 
 
         //map extent
         searchRect = layer->extent();
-        searchRect.set( searchRect.xMinimum() - 0.000001
-                        , searchRect.yMinimum() - 0.000001
-                        , searchRect.xMaximum() + 0.000001
-                        , searchRect.yMaximum() + 0.000001 );
+        searchRect.set( searchRect.xMinimum() - 1. / pow( 10., layerPrec )
+                        , searchRect.yMinimum() - 1. / pow( 10., layerPrec )
+                        , searchRect.xMaximum() + 1. / pow( 10., layerPrec )
+                        , searchRect.yMaximum() + 1. / pow( 10., layerPrec ) );
         layerCrs = layer->crs();
 
         QgsFeatureIterator fit = layer->getFeatures(
@@ -843,10 +843,10 @@ int QgsWFSServer::getFeature( QgsRequestHandler& request, const QString& format 
       if ( bboxOk )
         searchRect.set( minx, miny, maxx, maxy );
       else
-        searchRect.set( searchRect.xMinimum() - 0.000001,
-                        searchRect.yMinimum() - 0.000001,
-                        searchRect.xMaximum() + 0.000001,
-                        searchRect.yMaximum() + 0.000001 );
+        searchRect.set( searchRect.xMinimum() - 1. / pow( 10., layerPrec ),
+                        searchRect.yMinimum() - 1. / pow( 10., layerPrec ),
+                        searchRect.xMaximum() + 1. / pow( 10., layerPrec ),
+                        searchRect.yMaximum() + 1. / pow( 10., layerPrec ) );
       layerCrs = layer->crs();
 
       long featCounter = 0;
@@ -1641,7 +1641,7 @@ QgsFeatureIds QgsWFSServer::getFeatureIdsFromFilter( QDomElement filterElem, Qgs
       fid = fidElem.attribute( "fid" );
       if ( fid.contains( "." ) )
         fid = fid.section( ".", 1, 1 );
-      fids.insert( fid.toInt( &conversionSuccess ) );
+      fids.insert( fid.toLongLong( &conversionSuccess ) );
     }
   }
   else
@@ -1702,6 +1702,10 @@ QString QgsWFSServer::createFeatureGeoJSON( QgsFeature* feat, int prec, QgsCoord
   for ( int i = 0; i < attrIndexes.count(); ++i )
   {
     int idx = attrIndexes[i];
+    if ( idx >= fields->count() )
+    {
+      continue;
+    }
     QString attributeName = fields->at( idx ).name();
     //skip attribute if it is excluded from WFS publication
     if ( excludedAttributes.contains( attributeName ) )
@@ -1723,7 +1727,10 @@ QString QgsWFSServer::createFeatureGeoJSON( QgsFeature* feat, int prec, QgsCoord
     else
     {
       fStr += "\"";
-      fStr +=  val.toString().replace( QString( "\"" ), QString( "\\\"" ) );
+      fStr +=  val.toString()
+               .replace( '"', "\\\"" )
+               .replace( '\r', "\\r" )
+               .replace( '\n', "\\n" );
       fStr += "\"";
     }
     fStr += "\n";
@@ -1780,6 +1787,10 @@ QDomElement QgsWFSServer::createFeatureGML2( QgsFeature* feat, QDomDocument& doc
   for ( int i = 0; i < attrIndexes.count(); ++i )
   {
     int idx = attrIndexes[i];
+    if ( idx >= fields->count() )
+    {
+      continue;
+    }
     QString attributeName = fields->at( idx ).name();
     //skip attribute if it is excluded from WFS publication
     if ( excludedAttributes.contains( attributeName ) )
@@ -1839,6 +1850,10 @@ QDomElement QgsWFSServer::createFeatureGML3( QgsFeature* feat, QDomDocument& doc
   for ( int i = 0; i < attrIndexes.count(); ++i )
   {
     int idx = attrIndexes[i];
+    if ( idx >= fields->count() )
+    {
+      continue;
+    }
     QString attributeName = fields->at( idx ).name();
     //skip attribute if it is excluded from WFS publication
     if ( excludedAttributes.contains( attributeName ) )

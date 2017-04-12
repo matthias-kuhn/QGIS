@@ -516,7 +516,7 @@ void QgsWcsProvider::readBlock( int bandNo, QgsRectangle  const & viewExtent, in
   // TODO: set block to null values, move that to function and call only if fails
   memset( block, 0, pixelWidth * pixelHeight * QgsRasterBlock::typeSize( dataType( bandNo ) ) );
 
-  // Requested extent must at least partialy overlap coverage extent, otherwise
+  // Requested extent must at least partially overlap coverage extent, otherwise
   // server gives error. QGIS usually does not request blocks outside raster extent
   // (higher level checks) but it is better to do check here as well
   if ( !viewExtent.intersects( mCoverageExtent ) )
@@ -911,6 +911,12 @@ QList<QgsColorRampShader::ColorRampItem> QgsWcsProvider::colorTable( int theBand
 {
   QgsDebugMsg( "entered." );
   return mColorTables.value( theBandNumber - 1 );
+}
+
+int QgsWcsProvider::colorInterpretation( int bandNo ) const
+{
+  GDALRasterBandH myGdalBand = GDALGetRasterBand( mCachedGdalDataset, bandNo );
+  return colorInterpretationFromGdal( GDALGetRasterColorInterpretation( myGdalBand ) );
 }
 
 
