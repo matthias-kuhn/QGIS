@@ -719,7 +719,7 @@ int main( int argc, char *argv[] )
 
         if ( systemEnvVars.contains( envVarName ) && envVarApply == "unset" )
         {
-#ifdef Q_WS_WIN
+#if defined(Q_WS_WIN32) || defined(WIN32)
           putenv( envVarName.toUtf8().constData() );
 #else
           unsetenv( envVarName.toUtf8().constData() );
@@ -727,7 +727,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
-#ifdef Q_WS_WIN
+#if defined(Q_WS_WIN32) || defined(WIN32)
           if ( envVarApply != "undefined" || !getenv( envVarName.toUtf8().constData() ) )
             putenv( QString( "%1=%2" ).arg( envVarName ).arg( envVarValue ).toUtf8().constData() );
 #else
