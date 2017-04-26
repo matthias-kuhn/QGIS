@@ -30,9 +30,11 @@ from collections import defaultdict
 
 from qgis.PyQt.QtGui import QIcon
 
-from qgis.core import QgsFeature, QgsGeometry
+from qgis.core import (QgsFeature,
+                       QgsGeometry,
+                       QgsMessageLog,
+                       QgsProcessingUtils)
 
-from processing.core.ProcessingLog import ProcessingLog
 from processing.core.GeoAlgorithm import GeoAlgorithm
 from processing.core.GeoAlgorithmExecutionException import GeoAlgorithmExecutionException
 from processing.core.parameters import ParameterVector
@@ -73,7 +75,7 @@ class Dissolve(GeoAlgorithm):
                                               self.tr('Unique ID fields'), Dissolve.INPUT, optional=True, multiple=True))
         self.addOutput(OutputVector(Dissolve.OUTPUT, self.tr('Dissolved')))
 
-    def processAlgorithm(self, feedback):
+    def processAlgorithm(self, context, feedback):
         useField = not self.getParameterValue(Dissolve.DISSOLVE_ALL)
         field_names = self.getParameterValue(Dissolve.FIELD)
         vlayerA = dataobjects.getLayerFromString(
@@ -86,8 +88,8 @@ class Dissolve(GeoAlgorithm):
                 vlayerA.crs())
 
         outFeat = QgsFeature()
-        features = vector.features(vlayerA)
-        total = 100.0 / len(features)
+        features = QgsProcessingUtils.getFeatures(vlayerA, context)
+        total = 100.0 / QgsProcessingUtils.featureCount(vlayerA, context)
 
         if not useField:
             first = True
@@ -106,12 +108,11 @@ class Dissolve(GeoAlgorithm):
                 errors = tmpInGeom.validateGeometry()
                 if len(errors) != 0:
                     for error in errors:
-                        ProcessingLog.addToLog(ProcessingLog.LOG_ERROR,
-                                               self.tr('ValidateGeometry()'
-                                                       'error: One or more '
-                                                       'input features have '
-                                                       'invalid geometry: ') +
-                                               error.what())
+                        QgsMessageLog.logMessage(self.tr('ValidateGeometry()'
+                                                         'error: One or more '
+                                                         'input features have '
+                                                         'invalid geometry: ') +
+                                                 error.what(), self.tr('Processing'), QgsMessageLog.CRITICAL)
                     continue
 
                 geom_queue.append(tmpInGeom)
@@ -149,12 +150,11 @@ class Dissolve(GeoAlgorithm):
                 errors = tmpInGeom.validateGeometry()
                 if len(errors) != 0:
                     for error in errors:
-                        ProcessingLog.addToLog(ProcessingLog.LOG_ERROR,
-                                               self.tr('ValidateGeometry() '
-                                                       'error: One or more input'
-                                                       'features have invalid '
-                                                       'geometry: ') +
-                                               error.what())
+                        QgsMessageLog.logMessage(self.tr('ValidateGeometry() '
+                                                         'error: One or more input'
+                                                         'features have invalid '
+                                                         'geometry: ') +
+                                                 error.what(), self.tr('Processing'), QgsMessageLog.CRITICAL)
 
                 if index_attrs not in attribute_dict:
                     # keep attributes of first feature

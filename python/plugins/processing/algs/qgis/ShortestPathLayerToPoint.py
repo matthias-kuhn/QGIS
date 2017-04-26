@@ -31,7 +31,16 @@ from collections import OrderedDict
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtGui import QIcon
 
-from qgis.core import QgsWkbTypes, QgsUnitTypes, QgsFeature, QgsGeometry, QgsPoint, QgsFields, QgsField, QgsFeatureRequest
+from qgis.core import (QgsWkbTypes,
+                       QgsUnitTypes,
+                       QgsFeature,
+                       QgsGeometry,
+                       QgsPoint,
+                       QgsFields,
+                       QgsField,
+                       QgsFeatureRequest,
+                       QgsMessageLog,
+                       QgsProcessingUtils)
 from qgis.analysis import (QgsVectorLayerDirector,
                            QgsNetworkDistanceStrategy,
                            QgsNetworkSpeedStrategy,
@@ -41,7 +50,6 @@ from qgis.analysis import (QgsVectorLayerDirector,
 from qgis.utils import iface
 
 from processing.core.GeoAlgorithm import GeoAlgorithm
-from processing.core.ProcessingLog import ProcessingLog
 from processing.core.parameters import (ParameterVector,
                                         ParameterPoint,
                                         ParameterNumber,
@@ -146,7 +154,7 @@ class ShortestPathLayerToPoint(GeoAlgorithm):
                                     self.tr('Shortest path'),
                                     datatype=[dataobjects.TYPE_VECTOR_LINE]))
 
-    def processAlgorithm(self, feedback):
+    def processAlgorithm(self, context, feedback):
         layer = dataobjects.getLayerFromString(
             self.getParameterValue(self.INPUT_VECTOR))
         startPoints = dataobjects.getLayerFromString(
@@ -214,8 +222,8 @@ class ShortestPathLayerToPoint(GeoAlgorithm):
         feedback.pushInfo(self.tr('Loading start points...'))
         request = QgsFeatureRequest()
         request.setFlags(request.flags() ^ QgsFeatureRequest.SubsetOfAttributes)
-        features = vector.features(startPoints, request)
-        count = len(features)
+        features = QgsProcessingUtils.getFeatures(startPoints, context, request)
+        count = QgsProcessingUtils.featureCount(startPoints, context)
 
         points = [endPoint]
         for f in features:
@@ -238,7 +246,7 @@ class ShortestPathLayerToPoint(GeoAlgorithm):
             if tree[idxEnd] == -1:
                 msg = self.tr('There is no route from start point ({}) to end point ({}).'.format(points[i].toString(), endPoint.toString()))
                 feedback.setProgressText(msg)
-                ProcessingLog.addToLog(ProcessingLog.LOG_WARNING, msg)
+                QgsMessageLog.logMessage(msg, self.tr('Processing'), QgsMessageLog.WARNING)
                 continue
 
             cost = 0.0

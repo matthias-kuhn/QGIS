@@ -106,6 +106,8 @@ class CORE_EXPORT QgsSipifyHeader : public QtClass<QVariant>, private Ui::QgsBas
     };
     Q_DECLARE_FLAGS( Flags, MyEnum )
 
+    enum OneLiner { Success, NoSuccess };
+
     /**
      * Docstring headers for structs are not supported by sip (as of 4.18) and
      * therefore this docstring must not to be copied to the sipfile.
@@ -217,11 +219,33 @@ class CORE_EXPORT QgsSipifyHeader : public QtClass<QVariant>, private Ui::QgsBas
 
     bool removeFunctionBody( const QList<int, QString> &list, QgsVectorLayer *vl ) { doSomething; return true; }   // some comments
 
+    static inline QgsMapLayer *skippedMethodWithBody() SIP_SKIP
+    {
+      OhNoYouShouldnotHaveReadThis();
+      if ( ThisIsTrue() )
+      {
+        return false;
+      }
+    }
+
     //! Removing function body with namespaced return value
     QgsRaster::RasterBuildPyramids buildPyramidsFlag() const { return mBuildPyramidsFlag; }
 
     //! Removing function body with virtual const reference
     virtual const QgsLayerMetadata &metadata() const { return mMetadata; }
+
+    //! Mulitline body
+    bool myMultiLineBody()
+    {
+      if ( isTrue() )
+      {
+        return false;
+      }
+      else
+      {
+        return true;
+      }
+    }
 
     bool deletedFunction() = delete; // some comments
 
@@ -254,6 +278,17 @@ class CORE_EXPORT QgsSipifyHeader : public QtClass<QVariant>, private Ui::QgsBas
     {
       int var;
     }
+
+#if 0
+#if Whatever
+    void X();
+#else
+    void Y();
+#endif
+#else
+    void ZshouldBeShown();
+#endif
+
 
   protected:
     bool thisShouldBeListed();

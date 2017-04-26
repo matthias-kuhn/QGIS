@@ -117,7 +117,6 @@ core/qgsvectorsimplifymethod.sip
 core/qgscachedfeatureiterator.sip
 core/qgscacheindex.sip
 core/qgscacheindexfeatureid.sip
-core/qgsfeaturestore.sip
 core/qgsgeometrycache.sip
 core/qgslayerdefinition.sip
 core/qgsprojectfiletransform.sip
@@ -200,12 +199,6 @@ core/fieldformatter/qgslistfieldformatter.sip
 core/fieldformatter/qgsrelationreferencefieldformatter.sip
 core/fieldformatter/qgsvaluemapfieldformatter.sip
 core/fieldformatter/qgsvaluerelationfieldformatter.sip
-core/layertree/qgslayertree.sip
-core/layertree/qgslayertreemodel.sip
-core/layertree/qgslayertreemodellegendnode.sip
-core/layertree/qgslayertreenode.sip
-core/layertree/qgslayertreeregistrybridge.sip
-core/layertree/qgslayertreeutils.sip
 core/raster/qgsbilinearrasterresampler.sip
 core/raster/qgsbrightnesscontrastfilter.sip
 core/raster/qgscliptominmaxenhancement.sip
@@ -333,11 +326,6 @@ gui/qgscurveeditorwidget.sip
 gui/qgsdetaileditemdata.sip
 gui/qgsdetaileditemdelegate.sip
 gui/qgsdetaileditemwidget.sip
-gui/qgsdial.sip
-gui/qgsdialog.sip
-gui/qgsdockwidget.sip
-gui/qgsencodingfiledialog.sip
-gui/qgserrordialog.sip
 gui/qgsexpressionbuilderdialog.sip
 gui/qgsexpressionbuilderwidget.sip
 gui/qgsexpressionhighlighter.sip
@@ -348,7 +336,6 @@ gui/qgsfeatureselectiondlg.sip
 gui/qgsfieldvalidator.sip
 gui/qgsfieldvalueslineedit.sip
 gui/qgsfiledropedit.sip
-gui/qgsfiledownloader.sip
 gui/qgsfilterlineedit.sip
 gui/qgsfloatingwidget.sip
 gui/qgsfocuswatcher.sip

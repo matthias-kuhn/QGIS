@@ -51,7 +51,7 @@ my $ACCESS = PUBLIC;
 my $MULTILINE_DEFINITION = 0;
 
 my $comment = '';
-my $nesting_index = 0;
+my $global_nesting_index = 0;
 my $private_section_line = '';
 my $classname = '';
 my $return_type = '';
@@ -59,7 +59,7 @@ my $is_override = 0;
 my %qflag_hash;
 
 my $line_count = @lines;
-my $line_idx = -1;
+my $line_idx = 0;
 my $line;
 my @output = ();
 
@@ -96,6 +96,27 @@ while ($line_idx < $line_count){
 
     # Skip preprocessor stuff
     if ($line =~ m/^\s*#/){
+
+        # skip #if 0 blocks
+        if ( $line =~ m/^\s*#if 0/){
+          my $nesting_index = 0;
+          while ($line_idx < $line_count){
+              $line = $lines[$line_idx];
+              $line_idx++;
+              if ( $line =~ m/^\s*#if(def)?\s+/ ){
+                  $nesting_index++;
+              }
+              elsif ( $nesting_index == 0 && $line =~ m/^\s*#(endif|else)/ ){
+                  $comment = '';
+                  last;
+              }
+              elsif ( $nesting_index != 0 && $line =~ m/^\s*#(endif)/ ){
+                      $nesting_index--;
+              }
+          }
+          next;
+        }
+
         if ( $line =~ m/^\s*#ifdef SIP_RUN/){
             $SIP_RUN = 1;
             if ($ACCESS == PRIVATE){
@@ -105,34 +126,34 @@ while ($line_idx < $line_count){
         }
         if ( $SIP_RUN == 1 ){
             if ( $line =~ m/^\s*#endif/ ){
-                if ( $nesting_index == 0 ){
+                if ( $global_nesting_index == 0 ){
                     $SIP_RUN = 0;
                     next;
                 }
                 else {
-                    $nesting_index--;
+                    $global_nesting_index--;
                 }
             }
             if ( $line =~ m/^\s*#if(def)?\s+/ ){
-                $nesting_index++;
+                $global_nesting_index++;
             }
 
             # if there is an else at this level, code will be ignored i.e. not SIP_RUN
-            if ( $line =~ m/^\s*#else/ && $nesting_index == 0){
+            if ( $line =~ m/^\s*#else/ && $global_nesting_index == 0){
                 while ($line_idx < $line_count){
                     $line = $lines[$line_idx];
                     $line_idx++;
                     if ( $line =~ m/^\s*#if(def)?\s+/ ){
-                        $nesting_index++;
+                        $global_nesting_index++;
                     }
                     elsif ( $line =~ m/^\s*#endif/ ){
-                        if ( $nesting_index == 0 ){
+                        if ( $global_nesting_index == 0 ){
                             $comment = '';
                             $SIP_RUN = 0;
                             last;
                         }
                         else {
-                            $nesting_index--;
+                            $global_nesting_index--;
                         }
                     }
                 }
@@ -145,9 +166,9 @@ while ($line_idx < $line_count){
                 $line = $lines[$line_idx];
                 $line_idx++;
                 if ( $line =~ m/^\s*#if(def)?\s+/ ){
-                    $nesting_index++;
+                    $global_nesting_index++;
                 }
-                elsif ( $line =~ m/^\s*#else/ && $nesting_index == 0 ){
+                elsif ( $line =~ m/^\s*#else/ && $global_nesting_index == 0 ){
                     # code here will be printed out
                     if ($ACCESS == PRIVATE){
                         push @output, $private_section_line."\n";
@@ -156,13 +177,13 @@ while ($line_idx < $line_count){
                     last;
                 }
                 elsif ( $line =~ m/^\s*#endif/ ){
-                    if ( $nesting_index == 0 ){
+                    if ( $global_nesting_index == 0 ){
                         $comment = '';
                         $SIP_RUN = 0;
                         last;
                     }
                     else {
-                        $nesting_index--;
+                        $global_nesting_index--;
                     }
                 }
             }
@@ -200,6 +221,33 @@ while ($line_idx < $line_count){
         }
         $MULTILINE_DEFINITION = 0;
       }
+      # also skip method body if there is one
+      if ($lines[$line_idx] =~ m/^\s*\{/){
+        my $nesting_index = 0;
+        while ($line_idx < $line_count){
+            $line = $lines[$line_idx];
+            $line_idx++;
+            if ( $nesting_index == 0 ){
+                if ( $line =~ m/^\s*(:|,)/ ){
+                    next;
+                }
+                $line =~ m/^\s*\{/ or die 'Constructor definition misses {';
+                if ( $line =~ m/^\s*\{.*?\}/ ){
+                    last;
+                }
+                $nesting_index = 1;
+                next;
+            }
+            else {
+                $nesting_index += $line =~ tr/\{//;
+                $nesting_index -= $line =~ tr/\}//;
+                if ($nesting_index eq 0){
+                    last;
+                }
+            }
+        }
+      }
+      # line skipped, go to next iteration
       next;
     }
 
@@ -310,23 +358,31 @@ while ($line_idx < $line_count){
     # Enum declaration
     if ( $line =~ m/^\s*enum\s+\w+.*?$/ ){
         push @output, "$line\n";
-        $line = $lines[$line_idx];
-        $line_idx++;
-        $line =~ m/^\s*\{\s*$/ || die "Unexpected content: enum should be followed by {\nline: $line";
-        push @output, "$line\n";
-        while ($line_idx < $line_count){
+        if ($line =~ m/\{((\s*\w+)(\s*=\s*[\w\s\d<|]+.*?)?(,?))+\s*\}/){
+          # one line declaration
+          $line !~ m/=/ or die 'spify.pl does not handle enum one liners with value assignment. Use multiple lines instead.';
+          next;
+        }
+        else
+        {
             $line = $lines[$line_idx];
             $line_idx++;
-            if ($line =~ m/\};/){
-                last;
-            }
-            $line =~ s/(\s*\w+)(\s*=\s*[\w\s\d<|]+.*?)?(,?).*$/$1$3/;
+            $line =~ m/^\s*\{\s*$/ || die "Unexpected content: enum should be followed by {\nline: $line";
             push @output, "$line\n";
+            while ($line_idx < $line_count){
+                $line = $lines[$line_idx];
+                $line_idx++;
+                if ($line =~ m/\};/){
+                    last;
+                }
+                $line =~ s/(\s*\w+)(\s*=\s*[\w\s\d<|]+.*?)?(,?).*$/$1$3/;
+                push @output, "$line\n";
+            }
+            push @output, "$line\n";
+            # enums don't have Docstring apparently
+            $comment = '';
+            next;
         }
-        push @output, "$line\n";
-        # enums don't have Docstring apparently
-        $comment = '';
-        next;
     }
 
     # skip non-method member declaration in non-public sections
@@ -419,12 +475,19 @@ while ($line_idx < $line_count){
             if ($line !~ m/\{.*?\}$/){
                 $line = $lines[$line_idx];
                 $line_idx++;
+                my $nesting_index = 1;
                 if ( $line =~ m/^\s*\{\s*$/ ){
                     while ($line_idx < $line_count){
                         $line = $lines[$line_idx];
                         $line_idx++;
-                        if ( $line =~ m/\}\s*$/ ){
-                            last;
+                        if ( $line =~ m/^\s*{/ ){
+                            $nesting_index++;
+                        }
+                        elsif ( $line =~ m/\}\s*$/ ){
+                            $nesting_index--;
+                            if ($nesting_index == 0){
+                                last;
+                            }
                         }
                     }
                 }
@@ -475,6 +538,8 @@ while ($line_idx < $line_count){
     $line =~ s/\bSIP_TRANSFERTHIS\b/\/TransferThis\//;
     $line =~ s/\bSIP_TRANSFERBACK\b/\/TransferBack\//;
     $line =~ s/\bSIP_RELEASEGIL\b/\/ReleaseGIL\//;
+    $line =~ s/\bSIP_ARRAY\b/\/Array\//;
+    $line =~ s/\bSIP_ARRAYSIZE\b/\/ArraySize\//;
 
     $line =~ s/SIP_PYNAME\(\s*(\w+)\s*\)/\/PyName=$1\//;
     $line =~ s/(\w+)(\<(?>[^<>]|(?2))*\>)?\s+SIP_PYTYPE\(\s*\'?([^()']+)(\(\s*(?:[^()]++|(?2))*\s*\))?\'?\s*\)/$3/g;

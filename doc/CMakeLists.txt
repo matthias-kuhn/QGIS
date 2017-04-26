@@ -45,6 +45,11 @@ IF(WITH_APIDOC)
       SET(WITH_QHP NO)
     ENDIF(GENERATE_QHP)
 
+    SET(DOXYGEN_INCLUDE_PATH
+      ${CMAKE_SOURCE_DIR}/src/core
+    )
+    STRING(REPLACE ";" " " DOXYGEN_INCLUDE_PATH "${DOXYGEN_INCLUDE_PATH}")
+
     SET(DOXYGEN_INPUT
       ${CMAKE_SOURCE_DIR}/doc
       ${CMAKE_SOURCE_DIR}/src/core
@@ -61,6 +66,7 @@ IF(WITH_APIDOC)
       ${CMAKE_SOURCE_DIR}/src/core/pal
       ${CMAKE_SOURCE_DIR}/src/core/processing
       ${CMAKE_SOURCE_DIR}/src/core/raster
+      ${CMAKE_SOURCE_DIR}/src/core/scalebar
       ${CMAKE_SOURCE_DIR}/src/core/symbology-ng
       ${CMAKE_SOURCE_DIR}/src/gui
       ${CMAKE_SOURCE_DIR}/src/gui/auth

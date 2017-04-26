@@ -38,10 +38,11 @@ from qgis.core import (QgsApplication,
                        QgsDistanceArea,
                        QgsFeatureRequest,
                        QgsFeature,
-                       QgsPoint)
+                       QgsPoint,
+                       QgsMessageLog,
+                       QgsProcessingUtils)
 
 from processing.core.GeoAlgorithm import GeoAlgorithm
-from processing.core.ProcessingLog import ProcessingLog
 from processing.core.parameters import ParameterVector
 from processing.core.parameters import ParameterNumber
 from processing.core.outputs import OutputVector
@@ -79,7 +80,7 @@ class RandomPointsAlongLines(GeoAlgorithm):
                                           self.tr('Minimum distance'), 0.0, None, 0.0))
         self.addOutput(OutputVector(self.OUTPUT, self.tr('Random points'), datatype=[dataobjects.TYPE_VECTOR_POINT]))
 
-    def processAlgorithm(self, feedback):
+    def processAlgorithm(self, context, feedback):
         layer = dataobjects.getLayerFromString(
             self.getParameterValue(self.VECTOR))
         pointCount = float(self.getParameterValue(self.POINT_NUMBER))
@@ -150,8 +151,7 @@ class RandomPointsAlongLines(GeoAlgorithm):
             nIterations += 1
 
         if nPoints < pointCount:
-            ProcessingLog.addToLog(ProcessingLog.LOG_INFO,
-                                   self.tr('Can not generate requested number of random points. '
-                                           'Maximum number of attempts exceeded.'))
+            QgsMessageLog.logMessage(self.tr('Can not generate requested number of random points. '
+                                             'Maximum number of attempts exceeded.'), self.tr('Processing'), QgsMessageLog.INFO)
 
         del writer

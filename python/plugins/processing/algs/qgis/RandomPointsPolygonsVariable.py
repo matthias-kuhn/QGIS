@@ -31,10 +31,11 @@ import random
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import (QgsFields, QgsField, QgsFeature, QgsPoint, QgsWkbTypes,
-                       QgsGeometry, QgsSpatialIndex, QgsDistanceArea)
+                       QgsGeometry, QgsSpatialIndex, QgsDistanceArea,
+                       QgsMessageLog,
+                       QgsProcessingUtils)
 
 from processing.core.GeoAlgorithm import GeoAlgorithm
-from processing.core.ProcessingLog import ProcessingLog
 from processing.core.parameters import ParameterVector
 from processing.core.parameters import ParameterTableField
 from processing.core.parameters import ParameterNumber
@@ -80,7 +81,7 @@ class RandomPointsPolygonsVariable(GeoAlgorithm):
                                           self.tr('Minimum distance'), 0.0, None, 0.0))
         self.addOutput(OutputVector(self.OUTPUT, self.tr('Random points'), datatype=[dataobjects.TYPE_VECTOR_POINT]))
 
-    def processAlgorithm(self, feedback):
+    def processAlgorithm(self, context, feedback):
         layer = dataobjects.getLayerFromString(
             self.getParameterValue(self.VECTOR))
         fieldName = self.getParameterValue(self.FIELD)
@@ -94,7 +95,7 @@ class RandomPointsPolygonsVariable(GeoAlgorithm):
 
         da = QgsDistanceArea()
 
-        features = vector.features(layer)
+        features = QgsProcessingUtils.getFeatures(layer, context)
         for current, f in enumerate(features):
             fGeom = f.geometry()
             bbox = fGeom.boundingBox()
@@ -138,9 +139,8 @@ class RandomPointsPolygonsVariable(GeoAlgorithm):
                 nIterations += 1
 
             if nPoints < pointCount:
-                ProcessingLog.addToLog(ProcessingLog.LOG_INFO,
-                                       self.tr('Can not generate requested number of random '
-                                               'points. Maximum number of attempts exceeded.'))
+                QgsMessageLog.logMessage(self.tr('Can not generate requested number of random '
+                                                 'points. Maximum number of attempts exceeded.'), self.tr('Processing'), QgsMessageLog.INFO)
 
             feedback.setProgress(0)
 

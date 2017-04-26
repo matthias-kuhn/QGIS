@@ -56,6 +56,7 @@
 %Include qgsfeaturefilterprovider.sip
 %Include qgsfeatureiterator.sip
 %Include qgsfeaturerequest.sip
+%Include qgsfeaturesink.sip
 %Include qgsfeedback.sip
 %Include qgsfield.sip
 %Include qgsfieldconstraints.sip
@@ -230,13 +231,9 @@
 %Include composer/qgscomposertexttable.sip
 %Include composer/qgscomposerutils.sip
 %Include composer/qgscomposition.sip
-%Include composer/qgsdoubleboxscalebarstyle.sip
 %Include composer/qgslayoutmanager.sip
-%Include composer/qgsnumericscalebarstyle.sip
 %Include composer/qgspaperitem.sip
-%Include composer/qgsscalebarstyle.sip
-%Include composer/qgssingleboxscalebarstyle.sip
-%Include composer/qgsticksscalebarstyle.sip
+
 
 %Include diagram/qgsdiagram.sip
 %Include diagram/qgshistogramdiagram.sip
@@ -279,6 +276,7 @@
 %Include layertree/qgslayertreeutils.sip
 
 %Include processing/qgsprocessingalgorithm.sip
+%Include processing/qgsprocessingcontext.sip
 %Include processing/qgsprocessingfeedback.sip
 %Include processing/qgsprocessingprovider.sip
 %Include processing/qgsprocessingregistry.sip
@@ -326,6 +324,13 @@
 %Include raster/qgssinglebandgrayrenderer.sip
 %Include raster/qgssinglebandpseudocolorrenderer.sip
 %Include raster/qgshillshaderenderer.sip
+
+%Include scalebar/qgsdoubleboxscalebarrenderer.sip
+%Include scalebar/qgsnumericscalebarrenderer.sip
+%Include scalebar/qgsscalebarrenderer.sip
+%Include scalebar/qgsscalebarsettings.sip
+%Include scalebar/qgssingleboxscalebarrenderer.sip
+%Include scalebar/qgsticksscalebarrenderer.sip
 
 %Include symbology-ng/qgscolorbrewerpalette.sip
 %Include symbology-ng/qgscptcityarchive.sip

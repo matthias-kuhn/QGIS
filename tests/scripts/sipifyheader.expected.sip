@@ -70,6 +70,8 @@ class QgsSipifyHeader : QtClass<QVariant>
     typedef QFlags<QgsSipifyHeader::MyEnum> Flags;
 
 
+    enum OneLiner { Success, NoSuccess };
+
     struct Data
     {
       Data( QgsMapLayer *layer, Qstring name );
@@ -191,6 +193,7 @@ complex default value and type (i.e. containing commas) should be given as a str
 %Docstring
  :rtype: bool
 %End
+
     QgsRaster::RasterBuildPyramids buildPyramidsFlag() const;
 %Docstring
 Removing function body with namespaced return value
@@ -201,6 +204,12 @@ Removing function body with namespaced return value
 %Docstring
 Removing function body with virtual const reference
  :rtype: QgsLayerMetadata
+%End
+
+    bool myMultiLineBody();
+%Docstring
+Mulitline body
+ :rtype: bool
 %End
 
 
@@ -254,6 +263,9 @@ Removing function body with virtual const reference
     {
       int var;
     }
+
+    void ZshouldBeShown();
+
 
   protected:
     bool thisShouldBeListed();

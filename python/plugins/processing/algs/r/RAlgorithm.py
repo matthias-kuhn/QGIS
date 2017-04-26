@@ -31,11 +31,12 @@ __revision__ = '$Format:%H$'
 import os
 import json
 
-from qgis.core import QgsApplication
+from qgis.core import (QgsApplication,
+                       QgsProcessingUtils,
+                       QgsMessageLog)
 
 from processing.core.GeoAlgorithm import GeoAlgorithm
 from processing.core.GeoAlgorithmExecutionException import GeoAlgorithmExecutionException
-from processing.core.ProcessingLog import ProcessingLog
 from processing.gui.Help2Html import getHtmlFromHelpFile
 from processing.core.parameters import ParameterRaster
 from processing.core.parameters import ParameterTable
@@ -200,7 +201,7 @@ class RAlgorithm(GeoAlgorithm):
             raise WrongScriptException(
                 self.tr('Could not load R script: {0}.\n Problem with line {1}').format(self.descriptionFile, line))
 
-    def processAlgorithm(self, feedback):
+    def processAlgorithm(self, context, feedback):
         if isWindows():
             path = RUtils.RFolder()
             if path == '':
@@ -212,7 +213,7 @@ class RAlgorithm(GeoAlgorithm):
         loglines += self.getFullSetOfRCommands()
         for line in loglines:
             feedback.pushCommandInfo(line)
-        ProcessingLog.addToLog(ProcessingLog.LOG_INFO, loglines)
+        QgsMessageLog.logMessage(loglines, self.tr('Processing'), QgsMessageLog.INFO)
         RUtils.executeRAlgorithm(self, feedback)
         if self.showPlots:
             htmlfilename = self.getOutputValue(RAlgorithm.RPLOTS)

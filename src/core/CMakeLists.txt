@@ -89,6 +89,12 @@ SET(QGIS_CORE_SRCS
   processing/qgsprocessingregistry.cpp
   processing/qgsprocessingutils.cpp
 
+  scalebar/qgsdoubleboxscalebarrenderer.cpp
+  scalebar/qgsnumericscalebarrenderer.cpp
+  scalebar/qgsscalebarrenderer.cpp
+  scalebar/qgssingleboxscalebarrenderer.cpp
+  scalebar/qgsticksscalebarrenderer.cpp
+
   qgis.cpp
   qgsapplication.cpp
   qgsaction.cpp
@@ -136,6 +142,7 @@ SET(QGIS_CORE_SRCS
   qgsfeature.cpp
   qgsfeatureiterator.cpp
   qgsfeaturerequest.cpp
+  qgsfeaturesink.cpp
   qgsfeaturestore.cpp
   qgsfield.cpp
   qgsfieldconstraints.cpp
@@ -268,6 +275,7 @@ SET(QGIS_CORE_SRCS
   qgsmapthemecollection.cpp
   qgsxmlutils.cpp
   qgssettings.cpp
+  qgsstacktrace.cpp
 
   composer/qgsaddremoveitemcommand.cpp
   composer/qgsaddremovemultiframecommand.cpp
@@ -303,14 +311,9 @@ SET(QGIS_CORE_SRCS
   composer/qgscomposertexttable.cpp
   composer/qgscomposerutils.cpp
   composer/qgscomposition.cpp
-  composer/qgsdoubleboxscalebarstyle.cpp
   composer/qgsgroupungroupitemscommand.cpp
   composer/qgslayoutmanager.cpp
-  composer/qgsnumericscalebarstyle.cpp
   composer/qgspaperitem.cpp
-  composer/qgsscalebarstyle.cpp
-  composer/qgssingleboxscalebarstyle.cpp
-  composer/qgsticksscalebarstyle.cpp
 
   dxf/qgsdxfexport.cpp
   dxf/qgsdxfpaintdevice.cpp
@@ -463,6 +466,7 @@ IF (WITH_INTERNAL_QEXTSERIALPORT)
       gps/qextserialport/win_qextserialport.cpp
     )
     ADD_DEFINITIONS(-D_TTY_WIN_)
+
   ELSE(WIN32)
     SET(QGIS_CORE_SRCS ${QGIS_CORE_SRCS}
       gps/qextserialport/posix_qextserialport.cpp
@@ -718,6 +722,7 @@ SET(QGIS_CORE_HDRS
   qgsfeaturefilterprovider.h
   qgsfeatureiterator.h
   qgsfeaturerequest.h
+  qgsfeaturesink.h
   qgsfeaturestore.h
   qgsfieldformatter.h
   qgsfield_p.h
@@ -844,14 +849,10 @@ SET(QGIS_CORE_HDRS
   composer/qgscomposeritemcommand.h
   composer/qgscomposermultiframecommand.h
   composer/qgscomposertexttable.h
-  composer/qgsdoubleboxscalebarstyle.h
-  composer/qgsnumericscalebarstyle.h
   composer/qgspaperitem.h
-  composer/qgsscalebarstyle.h
-  composer/qgssingleboxscalebarstyle.h
-  composer/qgsticksscalebarstyle.h
 
   processing/qgsprocessingalgorithm.h
+  processing/qgsprocessingcontext.h
   processing/qgsprocessingutils.h
 
   raster/qgsbilinearrasterresampler.h
@@ -893,6 +894,13 @@ SET(QGIS_CORE_HDRS
   raster/qgssinglebandgrayrenderer.h
   raster/qgssinglebandpseudocolorrenderer.h
   raster/qgshillshaderenderer.h
+
+  scalebar/qgsdoubleboxscalebarrenderer.h
+  scalebar/qgsnumericscalebarrenderer.h
+  scalebar/qgsscalebarsettings.h
+  scalebar/qgsscalebarrenderer.h
+  scalebar/qgssingleboxscalebarrenderer.h
+  scalebar/qgsticksscalebarrenderer.h
 
   symbology-ng/qgs25drenderer.h
   symbology-ng/qgscategorizedsymbolrenderer.h
@@ -981,6 +989,7 @@ INCLUDE_DIRECTORIES(
   processing
   raster
   renderer
+  scalebar
   symbology-ng
   gps/qextserialport
 )
@@ -1061,7 +1070,7 @@ ADD_DEPENDENCIES(qgis_core version)
 # because of htonl
 IF (WIN32)
   FIND_LIBRARY(SETUPAPI_LIBRARY NAMES setupapi PATHS $ENV{LIB})
-  TARGET_LINK_LIBRARIES(qgis_core wsock32 ${SETUPAPI_LIBRARY})
+  TARGET_LINK_LIBRARIES(qgis_core wsock32 ${SETUPAPI_LIBRARY} DbgHelp)
 ENDIF (WIN32)
 
 IF(APPLE)

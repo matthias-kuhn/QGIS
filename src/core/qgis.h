@@ -180,6 +180,9 @@ template<class Object> inline QgsSignalBlocker<Object> whileBlocking( Object *ob
   return QgsSignalBlocker<Object>( object );
 }
 
+//! Hash for QVariant
+uint qHash( const QVariant &variant );
+
 //! Returns a string representation of a double
 //! \param a double value
 //! \param precision number of decimal places to retain
@@ -432,6 +435,16 @@ typedef unsigned long long qgssize;
  * http://pyqt.sourceforge.net/Docs/sip4/annotations.html?highlight=keepreference#argument-annotation-KeepReference
  */
 #define SIP_KEEPREFERENCE
+
+/*
+ * http://pyqt.sourceforge.net/Docs/sip4/annotations.html#argument-annotation-Array
+ */
+#define SIP_ARRAY
+
+/*
+ * http://pyqt.sourceforge.net/Docs/sip4/annotations.html#argument-annotation-ArraySize
+ */
+#define SIP_ARRAYSIZE
 
 /*
   * discard line

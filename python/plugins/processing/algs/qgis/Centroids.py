@@ -29,10 +29,11 @@ import os
 
 from qgis.PyQt.QtGui import QIcon
 
-from qgis.core import QgsWkbTypes
+from qgis.core import (QgsWkbTypes,
+                       QgsProcessingUtils,
+                       QgsMessageLog)
 
 from processing.core.GeoAlgorithm import GeoAlgorithm
-from processing.core.ProcessingLog import ProcessingLog
 from processing.core.parameters import ParameterVector
 from processing.core.outputs import OutputVector
 from processing.tools import dataobjects, vector
@@ -63,7 +64,7 @@ class Centroids(GeoAlgorithm):
 
         self.addOutput(OutputVector(self.OUTPUT_LAYER, self.tr('Centroids'), datatype=[dataobjects.TYPE_VECTOR_POINT]))
 
-    def processAlgorithm(self, feedback):
+    def processAlgorithm(self, context, feedback):
         layer = dataobjects.getLayerFromString(
             self.getParameterValue(self.INPUT_LAYER))
 
@@ -73,15 +74,14 @@ class Centroids(GeoAlgorithm):
                 QgsWkbTypes.Point,
                 layer.crs())
 
-        features = vector.features(layer)
-        total = 100.0 / len(features)
+        features = QgsProcessingUtils.getFeatures(layer, context)
+        total = 100.0 / QgsProcessingUtils.featureCount(layer, context)
         for current, input_feature in enumerate(features):
             output_feature = input_feature
             if input_feature.geometry():
                 output_geometry = input_feature.geometry().centroid()
                 if not output_geometry:
-                    ProcessingLog.addToLog(ProcessingLog.LOG_WARNING,
-                                           'Error calculating centroid for feature {}'.format(input_feature.id()))
+                    QgsMessageLog.logMessage('Error calculating centroid for feature {}'.format(input_feature.id()), self.tr('Processing'), QgsMessageLog.WARNING)
                 output_feature.setGeometry(output_geometry)
 
             writer.addFeature(output_feature)

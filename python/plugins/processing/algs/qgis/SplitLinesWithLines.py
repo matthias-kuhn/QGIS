@@ -32,11 +32,12 @@ from qgis.core import (QgsProcessingAlgorithm,
                        QgsFeatureRequest,
                        QgsFeature,
                        QgsGeometry,
-                       QgsWkbTypes)
+                       QgsWkbTypes,
+                       QgsMessageLog,
+                       QgsProcessingUtils)
 from processing.core.GeoAlgorithm import GeoAlgorithm
 from processing.core.parameters import ParameterVector
 from processing.core.outputs import OutputVector
-from processing.core.ProcessingLog import ProcessingLog
 from processing.tools import dataobjects
 from processing.tools import vector
 
@@ -74,7 +75,7 @@ class SplitLinesWithLines(GeoAlgorithm):
                                           self.tr('Split layer'), [dataobjects.TYPE_VECTOR_LINE]))
         self.addOutput(OutputVector(self.OUTPUT, self.tr('Split'), datatype=[dataobjects.TYPE_VECTOR_LINE]))
 
-    def processAlgorithm(self, feedback):
+    def processAlgorithm(self, context, feedback):
         layerA = dataobjects.getLayerFromString(self.getParameterValue(self.INPUT_A))
         layerB = dataobjects.getLayerFromString(self.getParameterValue(self.INPUT_B))
 
@@ -87,8 +88,8 @@ class SplitLinesWithLines(GeoAlgorithm):
         spatialIndex = vector.spatialindex(layerB)
 
         outFeat = QgsFeature()
-        features = vector.features(layerA)
-        total = 100.0 / float(len(features))
+        features = QgsProcessingUtils.getFeatures(layerA, context)
+        total = 100.0 / QgsProcessingUtils.featureCount(layerA, context)
 
         for current, inFeatA in enumerate(features):
             inGeom = inFeatA.geometry()
@@ -134,8 +135,8 @@ class SplitLinesWithLines(GeoAlgorithm):
                                 try:
                                     result, newGeometries, topoTestPoints = inGeom.splitGeometry(splitterPList, False)
                                 except:
-                                    ProcessingLog.addToLog(ProcessingLog.LOG_WARNING,
-                                                           self.tr('Geometry exception while splitting'))
+                                    QgsMessageLog.logMessage(self.tr('Geometry exception while splitting'),
+                                                             self.tr('Processing'), QgsMessageLog.WARNING)
                                     result = 1
 
                                 # splitGeometry: If there are several intersections

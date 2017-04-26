@@ -27,13 +27,14 @@ __revision__ = '$Format:%H$'
 
 from qgis.core import (QgsWkbTypes,
                        QgsGeometry,
-                       QgsApplication)
+                       QgsApplication,
+                       QgsMessageLog,
+                       QgsProcessingUtils)
 
 from processing.core.GeoAlgorithm import GeoAlgorithm
 from processing.core.parameters import ParameterVector
 from processing.core.outputs import OutputVector
 from processing.core.GeoAlgorithmExecutionException import GeoAlgorithmExecutionException
-from processing.core.ProcessingLog import ProcessingLog
 from processing.tools import dataobjects, vector
 
 
@@ -67,7 +68,7 @@ class FixGeometry(GeoAlgorithm):
         self.addOutput(OutputVector(self.OUTPUT,
                                     self.tr('Layer with fixed geometries')))
 
-    def processAlgorithm(self, feedback):
+    def processAlgorithm(self, context, feedback):
         layer = dataobjects.getLayerFromString(
             self.getParameterValue(self.INPUT))
 
@@ -77,18 +78,17 @@ class FixGeometry(GeoAlgorithm):
                 QgsWkbTypes.multiType(layer.wkbType()),
                 layer.crs())
 
-        features = vector.features(layer)
-        if len(features) == 0:
+        features = QgsProcessingUtils.getFeatures(layer, context)
+        if QgsProcessingUtils.featureCount(layer, context) == 0:
             raise GeoAlgorithmExecutionException(self.tr('There are no features in the input layer'))
 
-        total = 100.0 / len(features)
+        total = 100.0 / QgsProcessingUtils.featureCount(layer, context)
         for current, inputFeature in enumerate(features):
             outputFeature = inputFeature
             if inputFeature.geometry():
                 outputGeometry = inputFeature.geometry().makeValid()
                 if not outputGeometry:
-                    ProcessingLog.addToLog(ProcessingLog.LOG_WARNING,
-                                           'makeValid failed for feature {}'.format(inputFeature.id()))
+                    QgsMessageLog.logMessage('makeValid failed for feature {}'.format(inputFeature.id()), self.tr('Processing'), QgsMessageLog.WARNING)
 
                 if outputGeometry.wkbType() == QgsWkbTypes.Unknown or QgsWkbTypes.flatType(outputGeometry.geometry().wkbType()) == QgsWkbTypes.GeometryCollection:
                     tmpGeometries = outputGeometry.asGeometryCollection()

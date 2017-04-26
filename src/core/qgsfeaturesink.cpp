@@ -1,10 +1,11 @@
 /***************************************************************************
-                            qgsdoubleboxscalebarstyle.h
-                            ---------------------------
-    begin                : June 2008
-    copyright            : (C) 2008 by Marco Hugentobler
-    email                : marco.hugentobler@karto.baug.ethz.ch
+                         qgsfeaturesink.cpp
+                         ------------------
+    begin                : April 2017
+    copyright            : (C) 2017 by Nyall Dawson
+    email                : nyall dot dawson at gmail dot com
  ***************************************************************************/
+
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -14,26 +15,27 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef QGSDOUBLEBOXSCALEBARSTYLE_H
-#define QGSDOUBLEBOXSCALEBARSTYLE_H
+#include "qgsfeaturestore.h"
 
-#include "qgis_core.h"
-#include "qgsscalebarstyle.h"
-
-/** \ingroup core
-  * Double box with alternating colors
-  */
-class CORE_EXPORT QgsDoubleBoxScaleBarStyle: public QgsScaleBarStyle
+bool QgsFeatureSink::addFeature( QgsFeature &feature )
 {
-  public:
-    QgsDoubleBoxScaleBarStyle( const QgsComposerScaleBar *bar );
+  QgsFeatureList features;
+  features << feature;
+  bool result = addFeatures( features );
 
-    QString name() const override;
+  // need to update the passed feature reference to the updated copy from the features list
+  feature = features.at( 0 );
+  return result;
+}
 
-    void draw( QPainter *p, double xOffset = 0 ) const override;
+bool QgsFeatureSink::addFeatures( QgsFeatureIterator &iterator )
+{
+  QgsFeature f;
+  bool result = true;
+  while ( iterator.nextFeature( f ) )
+  {
+    result = result && addFeature( f );
+  }
+  return result;
+}
 
-  private:
-    QgsDoubleBoxScaleBarStyle(); //forbidden
-};
-
-#endif
