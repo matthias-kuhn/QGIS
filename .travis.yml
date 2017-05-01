@@ -7,6 +7,7 @@ matrix:
       env:
         - LLVM_VERSION=3.8
         - TRAVIS_CONFIG=linux
+      dist: trusty
       sudo: false
       cache:
         apt: true
@@ -24,6 +25,8 @@ matrix:
             - llvm-toolchain-precise-3.8
             - george-edison55-precise-backports # doxygen 1.8.3
             - ubuntu-toolchain-r-test
+            - sourceline: 'ppa:beineri/opt-qt58-trusty'
+            - sourceline: 'ppa:ubuntugis/ppa'
           packages:
             - doxygen
             - bison
@@ -38,7 +41,11 @@ matrix:
             - txt2tags
             - xvfb
             - clang-3.8
-
+            - qt58-base-dev
+            - qt58svg-dev
+            - qt58script-dev
+            - gdal
+            - geos
 
     - os: linux
       language: python # This lets us use newer python versions from virtualenv
