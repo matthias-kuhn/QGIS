@@ -16,8 +16,7 @@
 mkdir build
 cd build
 
-ln -s ${HOME}/osgeo4travis/bin/ccache ${HOME}/osgeo4travis/bin/clang++-${LLVM_VERSION}
-ln -s ${HOME}/osgeo4travis/bin/ccache ${HOME}/osgeo4travis/bin/clang-${LLVM_VERSION}
+/opt/qt58/bin/qt58-env.sh
 
 ccache -s
 ccache -z
