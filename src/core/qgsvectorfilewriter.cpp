@@ -1702,19 +1702,7 @@ OGRFeatureH QgsVectorFileWriter::createFeature( QgsFeature& feature )
                                 0 );
         break;
       case QVariant::Time:
-        if ( mOgrDriverName == "ESRI Shapefile" )
-        {
-          OGR_F_SetFieldString( poFeature, ogrField, mCodec->fromUnicode( attrValue.toString() ).data() );
-        }
-        else
-        {
-          OGR_F_SetFieldDateTime( poFeature, ogrField,
-                                  0, 0, 0,
-                                  attrValue.toTime().hour(),
-                                  attrValue.toTime().minute(),
-                                  attrValue.toTime().second(),
-                                  0 );
-        }
+        OGR_F_SetFieldString( poFeature, ogrField, mCodec->fromUnicode( attrValue.toString() ).data() );
         break;
       case QVariant::Invalid:
         break;
@@ -1726,7 +1714,7 @@ OGRFeatureH QgsVectorFileWriter::createFeature( QgsFeature& feature )
                               attrValue.toString() );
         QgsMessageLog::logMessage( mErrorMessage, QObject::tr( "OGR" ) );
         mError = ErrFeatureWriteFailed;
-        return nullptr;
+        return 0;
     }
   }
 
