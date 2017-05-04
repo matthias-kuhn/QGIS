@@ -34,6 +34,11 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 # issue is caused by INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}) near the end of this file generating incorrect path
 #SET (CMAKE_USE_RELATIVE_PATHS ON)
 
+SET (QT_FORCE_ASSERTS FALSE CACHE BOOL "Force ASSERTs to be evaluated")
+IF (QT_FORCE_ASSERTS)
+  ADD_DEFINITIONS(-DQT_FORCE_ASSERTS)
+ENDIF (QT_FORCE_ASSERTS)
+
 # try to configure and build GRASS plugin by default
 FOREACH (GRASS_SEARCH_VERSION 6 7)
   # For GRASS 6 are used cached variables without version suffix so that existing caches don't have to be reconfigured.

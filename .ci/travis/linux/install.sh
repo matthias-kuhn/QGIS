@@ -55,6 +55,7 @@ CMAKE_FLAGS="
       -DWITH_INTERNAL_YAML=OFF
       -DDISABLE_DEPRECATED=ON
       -DCXX_EXTRA_FLAGS=${CLANG_WARNINGS}
+      -DQT_FORCE_ASSERTS=ON
       "
 
 # The following options trigger a minimalized build to
