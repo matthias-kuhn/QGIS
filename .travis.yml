@@ -7,6 +7,7 @@ matrix:
       env:
         - LLVM_VERSION=3.8
         - TRAVIS_CONFIG=linux
+      dist: trusty
       sudo: false
       cache:
         apt: true
@@ -22,8 +23,9 @@ matrix:
         apt:
           sources:
             - llvm-toolchain-precise-3.8
-            - george-edison55-precise-backports # doxygen 1.8.3
             - ubuntu-toolchain-r-test
+            - sourceline: 'ppa:beineri/opt-qt58-trusty'
+            - sourceline: 'ppa:ubuntugis/ppa'
           packages:
             - doxygen
             - bison
@@ -38,7 +40,11 @@ matrix:
             - txt2tags
             - xvfb
             - clang-3.8
-
+            - qt58-base-dev
+            - qt58svg-dev
+            - qt58script-dev
+            - gdal
+            - geos
 
     - os: linux
       language: python # This lets us use newer python versions from virtualenv
@@ -77,19 +83,19 @@ matrix:
 git:
   depth: 30
 
-notifications:
-  irc: "chat.freenode.net#qgis-test"
-  on_failure: change
-  on_success: change
-  skip_join: true
-
-notifications:
-  webhooks:
-    urls:
-      - https://webhooks.gitter.im/e/467e3aff72e344d1dae3
-    on_success: change  # options: [always|never|change] default: always
-    on_failure: always # options: [always|never|change] default: always
-    on_start: never # default: never
+# notifications:
+#   irc: "chat.freenode.net#qgis-test"
+#   on_failure: change
+#   on_success: change
+#   skip_join: true
+#
+# notifications:
+#   webhooks:
+#     urls:
+#       - https://webhooks.gitter.im/e/467e3aff72e344d1dae3
+#     on_success: change  # options: [always|never|change] default: always
+#     on_failure: always # options: [always|never|change] default: always
+#     on_start: never # default: never
 
 before_install:
   - ./.ci/travis/${TRAVIS_CONFIG}/before_install.sh
