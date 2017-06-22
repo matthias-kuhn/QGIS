@@ -492,30 +492,17 @@ QgsCollapsibleGroupBox::QgsCollapsibleGroupBox( const QString &title,
 QgsCollapsibleGroupBox::~QgsCollapsibleGroupBox()
 {
   saveState();
-  if ( mDelSettings ) // local settings obj to delete
-    delete mSettings;
-  mSettings = nullptr; // null the pointer (in case of outside settings obj)
+  delete mSettings;
 }
 
 void QgsCollapsibleGroupBox::setSettings( QSettings* settings )
 {
-  if ( mDelSettings ) // local settings obj to delete
-    delete mSettings;
+  delete mSettings;
   mSettings = settings;
-  mDelSettings = false; // don't delete outside obj
 }
-
 
 void QgsCollapsibleGroupBox::init()
 {
-  // use pointer to app qsettings if no custom qsettings specified
-  // custom qsettings object may be from Python plugin
-  mDelSettings = false;
-  if ( !mSettings )
-  {
-    mSettings = new QSettings();
-    mDelSettings = true; // only delete obj created by class
-  }
   // variables
   mSaveCollapsedState = true;
   // NOTE: only turn on mSaveCheckedState for groupboxes NOT used
@@ -564,9 +551,23 @@ QString QgsCollapsibleGroupBox::saveKey() const
   return saveKey;
 }
 
+QSettings *QgsCollapsibleGroupBox::settings() const
+{
+  if ( mSettings )
+  {
+    return mSettings;
+  }
+  else
+  {
+    static QSettings sSettings;
+    return &sSettings;
+  }
+
+}
+
 void QgsCollapsibleGroupBox::loadState()
 {
-  if ( !mSettings )
+  if ( !settings() )
     return;
 
   if ( !isEnabled() || ( !mSaveCollapsedState && !mSaveCheckedState ) )
@@ -578,13 +579,13 @@ void QgsCollapsibleGroupBox::loadState()
   QVariant val;
   if ( mSaveCheckedState )
   {
-    val = mSettings->value( key + "/checked" );
+    val = settings()->value( key + "/checked" );
     if ( ! val.isNull() )
       setChecked( val.toBool() );
   }
   if ( mSaveCollapsedState )
   {
-    val = mSettings->value( key + "/collapsed" );
+    val = settings()->value( key + "/collapsed" );
     if ( ! val.isNull() )
       setCollapsed( val.toBool() );
   }
@@ -594,7 +595,7 @@ void QgsCollapsibleGroupBox::loadState()
 
 void QgsCollapsibleGroupBox::saveState() const
 {
-  if ( !mSettings )
+  if ( !settings() )
     return;
 
   if ( !isEnabled() || ( !mSaveCollapsedState && !mSaveCheckedState ) )
@@ -603,8 +604,8 @@ void QgsCollapsibleGroupBox::saveState() const
   QString key = saveKey();
 
   if ( mSaveCheckedState )
-    mSettings->setValue( key + "/checked", isChecked() );
+    settings()->setValue( key + "/checked", isChecked() );
   if ( mSaveCollapsedState )
-    mSettings->setValue( key + "/collapsed", isCollapsed() );
+    settings()->setValue( key + "/collapsed", isCollapsed() );
 }
 

@@ -242,11 +242,13 @@ class GUI_EXPORT QgsCollapsibleGroupBox : public QgsCollapsibleGroupBoxBasic
     // pointer to app or custom, external QSettings
     // QPointer in case custom settings obj gets deleted while groupbox's dialog is open
     QPointer<QSettings> mSettings;
-    bool mDelSettings;
 
     bool mSaveCollapsedState;
     bool mSaveCheckedState;
     QString mSettingGroup;
+
+  private:
+    QSettings *settings() const;
 };
 
 #endif
