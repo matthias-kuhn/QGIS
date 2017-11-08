@@ -303,15 +303,33 @@ void QgsRelationEditorWidget::addFeature()
   {
     // n:m Relation: first let the user create a new feature on the other table
     // and autocreate a new linking feature.
-    QgsFeature f;
-    if ( vlTools->addFeature( mNmRelation.referencedLayer(), QgsAttributeMap(), QgsGeometry(), &f ) )
+    QgsFeature relatedFeature;
+    if ( vlTools->addFeature( mNmRelation.referencedLayer(), QgsAttributeMap(), QgsGeometry(), &relatedFeature ) )
     {
-      QgsFeature flink( mRelation.referencingLayer()->fields() ); // Linking feature
+      // Fields of the linking table
+      const QgsFields fields = mRelation.referencingLayer()->fields();
 
-      flink.setAttribute( mRelation.fieldPairs().at( 0 ).first, mFeature.attribute( mRelation.fieldPairs().at( 0 ).second ) );
-      flink.setAttribute( mNmRelation.referencingFields().at( 0 ), f.attribute( mNmRelation.referencedFields().at( 0 ) ) );
+      // Expression context for the linking table
+      QgsExpressionContext context = mRelation.referencingLayer()->createExpressionContext();
 
-      mRelation.referencingLayer()->addFeature( flink );
+      QgsAttributeMap linkAttributes;
+
+      const auto &fieldPairsA = mRelation.fieldPairs();
+      for ( const QgsRelation::FieldPair &fieldPair : fieldPairsA )
+      {
+        int index = fields.indexOf( fieldPair.first );
+        linkAttributes.insert( index,  mFeature.attribute( fieldPair.second ) );
+      }
+
+      const auto &fieldPairsB = mNmRelation.fieldPairs();
+      for ( const QgsRelation::FieldPair &fieldPair : fieldPairsB )
+      {
+        int index = fields.indexOf( fieldPair.first );
+        linkAttributes.insert( index, relatedFeature.attribute( fieldPair.second ) );
+      }
+      const QgsFeature linkFeature = QgsVectorLayerUtils::createFeature( mRelation.referencingLayer(), QgsGeometry(), linkAttributes, &context );
+
+      mRelation.referencingLayer()->addFeature( linkFeature );
 
       updateUi();
     }
