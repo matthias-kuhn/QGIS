@@ -143,7 +143,7 @@ class CORE_EXPORT QgsVectorLayerUtils
     static QgsFeature createFeature( QgsVectorLayer *layer,
                                      const QgsGeometry &geometry = QgsGeometry(),
                                      const QgsAttributeMap &attributes = QgsAttributeMap(),
-                                     QgsExpressionContext *context = nullptr );
+                                     QgsExpressionContext *context = nullptr, bool onlyUnique = false );
 
     /**
      * Duplicates a feature and it's children (one level deep). It calls CreateFeature, so

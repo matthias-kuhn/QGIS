@@ -347,7 +347,7 @@ bool QgsVectorLayerUtils::validateAttribute( const QgsVectorLayer *layer, const 
 }
 
 QgsFeature QgsVectorLayerUtils::createFeature( QgsVectorLayer *layer, const QgsGeometry &geometry,
-    const QgsAttributeMap &attributes, QgsExpressionContext *context )
+    const QgsAttributeMap &attributes, QgsExpressionContext *context, bool onlyUnique )
 {
   if ( !layer )
   {
@@ -375,41 +375,44 @@ QgsFeature QgsVectorLayerUtils::createFeature( QgsVectorLayer *layer, const QgsG
   {
     QVariant v;
     bool checkUnique = true;
+    const bool hasUniqueConstraint = fields.at( idx ).constraints().constraints() & QgsFieldConstraints::ConstraintUnique;
 
-    // in order of priority:
-
-    // 1. client side default expression
-    if ( layer->defaultValueDefinition( idx ).isValid() )
+    if ( !onlyUnique || hasUniqueConstraint )
+      // in order of priority:
     {
-      // client side default expression set - takes precedence over all. Why? Well, this is the only default
-      // which QGIS users have control over, so we assume that they're deliberately overriding any
-      // provider defaults for some good reason and we should respect that
-      v = layer->defaultValue( idx, newFeature, evalContext );
-    }
-
-    // 2. provider side default value clause
-    // note - not an else if deliberately. Users may return null from a default value expression to fallback to provider defaults
-    if ( !v.isValid() && fields.fieldOrigin( idx ) == QgsFields::OriginProvider )
-    {
-      int providerIndex = fields.fieldOriginIndex( idx );
-      QString providerDefault = layer->dataProvider()->defaultValueClause( providerIndex );
-      if ( !providerDefault.isEmpty() )
+      // 1. client side default expression
+      if ( layer->defaultValueDefinition( idx ).isValid() )
       {
-        v = providerDefault;
-        checkUnique = false;
+        // client side default expression set - takes precedence over all. Why? Well, this is the only default
+        // which QGIS users have control over, so we assume that they're deliberately overriding any
+        // provider defaults for some good reason and we should respect that
+        v = layer->defaultValue( idx, newFeature, evalContext );
       }
-    }
 
-    // 3. provider side default literal
-    // note - deliberately not using else if!
-    if ( !v.isValid() && fields.fieldOrigin( idx ) == QgsFields::OriginProvider )
-    {
-      int providerIndex = fields.fieldOriginIndex( idx );
-      v = layer->dataProvider()->defaultValue( providerIndex );
-      if ( v.isValid() )
+      // 2. provider side default value clause
+      // note - not an else if deliberately. Users may return null from a default value expression to fallback to provider defaults
+      if ( !v.isValid() && fields.fieldOrigin( idx ) == QgsFields::OriginProvider )
       {
-        //trust that the provider default has been sensibly set not to violate any constraints
-        checkUnique = false;
+        int providerIndex = fields.fieldOriginIndex( idx );
+        QString providerDefault = layer->dataProvider()->defaultValueClause( providerIndex );
+        if ( !providerDefault.isEmpty() )
+        {
+          v = providerDefault;
+          checkUnique = false;
+        }
+      }
+
+      // 3. provider side default literal
+      // note - deliberately not using else if!
+      if ( !v.isValid() && fields.fieldOrigin( idx ) == QgsFields::OriginProvider )
+      {
+        int providerIndex = fields.fieldOriginIndex( idx );
+        v = layer->dataProvider()->defaultValue( providerIndex );
+        if ( v.isValid() )
+        {
+          //trust that the provider default has been sensibly set not to violate any constraints
+          checkUnique = false;
+        }
       }
     }
 
@@ -423,7 +426,7 @@ QgsFeature QgsVectorLayerUtils::createFeature( QgsVectorLayer *layer, const QgsG
     // last of all... check that unique constraints are respected
     // we can't handle not null or expression constraints here, since there's no way to pick a sensible
     // value if the constraint is violated
-    if ( checkUnique && fields.at( idx ).constraints().constraints() & QgsFieldConstraints::ConstraintUnique )
+    if ( checkUnique && hasUniqueConstraint )
     {
       if ( QgsVectorLayerUtils::valueExists( layer, idx, v ) )
       {

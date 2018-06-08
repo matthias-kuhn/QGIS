@@ -136,7 +136,7 @@ If the strength or origin parameter is set then only constraints with a matching
     static QgsFeature createFeature( QgsVectorLayer *layer,
                                      const QgsGeometry &geometry = QgsGeometry(),
                                      const QgsAttributeMap &attributes = QgsAttributeMap(),
-                                     QgsExpressionContext *context = 0 );
+                                     QgsExpressionContext *context = 0, bool onlyUnique = false );
 %Docstring
 Creates a new feature ready for insertion into a layer. Default values and constraints
 (e.g., unique constraints) will automatically be handled. An optional attribute map can be
