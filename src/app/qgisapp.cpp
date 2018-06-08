@@ -13586,7 +13586,7 @@ QgsFeature QgisApp::duplicateFeatures( QgsMapLayer *mlayer, const QgsFeature &fe
   if ( !layer->isEditable() )
   {
     //should never happen because the action should be disabled
-    QString msg = tr( "Cannot duplicate feature in not editable mode on layer %1" ).arg( layer->name() );
+    QString msg = tr( "Cannot duplicate feature. Layer %1 is not in edit mode." ).arg( layer->name() );
     messageBar()->pushMessage( msg, Qgis::Warning, 3 );
     return QgsFeature();
   }
