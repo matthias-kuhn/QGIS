@@ -727,6 +727,18 @@ SET(QGIS_GUI_MOC_HDRS
   processing/qgsprocessingtoolboxmodel.h
   processing/qgsprocessingtoolboxtreeview.h
 )
+FIND_PACKAGE(Qt5Qml REQUIRED)
+FIND_PACKAGE(Qt5QuickWidgets REQUIRED)
+
+IF(Qt5Qml_FOUND)
+ADD_DEFINITIONS(-DWITH_QML)
+SET(QGIS_GUI_MOC_HDRS
+  ${QGIS_GUI_MOC_HDRS}
+  editorwidgets/qgsqmlwidgetwrapper.h
+  qgsqmlwidget.h
+)
+ENDIF(Qt5Qml_FOUND)
+
 SET_PROPERTY(GLOBAL PROPERTY QGIS_GUI_MOC_HDRS ${QGIS_GUI_MOC_HDRS})
 
 QT5_WRAP_CPP(QGIS_GUI_MOC_SRCS ${QGIS_GUI_MOC_HDRS})
@@ -832,22 +844,13 @@ SET(QGIS_GUI_HDRS
   symbology/qgssymbolwidgetcontext.h
 )
 
-Find_Package(Qt5Qml)
-
 IF(Qt5Qml_FOUND)
-ADD_DEFINITIONS(-DWITH_QML)
-SET(QGIS_GUI_MOC_HDRS
-  ${QGIS_GUI_MOC_HDRS}
-  editorwidgets/qgsqmlwidgetwrapper.h
-  qgsqmlwidget.h
-)
 
 SET(QGIS_GUI_SRCS
   ${QGIS_GUI_SRCS}
   editorwidgets/qgsqmlwidgetwrapper.cpp
   qgsqmlwidget.cpp
 )
-
 ENDIF(Qt5Qml_FOUND)
 
 SET_PROPERTY(GLOBAL PROPERTY QGIS_GUI_HDRS ${QGIS_GUI_HDRS})
@@ -1022,6 +1025,7 @@ TARGET_LINK_LIBRARIES(qgis_gui
   ${Qt5UiTools_LIBRARIES}
   ${QWT_LIBRARY}
   ${QSCINTILLA_LIBRARY}
+  ${Qt5QuickWidgets_LIBRARIES}
 )
 
 IF(ENABLE_MODELTEST)
