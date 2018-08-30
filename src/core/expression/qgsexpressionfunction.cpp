@@ -2819,11 +2819,41 @@ static QVariant fcnSymDifference( const QVariantList &values, const QgsExpressio
 }
 static QVariant fcnCombine( const QVariantList &values, const QgsExpressionContext *, QgsExpression *parent, const QgsExpressionNodeFunction * )
 {
-  QgsGeometry fGeom = QgsExpressionUtils::getGeometry( values.at( 0 ), parent );
-  QgsGeometry sGeom = QgsExpressionUtils::getGeometry( values.at( 1 ), parent );
-  QgsGeometry geom = fGeom.combine( sGeom );
-  QVariant result = !geom.isNull() ? QVariant::fromValue( geom ) : QVariant();
-  return result;
+  QgsGeometry geometry;
+  if ( values.length() == 1 )
+  {
+    if ( values.at( 0 ).type() == QVariant::List )
+    {
+      const QVariantList list = values.at( 0 ).toList();
+      for ( const QVariant &value : list )
+      {
+        const QgsGeometry fGeom = QgsExpressionUtils::getGeometry( value, parent );
+        if ( fGeom.isNull() )
+        {
+          geometry = QgsGeometry();
+          break;
+        }
+        else if ( geometry.isNull() )
+          geometry = fGeom;
+        else
+          geometry = geometry.combine( fGeom );
+      }
+    }
+    else
+    {
+      parent->setEvalErrorString( QObject::tr( "Function `combine` requires one array of geometries or two geometries as parameters." ) );
+    }
+  }
+  else
+  {
+    QgsGeometry fGeom = QgsExpressionUtils::getGeometry( values.at( 0 ), parent );
+    QgsGeometry sGeom = QgsExpressionUtils::getGeometry( values.at( 1 ), parent );
+    geometry = fGeom.combine( sGeom );
+  }
+  if ( geometry.isNull() )
+    return QVariant();
+  else
+    return QVariant::fromValue<QgsGeometry>( geometry );
 }
 static QVariant fcnGeomToWKT( const QVariantList &values, const QgsExpressionContext *, QgsExpression *parent, const QgsExpressionNodeFunction * )
 {
@@ -4523,7 +4553,7 @@ const QList<QgsExpressionFunction *> &QgsExpression::Functions()
                                             << QgsExpressionFunction::Parameter( QStringLiteral( "densify_fraction" ), true ), fcnHausdorffDistance, QStringLiteral( "GeometryGroup" ) )
         << new QgsStaticExpressionFunction( QStringLiteral( "intersection" ), 2, fcnIntersection, QStringLiteral( "GeometryGroup" ) )
         << new QgsStaticExpressionFunction( QStringLiteral( "sym_difference" ), 2, fcnSymDifference, QStringLiteral( "GeometryGroup" ), QString(), false, QSet<QString>(), false, QStringList() << QStringLiteral( "symDifference" ) )
-        << new QgsStaticExpressionFunction( QStringLiteral( "combine" ), 2, fcnCombine, QStringLiteral( "GeometryGroup" ) )
+        << new QgsStaticExpressionFunction( QStringLiteral( "combine" ), -1, fcnCombine, QStringLiteral( "GeometryGroup" ) )
         << new QgsStaticExpressionFunction( QStringLiteral( "union" ), 2, fcnCombine, QStringLiteral( "GeometryGroup" ) )
         << new QgsStaticExpressionFunction( QStringLiteral( "geom_to_wkt" ), -1, fcnGeomToWKT, QStringLiteral( "GeometryGroup" ), QString(), false, QSet<QString>(), false, QStringList() << QStringLiteral( "geomToWKT" ) )
         << new QgsStaticExpressionFunction( QStringLiteral( "geometry" ), 1, fcnGetGeometry, QStringLiteral( "GeometryGroup" ), QString(), true )
