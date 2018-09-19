@@ -42,6 +42,7 @@ namespace QgsWcs
     QDomDocument doc;
     const QDomDocument *capabilitiesDocument = nullptr;
 
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
     QgsServerCacheManager *cacheManager = serverIface->cacheManager();
     if ( cacheManager && cacheManager->getCachedDocument( &doc, project, request, accessControl ) )
     {
@@ -49,14 +50,18 @@ namespace QgsWcs
     }
     else //capabilities xml not in cache. Create a new one
     {
+#endif
       doc = createGetCapabilitiesDocument( serverIface, project, version, request );
-
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
       if ( cacheManager )
       {
         cacheManager->setCachedDocument( &doc, project, request, accessControl );
       }
+#endif
       capabilitiesDocument = &doc;
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
     }
+#endif
 
     response.setHeader( QStringLiteral( "Content-Type" ), QStringLiteral( "text/xml; charset=utf-8" ) );
     response.write( capabilitiesDocument->toByteArray() );

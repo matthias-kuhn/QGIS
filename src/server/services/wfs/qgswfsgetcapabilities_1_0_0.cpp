@@ -48,6 +48,7 @@ namespace QgsWfs
       QDomDocument doc;
       const QDomDocument *capabilitiesDocument = nullptr;
 
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
       QgsServerCacheManager *cacheManager = serverIface->cacheManager();
       if ( cacheManager && cacheManager->getCachedDocument( &doc, project, request, accessControl ) )
       {
@@ -63,6 +64,7 @@ namespace QgsWfs
         }
         capabilitiesDocument = &doc;
       }
+#endif
 
       response.setHeader( QStringLiteral( "Content-Type" ), QStringLiteral( "text/xml; charset=utf-8" ) );
       response.write( capabilitiesDocument->toByteArray() );

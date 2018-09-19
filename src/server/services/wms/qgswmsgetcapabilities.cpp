@@ -106,15 +106,19 @@ namespace QgsWms
     cacheKeyList << ( projectSettings ? QStringLiteral( "projectSettings" ) : version );
     cacheKeyList << request.url().host();
     bool cache = true;
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
     if ( accessControl )
       cache = accessControl->fillCacheKey( cacheKeyList );
+#endif
     QString cacheKey = cacheKeyList.join( '-' );
 
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
     QgsServerCacheManager *cacheManager = serverIface->cacheManager();
     if ( cacheManager && cacheManager->getCachedDocument( &doc, project, request, accessControl ) )
     {
       capabilitiesDocument = &doc;
     }
+#endif
 
     if ( !capabilitiesDocument && cache ) //capabilities xml not in cache plugins
     {
@@ -127,12 +131,14 @@ namespace QgsWms
 
       doc = getCapabilities( serverIface, project, version, request, projectSettings );
 
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
       if ( cacheManager &&
            cacheManager->setCachedDocument( &doc, project, request, accessControl ) )
       {
         capabilitiesDocument = &doc;
       }
       else if ( cache )
+#endif
       {
         capabilitiesCache->insertCapabilitiesDocument( configFilePath, cacheKey, &doc );
         capabilitiesDocument = capabilitiesCache->searchCapabilitiesDocument( configFilePath, cacheKey );
@@ -918,11 +924,13 @@ namespace QgsWms
             continue;
           }
 
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
           QgsAccessControl *accessControl = serverIface->accessControls();
           if ( accessControl && !accessControl->layerReadPermission( l ) )
           {
             continue;
           }
+#endif
 
           QString wmsName = l->name();
           if ( useLayerIds )
@@ -1622,10 +1630,12 @@ namespace QgsWms
           continue;
         }
 
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
         if ( accessControl && !accessControl->layerReadPermission( l ) )
         {
           continue;
         }
+#endif
 
         QString wmsName = l->name();
         if ( useLayerIds )

@@ -70,12 +70,15 @@ class QgsServerInterfaceImpl : public QgsServerInterface
      */
     void registerServerCache( QgsServerCacheFilter *serverCache SIP_TRANSFER, int priority = 0 ) override;
 
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
+
     /**
      * Gets the helper over all the registered server cache filters
      * \returns the server cache helper
      * \since QGIS 3.4
      */
     QgsServerCacheManager *cacheManager() const override;
+#endif
 
     QString getEnv( const QString &name ) const override;
     QString configFilePath() override { return mConfigFilePath; }
@@ -92,7 +95,9 @@ class QgsServerInterfaceImpl : public QgsServerInterface
     QString mConfigFilePath;
     QgsServerFiltersMap mFilters;
     QgsAccessControl *mAccessControls = nullptr;
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
     std::unique_ptr<QgsServerCacheManager> mCacheManager = nullptr;
+#endif
     QgsCapabilitiesCache *mCapabilitiesCache = nullptr;
     QgsRequestHandler *mRequestHandler = nullptr;
     QgsServiceRegistry *mServiceRegistry = nullptr;

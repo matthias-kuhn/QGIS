@@ -238,11 +238,13 @@ namespace QgsWms
             continue;
           }
 
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
           QgsAccessControl *accessControl = serverIface->accessControls();
           if ( accessControl && !accessControl->layerReadPermission( l ) )
           {
             continue;
           }
+#endif
 
           QDomElement layerElem = doc.createElement( QStringLiteral( "Layer" ) );
 

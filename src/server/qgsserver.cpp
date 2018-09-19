@@ -245,7 +245,9 @@ bool QgsServer::init()
 
   sServiceRegistry = new QgsServiceRegistry();
 
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
   sServerInterface = new QgsServerInterfaceImpl( sCapabilitiesCache, sServiceRegistry, &sSettings );
+#endif
 
   // Load service module
   QString modulePath = QgsApplication::libexecPath() + "server";

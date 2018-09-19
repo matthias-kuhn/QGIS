@@ -95,10 +95,12 @@ void QgsServerInterfaceImpl::registerServerCache( QgsServerCacheFilter *serverCa
 #endif
 }
 
+#ifdef HAVE_SERVER_PYTHON_PLUGINS
 QgsServerCacheManager *QgsServerInterfaceImpl::cacheManager() const
 {
   return mCacheManager.get();
 }
+#endif
 
 void QgsServerInterfaceImpl::removeConfigCacheEntry( const QString &path )
 {
