@@ -16,6 +16,8 @@
 #include "qgsgeometrycheckcontext.h"
 #include "qgsgeometrydegeneratepolygoncheck.h"
 #include "qgsfeaturepool.h"
+#include "qgsgeometrycheckerror.h"
+
 
 void QgsGeometryDegeneratePolygonCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {

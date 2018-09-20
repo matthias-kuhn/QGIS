@@ -19,7 +19,8 @@
 #define QGS_GEOMETRY_OVERLAP_CHECK_H
 
 #include "qgsgeometrycheck.h"
-#include "qgsvectorlayer.h"
+#include "qgsgeometrycheckerror.h"
+
 
 class ANALYSIS_EXPORT QgsGeometryOverlapCheckError : public QgsGeometryCheckError
 {
@@ -29,10 +30,7 @@ class ANALYSIS_EXPORT QgsGeometryOverlapCheckError : public QgsGeometryCheckErro
                                   const QgsGeometry &geometry,
                                   const QgsPointXY &errorLocation,
                                   const QVariant &value,
-                                  const QgsGeometryCheckerUtils::LayerFeature &overlappedFeature )
-      : QgsGeometryCheckError( check, layerFeature.layer()->id(), layerFeature.feature().id(), geometry, errorLocation, QgsVertexId(), value, ValueArea )
-      , mOverlappedFeature( qMakePair( overlappedFeature.layer()->id(), overlappedFeature.feature().id() ) )
-    { }
+                                  const QgsGeometryCheckerUtils::LayerFeature &overlappedFeature );
     const QPair<QString, QgsFeatureId> &overlappedFeature() const { return mOverlappedFeature; }
 
     bool isEqual( QgsGeometryCheckError *other ) const override

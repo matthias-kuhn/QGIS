@@ -17,6 +17,7 @@
 #include "qgsgeometryengine.h"
 #include "qgsgeometryoverlapcheck.h"
 #include "qgsfeaturepool.h"
+#include "qgsvectorlayer.h"
 
 
 void QgsGeometryOverlapCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
@@ -191,3 +192,8 @@ QStringList QgsGeometryOverlapCheck::resolutionMethods() const
                                << tr( "No action" );
   return methods;
 }
+
+QgsGeometryOverlapCheckError::QgsGeometryOverlapCheckError( const QgsGeometryCheck *check, const QgsGeometryCheckerUtils::LayerFeature &layerFeature, const QgsGeometry &geometry, const QgsPointXY &errorLocation, const QVariant &value, const QgsGeometryCheckerUtils::LayerFeature &overlappedFeature )
+  : QgsGeometryCheckError( check, layerFeature.layer()->id(), layerFeature.feature().id(), geometry, errorLocation, QgsVertexId(), value, ValueArea )
+  , mOverlappedFeature( qMakePair( overlappedFeature.layer()->id(), overlappedFeature.feature().id() ) )
+{ }

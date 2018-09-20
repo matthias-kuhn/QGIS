@@ -17,6 +17,7 @@
 #include "qgsgeometrysegmentlengthcheck.h"
 #include "qgsgeometryutils.h"
 #include "qgsfeaturepool.h"
+#include "qgsgeometrycheckerror.h"
 
 void QgsGeometrySegmentLengthCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {

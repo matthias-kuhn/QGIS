@@ -17,6 +17,7 @@
 #include "qgsgeometryanglecheck.h"
 #include "qgsgeometryutils.h"
 #include "qgsfeaturepool.h"
+#include "qgsgeometrycheckerror.h"
 
 void QgsGeometryAngleCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {

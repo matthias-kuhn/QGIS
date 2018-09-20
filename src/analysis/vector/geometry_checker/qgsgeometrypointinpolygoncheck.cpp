@@ -17,6 +17,7 @@
 #include "qgsgeometrypointinpolygoncheck.h"
 #include "qgspolygon.h"
 #include "qgsgeometryengine.h"
+#include "qgsgeometrycheckerror.h"
 
 void QgsGeometryPointInPolygonCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {

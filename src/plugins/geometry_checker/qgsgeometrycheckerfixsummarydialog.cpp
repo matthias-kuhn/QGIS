@@ -22,6 +22,7 @@
 #include "qgisinterface.h"
 #include "qgsmapcanvas.h"
 #include "qgsvectorlayer.h"
+#include "qgsgeometrycheckerror.h"
 
 QgsGeometryCheckerFixSummaryDialog::QgsGeometryCheckerFixSummaryDialog( const Statistics &stats, QgsGeometryChecker *checker, QWidget *parent )
   : QDialog( parent )

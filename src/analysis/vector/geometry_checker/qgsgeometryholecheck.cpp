@@ -18,6 +18,7 @@
 #include "qgscurve.h"
 #include "qgscurvepolygon.h"
 #include "qgsfeaturepool.h"
+#include "qgsgeometrycheckerror.h"
 
 void QgsGeometryHoleCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {

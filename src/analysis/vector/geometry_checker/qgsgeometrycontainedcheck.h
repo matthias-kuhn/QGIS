@@ -20,6 +20,7 @@
 
 #include "qgsgeometrycheck.h"
 #include "qgsvectorlayer.h"
+#include "qgsgeometrycheckerror.h"
 
 class ANALYSIS_EXPORT QgsGeometryContainedCheckError : public QgsGeometryCheckError
 {

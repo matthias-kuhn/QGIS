@@ -30,6 +30,7 @@
 %Include auto_generated/network/qgsnetworkdistancestrategy.sip
 %Include auto_generated/network/qgsgraphanalyzer.sip
 %Include auto_generated/network/qgsvectorlayerdirector.sip
+%Include auto_generated/vector/geometry_checker/qgsgeometrycheckerror.sip
 %Include auto_generated/vector/geometry_checker/qgsgeometrycheckcontext.sip
 %Include auto_generated/vector/geometry_checker/qgssinglegeometrycheck.sip
 %Include auto_generated/vector/geometry_checker/qgsgeometrycheckregistry.sip

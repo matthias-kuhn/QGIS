@@ -21,6 +21,7 @@ email                : matthias@opengis.ch
 
 #include "qgsgeometry.h"
 #include "qgsgeometrycheck.h"
+#include "qgsgeometrycheckerror.h"
 
 #include "qgis_analysis.h"
 

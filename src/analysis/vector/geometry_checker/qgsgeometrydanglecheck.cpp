@@ -17,6 +17,7 @@
 #include "qgsgeometrydanglecheck.h"
 #include "qgslinestring.h"
 #include "qgsvectorlayer.h"
+#include "qgsgeometrycheckerror.h"
 
 void QgsGeometryDangleCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {

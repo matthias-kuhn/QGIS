@@ -20,6 +20,7 @@
 
 #include "qgsgeometrycheckcontext.h"
 #include "qgsgeometrycheck.h"
+#include "qgsgeometrycheckerror.h"
 
 class ANALYSIS_EXPORT QgsGeometryDuplicateCheckError : public QgsGeometryCheckError
 {

@@ -19,6 +19,7 @@
 #define QGS_GEOMETRY_GAP_CHECK_H
 
 #include "qgsgeometrycheck.h"
+#include "qgsgeometrycheckerror.h"
 
 class ANALYSIS_EXPORT QgsGeometryGapCheckError : public QgsGeometryCheckError
 {

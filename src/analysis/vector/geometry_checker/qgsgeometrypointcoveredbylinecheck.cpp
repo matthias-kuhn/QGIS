@@ -17,6 +17,7 @@
 #include "qgsgeometrypointcoveredbylinecheck.h"
 #include "qgslinestring.h"
 #include "qgsfeaturepool.h"
+#include "qgsgeometrycheckerror.h"
 
 void QgsGeometryPointCoveredByLineCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {

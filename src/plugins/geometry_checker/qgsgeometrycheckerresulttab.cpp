@@ -42,6 +42,7 @@
 #include "qgsvscrollarea.h"
 #include "qgssettings.h"
 #include "qgsscrollarea.h"
+#include "qgsgeometrycheckerror.h"
 
 QString QgsGeometryCheckerResultTab::sSettingsGroup = QStringLiteral( "/geometry_checker/default_fix_methods/" );
 

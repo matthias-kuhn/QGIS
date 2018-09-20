@@ -136,22 +136,22 @@ SET(QGIS_ANALYSIS_SRCS
   network/qgsgraphanalyzer.cpp
 
   vector/geometry_checker/qgsfeaturepool.cpp
-  vector/geometry_checker/qgsvectordataproviderfeaturepool.cpp
-  vector/geometry_checker/qgsvectorlayerfeaturepool.cpp
   vector/geometry_checker/qgsgeometryanglecheck.cpp
   vector/geometry_checker/qgsgeometryareacheck.cpp
   vector/geometry_checker/qgsgeometrycheck.cpp
   vector/geometry_checker/qgsgeometrycheckcontext.cpp
-  vector/geometry_checker/qgssinglegeometrycheck.cpp
   vector/geometry_checker/qgsgeometrychecker.cpp
+  vector/geometry_checker/qgsgeometrycheckerror.cpp
   vector/geometry_checker/qgsgeometrycheckerutils.cpp
+  vector/geometry_checker/qgsgeometrycheckfactory.cpp
+  vector/geometry_checker/qgsgeometrycheckregistry.cpp
   vector/geometry_checker/qgsgeometrycontainedcheck.cpp
   vector/geometry_checker/qgsgeometrydanglecheck.cpp
   vector/geometry_checker/qgsgeometrydegeneratepolygoncheck.cpp
   vector/geometry_checker/qgsgeometryduplicatecheck.cpp
   vector/geometry_checker/qgsgeometryduplicatenodescheck.cpp
-  vector/geometry_checker/qgsgeometrygapcheck.cpp
   vector/geometry_checker/qgsgeometryfollowboundariescheck.cpp
+  vector/geometry_checker/qgsgeometrygapcheck.cpp
   vector/geometry_checker/qgsgeometryholecheck.cpp
   vector/geometry_checker/qgsgeometrylineintersectioncheck.cpp
   vector/geometry_checker/qgsgeometrylinelayerintersectioncheck.cpp
@@ -164,10 +164,11 @@ SET(QGIS_ANALYSIS_SRCS
   vector/geometry_checker/qgsgeometryselfintersectioncheck.cpp
   vector/geometry_checker/qgsgeometrysliverpolygoncheck.cpp
   vector/geometry_checker/qgsgeometrytypecheck.cpp
-  vector/geometry_checker/qgssinglegeometrycheck.cpp
   vector/geometry_checker/qgsisvalidgeometrycheck.cpp
-  vector/geometry_checker/qgsgeometrycheckregistry.cpp
-  vector/geometry_checker/qgsgeometrycheckfactory.cpp
+  vector/geometry_checker/qgssinglegeometrycheck.cpp
+  vector/geometry_checker/qgssinglegeometrycheck.cpp
+  vector/geometry_checker/qgsvectordataproviderfeaturepool.cpp
+  vector/geometry_checker/qgsvectorlayerfeaturepool.cpp
 )
 
 SET(QGIS_ANALYSIS_MOC_HDRS
@@ -279,6 +280,7 @@ SET(QGIS_ANALYSIS_HDRS
   vector/geometry_checker/qgsgeometryanglecheck.h
   vector/geometry_checker/qgsgeometryareacheck.h
   vector/geometry_checker/qgsgeometrychecker.h
+  vector/geometry_checker/qgsgeometrycheckerror.h
   vector/geometry_checker/qgsgeometrycheckcontext.h
   vector/geometry_checker/qgssinglegeometrycheck.h
   vector/geometry_checker/qgsgeometrycontainedcheck.h
@@ -304,7 +306,6 @@ SET(QGIS_ANALYSIS_HDRS
   vector/geometry_checker/qgsisvalidgeometrycheck.h
   vector/geometry_checker/qgsgeometrycheckregistry.h
   vector/geometry_checker/qgsgeometrycheckfactory.h
-
 )
 
 INCLUDE_DIRECTORIES(

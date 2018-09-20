@@ -18,6 +18,7 @@
 #include "qgspolygon.h"
 #include "qgslinestring.h"
 #include "qgsfeaturepool.h"
+#include "qgsgeometrycheckerror.h"
 
 void QgsGeometryLineLayerIntersectionCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {

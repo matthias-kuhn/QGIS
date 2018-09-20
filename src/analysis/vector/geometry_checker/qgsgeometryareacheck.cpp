@@ -18,6 +18,7 @@
 #include "qgsgeometrycollection.h"
 #include "qgsgeometryareacheck.h"
 #include "qgsfeaturepool.h"
+#include "qgsgeometrycheckerror.h"
 
 void QgsGeometryAreaCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {
