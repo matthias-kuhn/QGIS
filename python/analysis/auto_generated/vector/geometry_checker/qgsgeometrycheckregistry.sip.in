@@ -44,7 +44,7 @@ Get all geometry check factories that are compatible with ``layer`` and have all
 .. versionadded:: 3.4
 %End
 
-    void registerGeometryCheck( const QString &checkId, QgsGeometryCheckFactory *checkFactory /Transfer/ );
+    void registerGeometryCheck( QgsGeometryCheckFactory *checkFactory /Transfer/ );
 
 };
 

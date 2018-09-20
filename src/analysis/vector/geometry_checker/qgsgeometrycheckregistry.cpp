@@ -15,8 +15,8 @@
 
 #include "qgsgeometrycheckregistry.h"
 #include "qgsgeometrycheckfactory.h"
-
 #include "qgis.h"
+
 
 QgsGeometryCheckRegistry::QgsGeometryCheckRegistry()
 {
@@ -53,7 +53,7 @@ QList<QgsGeometryCheckFactory *> QgsGeometryCheckRegistry::geometryCheckFactorie
   return factories;
 }
 
-void QgsGeometryCheckRegistry::registerGeometryCheck( const QString &checkId, QgsGeometryCheckFactory *checkFactory )
+void QgsGeometryCheckRegistry::registerGeometryCheck( QgsGeometryCheckFactory *checkFactory )
 {
-  mGeometryCheckFactories.insert( checkId, checkFactory );
+  mGeometryCheckFactories.insert( checkFactory->id(), checkFactory );
 }

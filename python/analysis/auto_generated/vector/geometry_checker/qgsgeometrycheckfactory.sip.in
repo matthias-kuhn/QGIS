@@ -23,9 +23,10 @@ class QgsGeometryCheckFactory /Abstract/
 
     virtual QgsGeometryCheck *createGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration ) const = 0 /Factory/;
 
-    virtual QgsSingleGeometryCheck *createSingleGeometryCheck( const QString &checkId ) const = 0 /Factory/;
 
     virtual QString id() const = 0;
+
+    virtual QString name() const = 0;
 
     virtual bool isCompatible( QgsVectorLayer *layer ) const;
 
@@ -41,6 +42,11 @@ class QgsGeometryCheckFactoryT : QgsGeometryCheckFactory
 %End
   public:
     virtual QgsGeometryCheck *createGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration ) const;
+
+    virtual QString name() const;
+
+    virtual QString id() const;
+
 };
 
 
