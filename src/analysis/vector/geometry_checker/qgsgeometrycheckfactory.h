@@ -45,15 +45,13 @@ class ANALYSIS_EXPORT QgsGeometryCheckFactory SIP_ABSTRACT
 
     virtual QgsGeometryCheck *createGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration ) const = 0 SIP_FACTORY;
 
-    //virtual QgsSingleGeometryCheck *createSingleGeometryCheck( const QString &checkId ) const = 0 SIP_FACTORY;
-
     virtual QString id() const = 0;
 
     virtual QString name() const = 0;
 
-    virtual bool isCompatible( QgsVectorLayer *layer ) const;
+    virtual bool isCompatible( QgsVectorLayer *layer ) const = 0;
 
-    virtual QgsGeometryCheck::Flags flags() const;
+    virtual QgsGeometryCheck::Flags flags() const = 0;
 };
 
 template<class T>
@@ -73,6 +71,16 @@ class QgsGeometryCheckFactoryT : public QgsGeometryCheckFactory
     QString id() const override
     {
       return static_cast<T>( 0 ).errorName();
+    }
+
+    bool isCompatible( QgsVectorLayer *layer ) const override
+    {
+      return static_cast<T>( 0 ).isCompatible( layer );
+    }
+
+    QgsGeometryCheck::Flags flags() const override
+    {
+      return static_cast<T>( 0 ).flags();
     }
 
 };

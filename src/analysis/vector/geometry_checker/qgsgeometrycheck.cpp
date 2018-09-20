@@ -171,6 +171,11 @@ bool QgsGeometryCheckError::handleChanges( const QgsGeometryCheck::Changes &chan
   return true;
 }
 
+bool QgsGeometryCheck::isCompatible( QgsVectorLayer *layer ) const
+{
+  return mCompatibleGeometryTypes.contains( layer->geometryType() );
+}
+
 void QgsGeometryCheck::fixError( QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, QgsGeometryCheck::Changes &changes ) const
 {
   Q_UNUSED( error )

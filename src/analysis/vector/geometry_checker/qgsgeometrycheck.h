@@ -91,7 +91,8 @@ class ANALYSIS_EXPORT QgsGeometryCheck
     enum Flag
     {
       SingleGeometryCheck = 1 << 1,
-      AvailableInValidation = 1 << 2
+      SingleLayerTopologyCheck = 1 << 2,
+      AvailableInValidation = 1 << 3
     };
     Q_DECLARE_FLAGS( Flags, Flag )
     Q_FLAG( Flags )
@@ -121,19 +122,17 @@ class ANALYSIS_EXPORT QgsGeometryCheck
       , mContext( context )
     {}
     virtual ~QgsGeometryCheck() = default;
-    virtual void collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
 
-    /**
-     * Fix the error \a error with the specified \a method.
-     *
-     *
-     */
+    virtual bool isCompatible( QgsVectorLayer *layer ) const;
+    virtual QgsGeometryCheck::Flags flags() const {return nullptr;}
+
+    virtual void collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
+    //! Fix the error \a error with the specified \a method.
     virtual void fixError( QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes SIP_INOUT ) const SIP_SKIP;
     virtual QStringList resolutionMethods() const = 0;
     virtual QString errorDescription() const = 0;
     virtual QString errorName() const = 0;
     CheckType checkType() const { return mCheckType; }
-    bool isCompatible( QgsWkbTypes::GeometryType type ) const { return mCompatibleGeometryTypes.contains( type ); }
     QgsGeometryCheckContext *context() const { return mContext; }
 
   protected:

@@ -69,7 +69,7 @@ QFuture<void> QgsGeometryChecker::execute( int *totalSteps )
       {
         if ( check->checkType() <= QgsGeometryCheck::FeatureCheck )
         {
-          *totalSteps += check->isCompatible( it.value()->layer()->geometryType() ) ? it.value()->allFeatureIds().size() : 0;
+          *totalSteps += check->isCompatible( it.value()->layer() ) ? it.value()->allFeatureIds().size() : 0;
         }
         else
         {
