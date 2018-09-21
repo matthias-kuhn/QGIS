@@ -35,9 +35,6 @@ struct ANALYSIS_EXPORT QgsGeometryCheckContext
     QgsGeometryCheckContext( const QgsGeometryCheckContext &rh )
     {}
 #endif
-    QMap<QPointer<QgsVectorLayer>, QgsCoordinateTransform> mTransformCache;
-    QMap<QPointer<QgsVectorLayer>, double> mScaleFactorCache;
-    QReadWriteLock mCacheLock;
 };
 
 #endif // QGSGEOMETRYCHECKCONTEXT_H
