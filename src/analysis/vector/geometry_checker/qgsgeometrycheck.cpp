@@ -124,4 +124,17 @@ void QgsGeometryCheck::deleteFeatureGeometryRing( const QString &layerId, QgsFea
   }
 }
 
+double QgsGeometryCheck::scaleFactor( QPointer<QgsVectorLayer> layer ) const
+{
+  double scaleFactor = 1.0;
+
+  QgsVectorLayer *lyr = layer.data();
+  if ( lyr )
+  {
+    QgsCoordinateTransform ct( lyr->crs(), mContext->mapCrs, mContext->transformContext );
+    scaleFactor = ct.scaleFactor( lyr->extent() );
+  }
+  return scaleFactor;
+}
+
 

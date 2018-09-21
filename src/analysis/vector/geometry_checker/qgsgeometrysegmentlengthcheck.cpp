@@ -27,7 +27,7 @@ void QgsGeometrySegmentLengthCheck::collectErrors( QList<QgsGeometryCheckError *
   QgsGeometryCheckerUtils::LayerFeatures layerFeatures( mContext->featurePools, featureIds, mCompatibleGeometryTypes, feedback, mContext );
   for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeature : layerFeatures )
   {
-    double layerToMapUnits = mContext->layerScaleFactor( layerFeature.layer() );
+    double layerToMapUnits = scaleFactor( layerFeature.layer() );
     double minLength = mMinLengthMapUnits / layerToMapUnits;
 
     const QgsAbstractGeometry *geom = layerFeature.geometry().constGet();
@@ -90,7 +90,7 @@ void QgsGeometrySegmentLengthCheck::fixError( QgsGeometryCheckError *error, int 
   QgsPoint pi = geom->vertexAt( error->vidx() );
   QgsPoint pj = geom->vertexAt( QgsVertexId( vidx.part, vidx.ring, ( vidx.vertex - 1 + nVerts ) % nVerts ) );
   double dist = pi.distance( pj );
-  double layerToMapUnits = mContext->layerScaleFactor( featurePool->layer() );
+  double layerToMapUnits = scaleFactor( featurePool->layer() );
   double minLength = mMinLengthMapUnits / layerToMapUnits;
   if ( dist >= minLength )
   {

@@ -28,7 +28,7 @@ void QgsGeometryAreaCheck::collectErrors( QList<QgsGeometryCheckError *> &errors
   for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeature : layerFeatures )
   {
     const QgsAbstractGeometry *geom = layerFeature.geometry().constGet();
-    double layerToMapUnits = mContext->layerScaleFactor( layerFeature.layer() );
+    double layerToMapUnits = scaleFactor( layerFeature.layer() );
     for ( int iPart = 0, nParts = geom->partCount(); iPart < nParts; ++iPart )
     {
       double value;
@@ -55,7 +55,7 @@ void QgsGeometryAreaCheck::fixError( QgsGeometryCheckError *error, int method, c
   const QgsAbstractGeometry *geom = g.constGet();
   QgsVertexId vidx = error->vidx();
 
-  double layerToMapUnits = mContext->layerScaleFactor( featurePool->layer() );
+  double layerToMapUnits = scaleFactor( featurePool->layer() );
 
   // Check if polygon still exists
   if ( !vidx.isValid( geom ) )

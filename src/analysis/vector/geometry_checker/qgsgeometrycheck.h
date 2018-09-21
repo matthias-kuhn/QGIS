@@ -144,6 +144,8 @@ class ANALYSIS_EXPORT QgsGeometryCheck
     const CheckType mCheckType;
     QList<QgsWkbTypes::GeometryType> mCompatibleGeometryTypes;
     QgsGeometryCheckContext *mContext;
+
+    double scaleFactor( QPointer<QgsVectorLayer> layer ) const;
 };
 
 #endif // QGS_GEOMETRY_CHECK_H

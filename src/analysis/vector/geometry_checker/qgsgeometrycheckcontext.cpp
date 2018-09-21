@@ -26,27 +26,3 @@ QgsGeometryCheckContext::QgsGeometryCheckContext( int _precision, const QgsCoord
   , transformContext( transformContext )
 {
 }
-
-double QgsGeometryCheckContext::layerScaleFactor( const QPointer<QgsVectorLayer> &layer )
-{
-  QgsReadWriteLocker locker( mCacheLock, QgsReadWriteLocker::Read );
-  if ( !mScaleFactorCache.contains( layer ) )
-  {
-    double scaleFactor = 1.0;
-    QgsThreadingUtils::runOnMainThread( [this, layer, &scaleFactor]()
-    {
-      QgsVectorLayer *lyr = layer.data();
-      if ( lyr )
-      {
-        QgsCoordinateTransform ct( lyr->crs(), mapCrs, transformContext );
-        scaleFactor = ct.scaleFactor( lyr->extent() );
-      }
-    } );
-
-    locker.changeMode( QgsReadWriteLocker::Write );
-    mScaleFactorCache[layer] = scaleFactor;
-    locker.changeMode( QgsReadWriteLocker::Read );
-  }
-
-  return mScaleFactorCache.value( layer );
-}

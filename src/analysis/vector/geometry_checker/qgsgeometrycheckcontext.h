@@ -29,7 +29,6 @@ struct ANALYSIS_EXPORT QgsGeometryCheckContext
     const QgsCoordinateReferenceSystem mapCrs;
     const QMap<QString, QgsFeaturePool *> featurePools;
     const QgsCoordinateTransformContext transformContext;
-    double layerScaleFactor( const QPointer<QgsVectorLayer> &layer ) SIP_SKIP;
 
   private:
 #ifdef SIP_RUN
