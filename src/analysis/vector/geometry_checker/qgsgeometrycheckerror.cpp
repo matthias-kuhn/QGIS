@@ -19,13 +19,14 @@ QgsGeometryCheckError::QgsGeometryCheckError( const QgsGeometryCheck *check,
 {
 }
 
-QgsGeometryCheckError::QgsGeometryCheckError( const QgsGeometryCheck *check,
+QgsGeometryCheckError::QgsGeometryCheckError( const QgsGeometryCheck *check, const QgsGeometryCheckContext *context,
     const QgsGeometryCheckerUtils::LayerFeature &layerFeature,
     const QgsPointXY &errorLocation,
     QgsVertexId vidx,
     const QVariant &value,
     ValueType valueType )
   : mCheck( check )
+  , mContext( context )
   , mLayerId( layerFeature.layerId() )
   , mFeatureId( layerFeature.feature().id() )
   , mErrorLocation( errorLocation )
@@ -47,7 +48,7 @@ QgsGeometryCheckError::QgsGeometryCheckError( const QgsGeometryCheck *check,
     QgsVectorLayer *vl = layerFeature.layer().data();
     if ( vl )
     {
-      QgsCoordinateTransform ct( vl->crs(), check->context()->mapCrs, check->context()->transformContext );
+      QgsCoordinateTransform ct( vl->crs(), mContext->mapCrs, mContext->transformContext );
       mGeometry.transform( ct );
       mErrorLocation = ct.transform( mErrorLocation );
     }
