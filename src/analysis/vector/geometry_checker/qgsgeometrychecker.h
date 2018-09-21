@@ -26,21 +26,22 @@
 
 #include "qgis_analysis.h"
 #include "qgsfeedback.h"
+#include "qgsfeatureid.h"
 
 typedef qint64 QgsFeatureId;
-typedef QSet<QgsFeatureId> QgsFeatureIds;
 struct QgsGeometryCheckContext;
 class QgsGeometryCheck;
 class QgsGeometryCheckError;
 class QgsMapLayer;
 class QgsVectorLayer;
+class QgsFeaturePool;
 class QMutex;
 
 class ANALYSIS_EXPORT QgsGeometryChecker : public QObject
 {
     Q_OBJECT
   public:
-    QgsGeometryChecker( const QList<QgsGeometryCheck *> &checks, QgsGeometryCheckContext *context );
+    QgsGeometryChecker( const QList<QgsGeometryCheck *> &checks, const QMap<QString, QgsFeaturePool *> &featurePools );
     ~QgsGeometryChecker() override;
     QFuture<void> execute( int *totalSteps = nullptr );
     bool fixError( QgsGeometryCheckError *error, int method, bool triggerRepaint = false );
@@ -71,8 +72,9 @@ class ANALYSIS_EXPORT QgsGeometryChecker : public QObject
     QMutex mErrorListMutex;
     QMap<QString, int> mMergeAttributeIndices;
     QgsFeedback mFeedback;
+    QMap<QString, QgsFeaturePool *> mFeaturePools;
 
-    void runCheck( const QgsGeometryCheck *check );
+    void runCheck( const QMap<QString, QgsFeaturePool *> &featurePools, const QgsGeometryCheck *check );
 
   private slots:
     void emitProgressValue();

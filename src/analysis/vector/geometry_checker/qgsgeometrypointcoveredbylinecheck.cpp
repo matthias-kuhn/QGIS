@@ -19,12 +19,12 @@
 #include "qgsfeaturepool.h"
 #include "qgsgeometrycheckerror.h"
 
-void QgsGeometryPointCoveredByLineCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
+void QgsGeometryPointCoveredByLineCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {
   Q_UNUSED( messages )
 
-  QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds() : ids.toMap();
-  QgsGeometryCheckerUtils::LayerFeatures layerFeatures( mContext->featurePools, featureIds, mCompatibleGeometryTypes, feedback, mContext, true );
+  QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds( featurePools ) : ids.toMap();
+  QgsGeometryCheckerUtils::LayerFeatures layerFeatures( featurePools, featureIds, mCompatibleGeometryTypes, feedback, mContext, true );
   for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeature : layerFeatures )
   {
     const QgsAbstractGeometry *geom = layerFeature.geometry().constGet();
@@ -40,7 +40,7 @@ void QgsGeometryPointCoveredByLineCheck::collectErrors( QList<QgsGeometryCheckEr
       bool touches = false;
       QgsRectangle rect( point->x() - mContext->tolerance, point->y() - mContext->tolerance,
                          point->x() + mContext->tolerance, point->y() + mContext->tolerance );
-      QgsGeometryCheckerUtils::LayerFeatures checkFeatures( mContext->featurePools, featureIds.keys(), rect, {QgsWkbTypes::LineGeometry}, mContext );
+      QgsGeometryCheckerUtils::LayerFeatures checkFeatures( featurePools, featureIds.keys(), rect, {QgsWkbTypes::LineGeometry}, mContext );
       for ( const QgsGeometryCheckerUtils::LayerFeature &checkFeature : checkFeatures )
       {
         const QgsAbstractGeometry *testGeom = checkFeature.geometry().constGet();
@@ -71,7 +71,7 @@ void QgsGeometryPointCoveredByLineCheck::collectErrors( QList<QgsGeometryCheckEr
   }
 }
 
-void QgsGeometryPointCoveredByLineCheck::fixError( QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes & /*changes*/ ) const
+void QgsGeometryPointCoveredByLineCheck::fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes & /*changes*/ ) const
 {
   if ( method == NoChange )
   {

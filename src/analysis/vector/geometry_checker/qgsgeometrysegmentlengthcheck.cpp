@@ -19,12 +19,12 @@
 #include "qgsfeaturepool.h"
 #include "qgsgeometrycheckerror.h"
 
-void QgsGeometrySegmentLengthCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
+void QgsGeometrySegmentLengthCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {
   Q_UNUSED( messages )
 
-  QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds() : ids.toMap();
-  QgsGeometryCheckerUtils::LayerFeatures layerFeatures( mContext->featurePools, featureIds, mCompatibleGeometryTypes, feedback, mContext );
+  QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds( featurePools ) : ids.toMap();
+  QgsGeometryCheckerUtils::LayerFeatures layerFeatures( featurePools, featureIds, mCompatibleGeometryTypes, feedback, mContext );
   for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeature : layerFeatures )
   {
     double layerToMapUnits = scaleFactor( layerFeature.layer() );
@@ -58,9 +58,9 @@ void QgsGeometrySegmentLengthCheck::collectErrors( QList<QgsGeometryCheckError *
   }
 }
 
-void QgsGeometrySegmentLengthCheck::fixError( QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes &/*changes*/ ) const
+void QgsGeometrySegmentLengthCheck::fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes &/*changes*/ ) const
 {
-  QgsFeaturePool *featurePool = mContext->featurePools[ error->layerId() ];
+  QgsFeaturePool *featurePool = featurePools[ error->layerId() ];
   QgsFeature feature;
   if ( !featurePool->getFeature( error->featureId(), feature ) )
   {

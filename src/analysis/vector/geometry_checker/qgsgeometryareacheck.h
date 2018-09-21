@@ -29,8 +29,8 @@ class ANALYSIS_EXPORT QgsGeometryAreaCheck : public QgsGeometryCheck
       : QgsGeometryCheck( FeatureCheck, {QgsWkbTypes::PolygonGeometry}, context )
     , mThresholdMapUnits( thresholdMapUnits )
     {}
-    void collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
-    void fixError( QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
+    void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
+    void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
     QString errorDescription() const override { return tr( "Minimal area" ); }
     QString errorName() const override { return QStringLiteral( "QgsGeometryAreaCheck" ); }
@@ -39,7 +39,7 @@ class ANALYSIS_EXPORT QgsGeometryAreaCheck : public QgsGeometryCheck
   private:
 
     virtual bool checkThreshold( double layerToMapUnits, const QgsAbstractGeometry *geom, double &value ) const;
-    bool mergeWithNeighbor( const QString &layerId, QgsFeature &feature, int partIdx, int method, int mergeAttributeIndex, Changes &changes, QString &errMsg ) const;
+    bool mergeWithNeighbor( const QMap<QString, QgsFeaturePool *> &featurePools, const QString &layerId, QgsFeature &feature, int partIdx, int method, int mergeAttributeIndex, Changes &changes, QString &errMsg ) const;
 
   protected:
     double mThresholdMapUnits;

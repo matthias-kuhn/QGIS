@@ -126,9 +126,9 @@ class ANALYSIS_EXPORT QgsGeometryCheck
     virtual bool isCompatible( QgsVectorLayer *layer ) const;
     virtual QgsGeometryCheck::Flags flags() const {return nullptr;}
 
-    virtual void collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
+    virtual void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
     //! Fix the error \a error with the specified \a method.
-    virtual void fixError( QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes SIP_INOUT ) const SIP_SKIP;
+    virtual void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes SIP_INOUT ) const SIP_SKIP;
     virtual QStringList resolutionMethods() const = 0;
     virtual QString errorDescription() const = 0;
     virtual QString errorName() const = 0;
@@ -136,16 +136,16 @@ class ANALYSIS_EXPORT QgsGeometryCheck
     QgsGeometryCheckContext *context() const { return mContext; }
 
   protected:
-    QMap<QString, QgsFeatureIds> allLayerFeatureIds() const SIP_SKIP;
-    void replaceFeatureGeometryPart( const QString &layerId, QgsFeature &feature, int partIdx, QgsAbstractGeometry *newPartGeom, Changes &changes ) const SIP_SKIP;
-    void deleteFeatureGeometryPart( const QString &layerId, QgsFeature &feature, int partIdx, Changes &changes ) const SIP_SKIP;
-    void deleteFeatureGeometryRing( const QString &layerId, QgsFeature &feature, int partIdx, int ringIdx, Changes &changes ) const SIP_SKIP;
+    QMap<QString, QgsFeatureIds> allLayerFeatureIds( const QMap<QString, QgsFeaturePool *> &featurePools ) const SIP_SKIP;
+    void replaceFeatureGeometryPart( const QMap<QString, QgsFeaturePool *> &featurePools, const QString &layerId, QgsFeature &feature, int partIdx, QgsAbstractGeometry *newPartGeom, Changes &changes ) const SIP_SKIP;
+    void deleteFeatureGeometryPart( const QMap<QString, QgsFeaturePool *> &featurePools, const QString &layerId, QgsFeature &feature, int partIdx, Changes &changes ) const SIP_SKIP;
+    void deleteFeatureGeometryRing( const QMap<QString, QgsFeaturePool *> &featurePools, const QString &layerId, QgsFeature &feature, int partIdx, int ringIdx, Changes &changes ) const SIP_SKIP;
 
     const CheckType mCheckType;
     QList<QgsWkbTypes::GeometryType> mCompatibleGeometryTypes;
     QgsGeometryCheckContext *mContext;
 
-    double scaleFactor( QPointer<QgsVectorLayer> layer ) const;
+    double scaleFactor( QPointer<QgsVectorLayer> layer ) const SIP_SKIP;
 };
 
 #endif // QGS_GEOMETRY_CHECK_H

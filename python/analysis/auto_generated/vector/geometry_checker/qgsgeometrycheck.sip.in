@@ -94,7 +94,7 @@ the Free Software Foundation; either version 2 of the License, or     *
     virtual bool isCompatible( QgsVectorLayer *layer ) const;
     virtual QgsGeometryCheck::Flags flags() const;
 
-    virtual void collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = 0, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
+    virtual void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = 0, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
     virtual QStringList resolutionMethods() const = 0;
     virtual QString errorDescription() const = 0;
     virtual QString errorName() const = 0;
@@ -104,7 +104,6 @@ the Free Software Foundation; either version 2 of the License, or     *
   protected:
 
 
-    double scaleFactor( QPointer<QgsVectorLayer> layer ) const;
 };
 
 /************************************************************************
