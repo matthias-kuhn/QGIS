@@ -44,9 +44,13 @@ QgsGeometryCheckError::QgsGeometryCheckError( const QgsGeometryCheck *check,
   }
   if ( !layerFeature.useMapCrs() )
   {
-    const QgsCoordinateTransform &transform = check->context()->layerTransform( layerFeature.layer() );
-    mGeometry.transform( transform );
-    mErrorLocation = transform.transform( mErrorLocation );
+    QgsVectorLayer *vl = layerFeature.layer().data();
+    if ( vl )
+    {
+      QgsCoordinateTransform ct( vl->crs(), check->context()->mapCrs, check->context()->transformContext );
+      mGeometry.transform( ct );
+      mErrorLocation = ct.transform( mErrorLocation );
+    }
   }
 }
 

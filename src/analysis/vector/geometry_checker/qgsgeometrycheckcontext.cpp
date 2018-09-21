@@ -27,26 +27,6 @@ QgsGeometryCheckContext::QgsGeometryCheckContext( int _precision, const QgsCoord
 {
 }
 
-const QgsCoordinateTransform &QgsGeometryCheckContext::layerTransform( const QPointer<QgsVectorLayer> &layer )
-{
-  QgsReadWriteLocker locker( mCacheLock, QgsReadWriteLocker::Read );
-  if ( !mTransformCache.contains( layer ) )
-  {
-    QgsCoordinateTransform transform;
-    QgsThreadingUtils::runOnMainThread( [this, &transform, layer]()
-    {
-      QgsVectorLayer *lyr = layer.data();
-      if ( lyr )
-        transform = QgsCoordinateTransform( lyr->crs(), mapCrs, transformContext );
-    } );
-    locker.changeMode( QgsReadWriteLocker::Write );
-    mTransformCache[layer] = transform;
-    locker.changeMode( QgsReadWriteLocker::Read );
-  }
-
-  return mTransformCache[layer];
-}
-
 double QgsGeometryCheckContext::layerScaleFactor( const QPointer<QgsVectorLayer> &layer )
 {
   QgsReadWriteLocker locker( mCacheLock, QgsReadWriteLocker::Read );
@@ -57,7 +37,10 @@ double QgsGeometryCheckContext::layerScaleFactor( const QPointer<QgsVectorLayer>
     {
       QgsVectorLayer *lyr = layer.data();
       if ( lyr )
-        scaleFactor = layerTransform( layer ).scaleFactor( lyr->extent() );
+      {
+        QgsCoordinateTransform ct( lyr->crs(), mapCrs, transformContext );
+        scaleFactor = ct.scaleFactor( lyr->extent() );
+      }
     } );
 
     locker.changeMode( QgsReadWriteLocker::Write );
