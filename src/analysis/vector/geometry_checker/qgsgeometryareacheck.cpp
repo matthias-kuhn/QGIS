@@ -103,7 +103,7 @@ void QgsGeometryAreaCheck::fixError( const QMap<QString, QgsFeaturePool *> &feat
 bool QgsGeometryAreaCheck::checkThreshold( double layerToMapUnits, const QgsAbstractGeometry *geom, double &value ) const
 {
   value = geom->area();
-  double threshold = mCheckConfiguration.value( QStringLiteral( "thresholdMapUnits" ) ).toDouble() / ( layerToMapUnits * layerToMapUnits );
+  double threshold = mAreaThreshold / ( layerToMapUnits * layerToMapUnits );
   return value < threshold;
 }
 

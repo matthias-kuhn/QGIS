@@ -23,9 +23,9 @@
 class ANALYSIS_EXPORT QgsGeometryAngleCheck : public QgsGeometryCheck
 {
   public:
-    QgsGeometryAngleCheck( QgsGeometryCheckContext *context, double minAngle )
-      : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context )
-    , mMinAngle( minAngle )
+    QgsGeometryAngleCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
+      : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context, configuration )
+    , mMinAngle( configuration.value( "minAngle", 0.0 ).toDouble() )
     {}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;

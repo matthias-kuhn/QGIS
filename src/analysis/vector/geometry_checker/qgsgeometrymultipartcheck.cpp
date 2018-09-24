@@ -17,9 +17,8 @@
 #include "qgsgeometrymultipartcheck.h"
 #include "qgsfeaturepool.h"
 
-QList<QgsSingleGeometryCheckError *> QgsGeometryMultipartCheck::processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const
+QList<QgsSingleGeometryCheckError *> QgsGeometryMultipartCheck::processGeometry( const QgsGeometry &geometry ) const
 {
-  Q_UNUSED( configuration )
   QList<QgsSingleGeometryCheckError *> errors;
 
   const QgsAbstractGeometry *geom = geometry.constGet();

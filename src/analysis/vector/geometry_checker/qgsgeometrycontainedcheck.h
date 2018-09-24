@@ -51,8 +51,8 @@ class ANALYSIS_EXPORT QgsGeometryContainedCheckError : public QgsGeometryCheckEr
 class ANALYSIS_EXPORT QgsGeometryContainedCheck : public QgsGeometryCheck
 {
   public:
-    explicit QgsGeometryContainedCheck( QgsGeometryCheckContext *context )
-      : QgsGeometryCheck( FeatureCheck, {QgsWkbTypes::PointGeometry, QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context ) {}
+    explicit QgsGeometryContainedCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
+      : QgsGeometryCheck( FeatureCheck, {QgsWkbTypes::PointGeometry, QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context, configuration ) {}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;

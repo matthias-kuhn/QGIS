@@ -73,6 +73,8 @@ void QgsGeometryPointCoveredByLineCheck::collectErrors( const QMap<QString, QgsF
 
 void QgsGeometryPointCoveredByLineCheck::fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes & /*changes*/ ) const
 {
+  Q_UNUSED( featurePools )
+
   if ( method == NoChange )
   {
     error->setFixed( method );

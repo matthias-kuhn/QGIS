@@ -23,8 +23,9 @@
 class ANALYSIS_EXPORT QgsGeometryLineLayerIntersectionCheck : public QgsGeometryCheck
 {
   public:
-    QgsGeometryLineLayerIntersectionCheck( QgsGeometryCheckContext *context, const QString &checkLayer )
-      : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::LineGeometry}, context ), mCheckLayer( checkLayer )
+    QgsGeometryLineLayerIntersectionCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
+      : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::LineGeometry}, context, configuration )
+    , mCheckLayer( configurationValue<QString>( "checkLayer" ) )
     {}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;

@@ -23,9 +23,12 @@
 class ANALYSIS_EXPORT QgsGeometryMultipartCheck : public QgsSingleGeometryCheck
 {
   public:
-    explicit QgsGeometryMultipartCheck( QgsGeometryCheckContext *context )
-      : QgsSingleGeometryCheck( FeatureCheck, {QgsWkbTypes::PointGeometry, QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context ) {}
-    QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const override;
+    explicit QgsGeometryMultipartCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
+      : QgsSingleGeometryCheck( FeatureCheck,
+    {QgsWkbTypes::PointGeometry, QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry},
+    context,
+    configuration ) {}
+    QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
     QString errorDescription() const override { return tr( "Multipart object with only one feature" ); }

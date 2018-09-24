@@ -76,9 +76,9 @@ class ANALYSIS_EXPORT QgsGeometryGapCheckError : public QgsGeometryCheckError
 class ANALYSIS_EXPORT QgsGeometryGapCheck : public QgsGeometryCheck
 {
   public:
-    explicit QgsGeometryGapCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration )
-      : QgsGeometryCheck( LayerCheck, {QgsWkbTypes::PolygonGeometry}, context )
-    , mCheckConfiguration( geometryCheckConfiguration )
+    explicit QgsGeometryGapCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
+      : QgsGeometryCheck( LayerCheck, {QgsWkbTypes::PolygonGeometry}, context, configuration )
+    ,  mGapThreshold( configuration.value( "gapThreshold" ).toDouble() )
     {}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
@@ -89,9 +89,10 @@ class ANALYSIS_EXPORT QgsGeometryGapCheck : public QgsGeometryCheck
     enum ResolutionMethod { MergeLongestEdge, NoChange };
 
   private:
-    QVariantMap mCheckConfiguration;
     bool mergeWithNeighbor( const QMap<QString, QgsFeaturePool *> &featurePools,
                             QgsGeometryGapCheckError *err, Changes &changes, QString &errMsg ) const;
+
+    const double mGapThreshold;
 };
 
 #endif // QGS_GEOMETRY_GAP_CHECK_H

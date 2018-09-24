@@ -45,13 +45,13 @@ class ANALYSIS_EXPORT QgsGeometrySelfIntersectionCheckError : public QgsSingleGe
 class ANALYSIS_EXPORT QgsGeometrySelfIntersectionCheck : public QgsSingleGeometryCheck
 {
   public:
-    explicit QgsGeometrySelfIntersectionCheck( QgsGeometryCheckContext *context, const QVariantMap & = QVariantMap() )
-      : QgsSingleGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context ) {}
+    explicit QgsGeometrySelfIntersectionCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
+      : QgsSingleGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context, configuration ) {}
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
     QString errorDescription() const override { return tr( "Self intersection" ); }
     QString errorName() const override { return QStringLiteral( "QgsGeometrySelfIntersectionCheck" ); }
-    QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const override;
+    QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
 
     enum ResolutionMethod { ToMultiObject, ToSingleObjects, NoChange };
 };

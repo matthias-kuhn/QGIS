@@ -22,7 +22,6 @@
 
 void QgsGeometryOverlapCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {
-  const double overlapThreshold = mCheckConfiguration.value( "thresholdMapUnits" ).toDouble();
   QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds( featurePools ) : ids.toMap();
   const QgsGeometryCheckerUtils::LayerFeatures layerFeaturesA( featurePools, featureIds, mCompatibleGeometryTypes, feedback, mContext, true );
   QList<QString> layerIds = featureIds.keys();
@@ -58,7 +57,7 @@ void QgsGeometryOverlapCheck::collectErrors( const QMap<QString, QgsFeaturePool 
           {
             QgsAbstractGeometry *interPart = QgsGeometryCheckerUtils::getGeomPart( interGeom, iPart );
             double area = interPart->area();
-            if ( area > mContext->reducedTolerance && area < overlapThreshold )
+            if ( area > mContext->reducedTolerance && area < mOverlapThreshold )
             {
               errors.append( new QgsGeometryOverlapCheckError( this, layerFeatureA, QgsGeometry( interPart->clone() ), interPart->centroid(), area, layerFeatureB ) );
             }

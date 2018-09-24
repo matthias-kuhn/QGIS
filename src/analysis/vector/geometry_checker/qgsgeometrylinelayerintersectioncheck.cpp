@@ -75,6 +75,8 @@ void QgsGeometryLineLayerIntersectionCheck::collectErrors( const QMap<QString, Q
 
 void QgsGeometryLineLayerIntersectionCheck::fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes & /*changes*/ ) const
 {
+  Q_UNUSED( featurePools )
+
   if ( method == NoChange )
   {
     error->setFixed( method );

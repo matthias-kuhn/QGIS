@@ -33,6 +33,7 @@ bool QgsGeometryCheck::isCompatible( QgsVectorLayer *layer ) const
 
 void QgsGeometryCheck::fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, QgsGeometryCheck::Changes &changes ) const
 {
+  Q_UNUSED( featurePools )
   Q_UNUSED( error )
   Q_UNUSED( method )
   Q_UNUSED( mergeAttributeIndices )

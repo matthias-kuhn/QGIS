@@ -23,17 +23,21 @@
 class ANALYSIS_EXPORT QgsGeometrySliverPolygonCheck : public QgsGeometryAreaCheck
 {
   public:
-    QgsGeometrySliverPolygonCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration )
-      : QgsGeometryAreaCheck( context, geometryCheckConfiguration )
-      , mCheckConfiguration( geometryCheckConfiguration )
-    {}
+    QgsGeometrySliverPolygonCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
+      : QgsGeometryAreaCheck( context, configuration )
+    {
+      mThreshold = configurationValue<double>( "threshold" );
+      mMaxArea = configurationValue<double>( "maxArea" );
+    }
     QString errorDescription() const override { return tr( "Sliver polygon" ); }
     QString errorName() const override { return QStringLiteral( "QgsGeometrySliverPolygonCheck" ); }
 
   private:
-    QVariantMap mCheckConfiguration;
-
     bool checkThreshold( double layerToMapUnits, const QgsAbstractGeometry *geom, double &value ) const override;
+
+    double mThreshold;
+    double mMaxArea;
+
 };
 
 #endif // QGS_GEOMETRY_SLIVERPOLYGON_CHECK_H

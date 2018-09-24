@@ -24,9 +24,8 @@
 #include "qgsfeaturepool.h"
 
 
-QList<QgsSingleGeometryCheckError *> QgsGeometryTypeCheck::processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const
+QList<QgsSingleGeometryCheckError *> QgsGeometryTypeCheck::processGeometry( const QgsGeometry &geometry ) const
 {
-  Q_UNUSED( configuration )
   QList<QgsSingleGeometryCheckError *> errors;
   const QgsAbstractGeometry *geom = geometry.constGet();
   QgsWkbTypes::Type type = QgsWkbTypes::flatType( geom->wkbType() );

@@ -21,8 +21,8 @@
 #include "qgsvectorlayer.h"
 #include "qgsgeometrycheckerror.h"
 
-QgsGeometryFollowBoundariesCheck::QgsGeometryFollowBoundariesCheck( QgsGeometryCheckContext *context, QgsVectorLayer *checkLayer )
-  : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::PolygonGeometry}, context )
+QgsGeometryFollowBoundariesCheck::QgsGeometryFollowBoundariesCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration, QgsVectorLayer *checkLayer )
+  : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::PolygonGeometry}, context, configuration )
 {
   mCheckLayer = checkLayer;
   if ( mCheckLayer )
@@ -93,6 +93,8 @@ void QgsGeometryFollowBoundariesCheck::collectErrors( const QMap<QString, QgsFea
 
 void QgsGeometryFollowBoundariesCheck::fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes & /*changes*/ ) const
 {
+  Q_UNUSED( featurePools )
+
   if ( method == NoChange )
   {
     error->setFixed( method );

@@ -43,11 +43,11 @@ class ANALYSIS_EXPORT QgsGeometryTypeCheckError : public QgsSingleGeometryCheckE
 class ANALYSIS_EXPORT QgsGeometryTypeCheck : public QgsSingleGeometryCheck
 {
   public:
-    QgsGeometryTypeCheck( QgsGeometryCheckContext *context, int allowedTypes )
-      : QgsSingleGeometryCheck( FeatureCheck, {QgsWkbTypes::PointGeometry, QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context )
+    QgsGeometryTypeCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration, int allowedTypes )
+      : QgsSingleGeometryCheck( FeatureCheck, {QgsWkbTypes::PointGeometry, QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context, configuration )
     , mAllowedTypes( allowedTypes )
     {}
-    QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const override;
+    QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
     QString errorDescription() const override { return tr( "Geometry type" ); }

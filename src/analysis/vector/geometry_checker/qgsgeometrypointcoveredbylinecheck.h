@@ -23,8 +23,8 @@
 class ANALYSIS_EXPORT QgsGeometryPointCoveredByLineCheck : public QgsGeometryCheck
 {
   public:
-    QgsGeometryPointCoveredByLineCheck( QgsGeometryCheckContext *context )
-      : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::PointGeometry}, context )
+    QgsGeometryPointCoveredByLineCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
+      : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::PointGeometry}, context, configuration )
     {}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;

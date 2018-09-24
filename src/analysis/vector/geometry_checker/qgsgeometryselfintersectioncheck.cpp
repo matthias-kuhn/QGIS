@@ -316,10 +316,8 @@ QStringList QgsGeometrySelfIntersectionCheck::resolutionMethods() const
   return methods;
 }
 
-QList<QgsSingleGeometryCheckError *> QgsGeometrySelfIntersectionCheck::processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const
+QList<QgsSingleGeometryCheckError *> QgsGeometrySelfIntersectionCheck::processGeometry( const QgsGeometry &geometry ) const
 {
-  Q_UNUSED( configuration )
-
   QList<QgsSingleGeometryCheckError *> errors;
   const QgsAbstractGeometry *geom = geometry.constGet();
   for ( int iPart = 0, nParts = geom->partCount(); iPart < nParts; ++iPart )

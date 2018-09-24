@@ -135,7 +135,10 @@ class ANALYSIS_EXPORT QgsGeometryCheckErrorSingle : public QgsGeometryCheckError
 class ANALYSIS_EXPORT QgsSingleGeometryCheck : public QgsGeometryCheck
 {
   public:
-    QgsSingleGeometryCheck( CheckType checkType, const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes, QgsGeometryCheckContext *context );
+    QgsSingleGeometryCheck( CheckType checkType,
+                            const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes,
+                            QgsGeometryCheckContext *context,
+                            const QVariantMap &configuration );
 
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const QgsGeometryCheck::LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const final;
 
@@ -147,7 +150,7 @@ class ANALYSIS_EXPORT QgsSingleGeometryCheck : public QgsGeometryCheck
      *
      * \since QGIS 3.4
      */
-    virtual QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const = 0;
+    virtual QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const = 0;
 
   private:
 

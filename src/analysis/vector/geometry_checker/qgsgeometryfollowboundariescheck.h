@@ -26,7 +26,7 @@ class QgsSpatialIndex;
 class ANALYSIS_EXPORT QgsGeometryFollowBoundariesCheck : public QgsGeometryCheck
 {
   public:
-    QgsGeometryFollowBoundariesCheck( QgsGeometryCheckContext *context, QgsVectorLayer *checkLayer );
+    QgsGeometryFollowBoundariesCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration, QgsVectorLayer *checkLayer );
     ~QgsGeometryFollowBoundariesCheck() override;
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;

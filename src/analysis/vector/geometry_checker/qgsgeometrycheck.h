@@ -26,6 +26,7 @@
 #include "qgsvectorlayer.h"
 #include "geometry/qgsgeometry.h"
 #include "qgsgeometrycheckerutils.h"
+#include "qgssettings.h"
 
 class QgsGeometryCheckError;
 class QgsFeaturePool;
@@ -116,12 +117,24 @@ class ANALYSIS_EXPORT QgsGeometryCheck
 
     typedef QMap<QString, QMap<QgsFeatureId, QList<Change> > > Changes;
 
-    QgsGeometryCheck( CheckType checkType, const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes, QgsGeometryCheckContext *context )
+    QgsGeometryCheck( CheckType checkType,
+                      const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes,
+                      QgsGeometryCheckContext *context,
+                      const QVariantMap &configuration )
       : mCheckType( checkType )
       , mCompatibleGeometryTypes( compatibleGeometryTypes )
       , mContext( context )
+      , mConfiguration( configuration )
     {}
     virtual ~QgsGeometryCheck() = default;
+
+#ifndef SIP_RUN
+    template <class T>
+    T configurationValue( const QString &name, const QVariant &defaultValue = QVariant() )
+    {
+      return mConfiguration.value( name, QgsSettings().value( "/geometry_checker/" + errorName() + "/" + name, defaultValue ) ).value<T>();
+    }
+#endif
 
     virtual bool isCompatible( QgsVectorLayer *layer ) const;
     virtual QgsGeometryCheck::Flags flags() const {return nullptr;}
@@ -144,6 +157,7 @@ class ANALYSIS_EXPORT QgsGeometryCheck
     const CheckType mCheckType;
     QList<QgsWkbTypes::GeometryType> mCompatibleGeometryTypes;
     QgsGeometryCheckContext *mContext;
+    QVariantMap mConfiguration;
 
     double scaleFactor( QPointer<QgsVectorLayer> layer ) const SIP_SKIP;
 };
