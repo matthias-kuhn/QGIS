@@ -28,8 +28,9 @@ class ANALYSIS_EXPORT QgsGeometryDuplicateCheckError : public QgsGeometryCheckEr
     QgsGeometryDuplicateCheckError( const QgsGeometryCheck *check,
                                     const QgsGeometryCheckerUtils::LayerFeature &layerFeature,
                                     const QgsPointXY &errorLocation,
+                                    const QMap<QString, QgsFeaturePool *> &featurePools,
                                     const QMap<QString, QList<QgsFeatureId>> &duplicates )
-      : QgsGeometryCheckError( check, layerFeature, errorLocation, QgsVertexId(), duplicatesString( check->context()->featurePools, duplicates ) )
+      : QgsGeometryCheckError( check, layerFeature, errorLocation, QgsVertexId(), duplicatesString( featurePools, duplicates ) )
       , mDuplicates( duplicates )
     { }
     QMap<QString, QList<QgsFeatureId>> duplicates() const { return mDuplicates; }

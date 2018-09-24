@@ -80,7 +80,7 @@ void QgsGeometryDuplicateCheck::collectErrors( const QMap<QString, QgsFeaturePoo
     }
     if ( !duplicates.isEmpty() )
     {
-      errors.append( new QgsGeometryDuplicateCheckError( this, layerFeatureA, layerFeatureA.geometry().constGet()->centroid(), duplicates ) );
+      errors.append( new QgsGeometryDuplicateCheckError( this, layerFeatureA, layerFeatureA.geometry().constGet()->centroid(), featurePools, duplicates ) );
     }
   }
 }

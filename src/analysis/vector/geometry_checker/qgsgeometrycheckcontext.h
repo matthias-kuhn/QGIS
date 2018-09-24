@@ -23,11 +23,12 @@
 
 struct ANALYSIS_EXPORT QgsGeometryCheckContext
 {
-    QgsGeometryCheckContext( int precision, const QgsCoordinateReferenceSystem &mapCrs, const QMap<QString, QgsFeaturePool *> &featurePools, const QgsCoordinateTransformContext &transformContext );
+    QgsGeometryCheckContext( int precision,
+                             const QgsCoordinateReferenceSystem &mapCrs,
+                             const QgsCoordinateTransformContext &transformContext );
     const double tolerance;
     const double reducedTolerance;
     const QgsCoordinateReferenceSystem mapCrs;
-    const QMap<QString, QgsFeaturePool *> featurePools;
     const QgsCoordinateTransformContext transformContext;
 
   private:

@@ -18,11 +18,10 @@
 #include "qgsthreadingutils.h"
 #include "qgsvectorlayer.h"
 
-QgsGeometryCheckContext::QgsGeometryCheckContext( int _precision, const QgsCoordinateReferenceSystem &_mapCrs, const QMap<QString, QgsFeaturePool *> &_featurePools, const QgsCoordinateTransformContext &transformContext )
-  : tolerance( std::pow( 10, -_precision ) )
-  , reducedTolerance( std::pow( 10, -_precision / 2 ) )
-  , mapCrs( _mapCrs )
-  , featurePools( _featurePools )
+QgsGeometryCheckContext::QgsGeometryCheckContext( int precision, const QgsCoordinateReferenceSystem &mapCrs, const QgsCoordinateTransformContext &transformContext )
+  : tolerance( std::pow( 10, -precision ) )
+  , reducedTolerance( std::pow( 10, -precision / 2 ) )
+  , mapCrs( mapCrs )
   , transformContext( transformContext )
 {
 }

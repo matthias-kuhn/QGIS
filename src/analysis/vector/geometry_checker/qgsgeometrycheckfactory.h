@@ -45,7 +45,7 @@ class ANALYSIS_EXPORT QgsGeometryCheckFactory SIP_ABSTRACT
      */
     virtual ~QgsGeometryCheckFactory() = default;
 
-    virtual QgsGeometryCheck *createGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration ) const = 0 SIP_FACTORY;
+    virtual QgsGeometryCheck *createGeometryCheck( const QgsGeometryCheckContext *context, const QVariantMap &configuration ) const = 0 SIP_FACTORY;
 
     virtual QString id() const = 0;
 
@@ -60,7 +60,7 @@ template<class T>
 class QgsGeometryCheckFactoryT : public QgsGeometryCheckFactory
 {
   public:
-    QgsGeometryCheck *createGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration ) const override
+    QgsGeometryCheck *createGeometryCheck( const QgsGeometryCheckContext *context, const QVariantMap &configuration ) const override
     {
       return new T( context, configuration );
     }
