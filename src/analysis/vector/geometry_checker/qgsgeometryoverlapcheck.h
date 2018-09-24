@@ -74,7 +74,7 @@ class ANALYSIS_EXPORT QgsGeometryOverlapCheck : public QgsGeometryCheck
   public:
     QgsGeometryOverlapCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
       : QgsGeometryCheck( LayerCheck, {QgsWkbTypes::PolygonGeometry}, context, configuration )
-    , mOverlapThresholdMapUnits( configuration.value( "maxOverlapArea" ).toDouble() )
+    , mOverlapThresholdMapUnits( configurationValue<double>( "maxOverlapArea" ) )
     {}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;

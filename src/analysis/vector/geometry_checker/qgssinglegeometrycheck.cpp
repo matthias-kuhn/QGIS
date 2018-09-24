@@ -19,14 +19,15 @@ email                : matthias@opengis.ch
 
 QgsSingleGeometryCheck::QgsSingleGeometryCheck( CheckType checkType,
     const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes,
-    QgsGeometryCheckContext *context,
+    const QgsGeometryCheckContext *context,
     const QVariantMap &configuration )
   : QgsGeometryCheck( checkType, compatibleGeometryTypes, context, configuration )
 {
-
 }
 
-void QgsSingleGeometryCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
+void QgsSingleGeometryCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools,
+    QList<QgsGeometryCheckError *> &errors,
+    QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {
   Q_UNUSED( messages )
   QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds( featurePools ) : ids.toMap();

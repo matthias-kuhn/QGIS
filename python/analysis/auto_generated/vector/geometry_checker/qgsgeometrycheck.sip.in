@@ -90,7 +90,7 @@ the Free Software Foundation; either version 2 of the License, or     *
 
     QgsGeometryCheck( CheckType checkType,
                       const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes,
-                      QgsGeometryCheckContext *context,
+                      const QgsGeometryCheckContext *context,
                       const QVariantMap &configuration );
     virtual ~QgsGeometryCheck();
 
@@ -103,7 +103,7 @@ the Free Software Foundation; either version 2 of the License, or     *
     virtual QString description() const = 0;
     virtual QString id() const = 0;
     CheckType checkType() const;
-    QgsGeometryCheckContext *context() const;
+    const QgsGeometryCheckContext *context() const;
 
   protected:
 

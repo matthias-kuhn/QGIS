@@ -24,6 +24,8 @@
 #include "qgis_sip.h"
 #include "qgis_analysis.h"
 
+#include "qgsgeometryselfintersectioncheck.h"
+
 class QgsGeometryCheck;
 class QgsSingleGeometryCheck;
 
@@ -58,9 +60,9 @@ template<class T>
 class QgsGeometryCheckFactoryT : public QgsGeometryCheckFactory
 {
   public:
-    QgsGeometryCheck *createGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration ) const override
+    QgsGeometryCheck *createGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration ) const override
     {
-      return new T( context, geometryCheckConfiguration );
+      return new T( context, configuration );
     }
 
     QString description() const override

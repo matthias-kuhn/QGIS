@@ -119,7 +119,7 @@ class ANALYSIS_EXPORT QgsGeometryCheck
 
     QgsGeometryCheck( CheckType checkType,
                       const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes,
-                      QgsGeometryCheckContext *context,
+                      const QgsGeometryCheckContext *context,
                       const QVariantMap &configuration )
       : mCheckType( checkType )
       , mCompatibleGeometryTypes( compatibleGeometryTypes )
@@ -146,7 +146,7 @@ class ANALYSIS_EXPORT QgsGeometryCheck
     virtual QString description() const = 0;
     virtual QString id() const = 0;
     CheckType checkType() const { return mCheckType; }
-    QgsGeometryCheckContext *context() const { return mContext; }
+    const QgsGeometryCheckContext *context() const { return mContext; }
 
   protected:
     QMap<QString, QgsFeatureIds> allLayerFeatureIds( const QMap<QString, QgsFeaturePool *> &featurePools ) const SIP_SKIP;
@@ -156,7 +156,7 @@ class ANALYSIS_EXPORT QgsGeometryCheck
 
     const CheckType mCheckType;
     QList<QgsWkbTypes::GeometryType> mCompatibleGeometryTypes;
-    QgsGeometryCheckContext *mContext;
+    const QgsGeometryCheckContext *mContext;
     QVariantMap mConfiguration;
 
     double scaleFactor( QPointer<QgsVectorLayer> layer ) const SIP_SKIP;
