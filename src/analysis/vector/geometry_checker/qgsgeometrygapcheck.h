@@ -83,8 +83,8 @@ class ANALYSIS_EXPORT QgsGeometryGapCheck : public QgsGeometryCheck
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
-    QString errorDescription() const override { return tr( "Gap" ); }
-    QString errorName() const override { return QStringLiteral( "QgsGeometryGapCheck" ); }
+    QString description() const override { return tr( "Gap" ); }
+    QString id() const override { return QStringLiteral( "QgsGeometryGapCheck" ); }
 
     enum ResolutionMethod { MergeLongestEdge, NoChange };
 

@@ -100,8 +100,8 @@ the Free Software Foundation; either version 2 of the License, or     *
 
     virtual void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = 0, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
     virtual QStringList resolutionMethods() const = 0;
-    virtual QString errorDescription() const = 0;
-    virtual QString errorName() const = 0;
+    virtual QString description() const = 0;
+    virtual QString id() const = 0;
     CheckType checkType() const;
     QgsGeometryCheckContext *context() const;
 

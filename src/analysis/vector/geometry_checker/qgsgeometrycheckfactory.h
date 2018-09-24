@@ -47,7 +47,7 @@ class ANALYSIS_EXPORT QgsGeometryCheckFactory SIP_ABSTRACT
 
     virtual QString id() const = 0;
 
-    virtual QString name() const = 0;
+    virtual QString description() const = 0;
 
     virtual bool isCompatible( QgsVectorLayer *layer ) const = 0;
 
@@ -63,14 +63,14 @@ class QgsGeometryCheckFactoryT : public QgsGeometryCheckFactory
       return new T( context, geometryCheckConfiguration );
     }
 
-    QString name() const override
+    QString description() const override
     {
-      return static_cast<T *>( nullptr )->errorDescription();
+      return static_cast<T *>( nullptr )->description();
     }
 
     QString id() const override
     {
-      return static_cast<T *>( nullptr )->errorName();
+      return static_cast<T *>( nullptr )->id();
     }
 
     bool isCompatible( QgsVectorLayer *layer ) const override

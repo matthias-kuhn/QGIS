@@ -68,7 +68,7 @@ bool QgsSingleGeometryCheckError::handleChanges( const QList<QgsGeometryCheck::C
 
 QString QgsSingleGeometryCheckError::description() const
 {
-  return mCheck->errorDescription();
+  return mCheck->description();
 }
 
 const QgsSingleGeometryCheck *QgsSingleGeometryCheckError::check() const

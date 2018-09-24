@@ -519,7 +519,7 @@ void QgsGeometryCheckerResultTab::fixErrors( bool prompt )
 
     for ( QgsGeometryCheckError *error : qgis::as_const( errors ) )
     {
-      int fixMethod = QgsSettings().value( sSettingsGroup + error->check()->errorName(), QVariant::fromValue<int>( 0 ) ).toInt();
+      int fixMethod = QgsSettings().value( sSettingsGroup + error->check()->id(), QVariant::fromValue<int>( 0 ) ).toInt();
       mChecker->fixError( error, fixMethod );
       ui.progressBarFixErrors->setValue( ui.progressBarFixErrors->value() + 1 );
       QApplication::processEvents( QEventLoop::ExcludeUserInputEvents );
@@ -578,15 +578,15 @@ void QgsGeometryCheckerResultTab::setDefaultResolutionMethods()
   for ( const QgsGeometryCheck *check : mChecker->getChecks() )
   {
     QGroupBox *groupBox = new QGroupBox( scrollAreaContents );
-    groupBox->setTitle( check->errorDescription() );
+    groupBox->setTitle( check->description() );
     groupBox->setFlat( true );
 
     QVBoxLayout *groupBoxLayout = new QVBoxLayout( groupBox );
     groupBoxLayout->setContentsMargins( 2, 0, 2, 2 );
     QButtonGroup *radioGroup = new QButtonGroup( groupBox );
-    radioGroup->setProperty( "errorType", check->errorName() );
+    radioGroup->setProperty( "errorType", check->id() );
     int id = 0;
-    int checkedId = QgsSettings().value( sSettingsGroup + check->errorName(), QVariant::fromValue<int>( 0 ) ).toInt();
+    int checkedId = QgsSettings().value( sSettingsGroup + check->id(), QVariant::fromValue<int>( 0 ) ).toInt();
     for ( const QString &method : check->resolutionMethods() )
     {
       QRadioButton *radio = new QRadioButton( method, groupBox );

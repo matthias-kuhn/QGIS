@@ -28,8 +28,8 @@ class ANALYSIS_EXPORT QgsGeometryDegeneratePolygonCheck : public QgsGeometryChec
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
-    QString errorDescription() const override { return tr( "Polygon with less than three nodes" ); }
-    QString errorName() const override { return QStringLiteral( "QgsGeometryDegeneratePolygonCheck" ); }
+    QString description() const override { return tr( "Polygon with less than three nodes" ); }
+    QString id() const override { return QStringLiteral( "QgsGeometryDegeneratePolygonCheck" ); }
 
     enum ResolutionMethod { DeleteRing, NoChange };
   private:

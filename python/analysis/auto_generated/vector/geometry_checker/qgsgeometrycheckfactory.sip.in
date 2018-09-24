@@ -25,7 +25,7 @@ class QgsGeometryCheckFactory /Abstract/
 
     virtual QString id() const = 0;
 
-    virtual QString name() const = 0;
+    virtual QString description() const = 0;
 
     virtual bool isCompatible( QgsVectorLayer *layer ) const = 0;
 
@@ -42,7 +42,7 @@ class QgsGeometryCheckFactoryT : QgsGeometryCheckFactory
   public:
     virtual QgsGeometryCheck *createGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration ) const;
 
-    virtual QString name() const;
+    virtual QString description() const;
 
     virtual QString id() const;
 

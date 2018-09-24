@@ -132,7 +132,7 @@ class ANALYSIS_EXPORT QgsGeometryCheck
     template <class T>
     T configurationValue( const QString &name, const QVariant &defaultValue = QVariant() )
     {
-      return mConfiguration.value( name, QgsSettings().value( "/geometry_checker/" + errorName() + "/" + name, defaultValue ) ).value<T>();
+      return mConfiguration.value( name, QgsSettings().value( "/geometry_checker/" + id() + "/" + name, defaultValue ) ).value<T>();
     }
 #endif
 
@@ -143,8 +143,8 @@ class ANALYSIS_EXPORT QgsGeometryCheck
     //! Fix the error \a error with the specified \a method.
     virtual void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes SIP_INOUT ) const SIP_SKIP;
     virtual QStringList resolutionMethods() const = 0;
-    virtual QString errorDescription() const = 0;
-    virtual QString errorName() const = 0;
+    virtual QString description() const = 0;
+    virtual QString id() const = 0;
     CheckType checkType() const { return mCheckType; }
     QgsGeometryCheckContext *context() const { return mContext; }
 

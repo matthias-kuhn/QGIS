@@ -50,12 +50,12 @@ QStringList QgsIsValidGeometryCheck::resolutionMethods() const
   return QStringList();
 }
 
-QString QgsIsValidGeometryCheck::errorDescription() const
+QString QgsIsValidGeometryCheck::description() const
 {
   return tr( "Is Valid" );
 }
 
-QString QgsIsValidGeometryCheck::errorName() const
+QString QgsIsValidGeometryCheck::id() const
 {
   return QStringLiteral( "QgsIsValidCheck" );
 }

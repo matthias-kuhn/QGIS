@@ -50,7 +50,7 @@ class ANALYSIS_EXPORT QgsGeometryCheckError
     const QgsAbstractGeometry *geometry() const;
     // In map units
     virtual QgsRectangle affectedAreaBBox() const;
-    virtual QString description() const { return mCheck->errorDescription(); }
+    virtual QString description() const { return mCheck->description(); }
     // In map units
     const QgsPointXY &location() const { return mErrorLocation; }
     // Lengths, areas in map units

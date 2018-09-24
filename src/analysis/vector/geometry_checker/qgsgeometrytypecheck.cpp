@@ -164,5 +164,5 @@ bool QgsGeometryTypeCheckError::isEqual( const QgsSingleGeometryCheckError *othe
 
 QString QgsGeometryTypeCheckError::description() const
 {
-  return QStringLiteral( "%1 (%2)" ).arg( mCheck->errorDescription(), QgsWkbTypes::displayString( mFlatType ) );
+  return QStringLiteral( "%1 (%2)" ).arg( mCheck->description(), QgsWkbTypes::displayString( mFlatType ) );
 }

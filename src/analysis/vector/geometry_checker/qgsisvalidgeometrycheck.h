@@ -32,8 +32,8 @@ class ANALYSIS_EXPORT QgsIsValidGeometryCheck : public QgsSingleGeometryCheck
     QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
 
     QStringList resolutionMethods() const override;
-    QString errorDescription() const override;
-    QString errorName() const override;
+    QString description() const override;
+    QString id() const override;
 };
 
 #endif // QGSISVALIDGEOMETRYCHECK_H
