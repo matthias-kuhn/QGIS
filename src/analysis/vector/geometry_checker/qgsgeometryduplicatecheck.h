@@ -29,7 +29,7 @@ class ANALYSIS_EXPORT QgsGeometryDuplicateCheckError : public QgsGeometryCheckEr
                                     const QgsGeometryCheckerUtils::LayerFeature &layerFeature,
                                     const QgsPointXY &errorLocation,
                                     const QMap<QString, QList<QgsFeatureId>> &duplicates )
-      : QgsGeometryCheckError( check, check->context(), layerFeature, errorLocation, QgsVertexId(), duplicatesString( check->context()->featurePools, duplicates ) )
+      : QgsGeometryCheckError( check, layerFeature, errorLocation, QgsVertexId(), duplicatesString( check->context()->featurePools, duplicates ) )
       , mDuplicates( duplicates )
     { }
     QMap<QString, QList<QgsFeatureId>> duplicates() const { return mDuplicates; }
@@ -54,7 +54,7 @@ class ANALYSIS_EXPORT QgsGeometryDuplicateCheck : public QgsGeometryCheck
   public:
     explicit QgsGeometryDuplicateCheck( QgsGeometryCheckContext *context )
       : QgsGeometryCheck( FeatureCheck, {QgsWkbTypes::PointGeometry, QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context ) {}
-    void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, const QgsGeometryCheckContext *context, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
+    void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
     QString errorDescription() const override { return tr( "Duplicate" ); }

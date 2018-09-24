@@ -23,7 +23,7 @@ QgsSingleGeometryCheck::QgsSingleGeometryCheck( CheckType checkType, const QList
 
 }
 
-void QgsSingleGeometryCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, const QgsGeometryCheckContext *context, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
+void QgsSingleGeometryCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {
   Q_UNUSED( messages )
   QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds( featurePools ) : ids.toMap();
@@ -83,13 +83,8 @@ QgsVertexId QgsSingleGeometryCheckError::vertexId() const
   return mVertexId;
 }
 
-QgsGeometryCheckErrorSingle::QgsGeometryCheckErrorSingle( QgsSingleGeometryCheckError *error,
-    const QgsGeometryCheckerUtils::LayerFeature &layerFeature )
-  : QgsGeometryCheckError( error->check(),
-                           error->check()->context(),
-                           layerFeature,
-                           QgsPointXY( error->errorLocation().constGet()->centroid() ),
-                           error->vertexId() ) // TODO: should send geometry to QgsGeometryCheckError
+QgsGeometryCheckErrorSingle::QgsGeometryCheckErrorSingle( QgsSingleGeometryCheckError *error, const QgsGeometryCheckerUtils::LayerFeature &layerFeature )
+  : QgsGeometryCheckError( error->check(), layerFeature, QgsPointXY( error->errorLocation().constGet()->centroid() ), error->vertexId() ) // TODO: should send geometry to QgsGeometryCheckError
   , mError( error )
 {
 
