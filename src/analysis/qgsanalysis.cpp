@@ -21,6 +21,9 @@
 #include "qgis.h"
 
 #include "qgsgeometryselfintersectioncheck.h"
+#include "qgsgeometrygapcheck.h"
+#include "qgsgeometrysliverpolygoncheck.h"
+#include "qgsgeometryoverlapcheck.h"
 
 QgsAnalysis *QgsAnalysis::instance()
 {

@@ -72,9 +72,9 @@ class ANALYSIS_EXPORT QgsGeometryOverlapCheckError : public QgsGeometryCheckErro
 class ANALYSIS_EXPORT QgsGeometryOverlapCheck : public QgsGeometryCheck
 {
   public:
-    QgsGeometryOverlapCheck( QgsGeometryCheckContext *context, double thresholdMapUnits )
-      : QgsGeometryCheck( FeatureCheck, {QgsWkbTypes::PolygonGeometry}, context )
-    , mThresholdMapUnits( thresholdMapUnits )
+    QgsGeometryOverlapCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration )
+      : QgsGeometryCheck( LayerCheck, {QgsWkbTypes::PolygonGeometry}, context )
+    , mCheckConfiguration( geometryCheckConfiguration )
     {}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, const QgsGeometryCheckContext *context, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
@@ -85,7 +85,7 @@ class ANALYSIS_EXPORT QgsGeometryOverlapCheck : public QgsGeometryCheck
     enum ResolutionMethod { Subtract, NoChange };
 
   private:
-    double mThresholdMapUnits;
+    QVariantMap mCheckConfiguration;
 };
 
 #endif // QGS_GEOMETRY_OVERLAP_CHECK_H

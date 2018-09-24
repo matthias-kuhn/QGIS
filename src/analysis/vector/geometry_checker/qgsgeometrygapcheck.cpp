@@ -30,6 +30,8 @@ void QgsGeometryGapCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &
 
   QVector<QgsAbstractGeometry *> geomList;
 
+  const double thresholdMapUnits = mCheckConfiguration.value( "thresholdMapUnits" ).toDouble();
+
   QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds( featurePools ) : ids.toMap();
   const QgsGeometryCheckerUtils::LayerFeatures layerFeatures( featurePools, featureIds, mCompatibleGeometryTypes, nullptr, mContext, true );
   for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeature : layerFeatures )
@@ -88,7 +90,7 @@ void QgsGeometryGapCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &
     }
 
     // Skip gaps above threshold
-    if ( gapGeom->area() > mThresholdMapUnits || gapGeom->area() < mContext->reducedTolerance )
+    if ( gapGeom->area() > thresholdMapUnits || gapGeom->area() < mContext->reducedTolerance )
     {
       continue;
     }

@@ -18,7 +18,7 @@
 
 bool QgsGeometrySliverPolygonCheck::checkThreshold( double layerToMapUnits, const QgsAbstractGeometry *geom, double &value ) const
 {
-  double maxArea = mMaxAreaMapUnits / ( layerToMapUnits * layerToMapUnits );
+  double maxArea = mCheckConfiguration.value( QStringLiteral( "maxAreaMapUnits" ) ).toDouble() / ( layerToMapUnits * layerToMapUnits );
   QgsRectangle bb = geom->boundingBox();
   double maxDim = std::max( bb.width(), bb.height() );
   double area = geom->area();
@@ -27,5 +27,5 @@ bool QgsGeometrySliverPolygonCheck::checkThreshold( double layerToMapUnits, cons
   {
     return false;
   }
-  return value > mThresholdMapUnits; // the sliver threshold is actually a map unit independent number, just abusing QgsGeometryAreaCheck::mThresholdMapUnits to store it
+  return value > mCheckConfiguration.value( QStringLiteral( "thresholdMapUnits" ) ).toDouble(); // the sliver threshold is actually a map unit independent number, just abusing QgsGeometryAreaCheck::mThresholdMapUnits to store it
 }
