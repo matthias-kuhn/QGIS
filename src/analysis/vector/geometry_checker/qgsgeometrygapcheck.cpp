@@ -89,7 +89,7 @@ void QgsGeometryGapCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &
     }
 
     // Skip gaps above threshold
-    if ( gapGeom->area() > mGapThreshold || gapGeom->area() < mContext->reducedTolerance )
+    if ( gapGeom->area() > mGapThresholdMapUnits || gapGeom->area() < mContext->reducedTolerance )
     {
       continue;
     }

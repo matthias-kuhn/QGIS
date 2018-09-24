@@ -78,7 +78,7 @@ class ANALYSIS_EXPORT QgsGeometryGapCheck : public QgsGeometryCheck
   public:
     explicit QgsGeometryGapCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
       : QgsGeometryCheck( LayerCheck, {QgsWkbTypes::PolygonGeometry}, context, configuration )
-    ,  mGapThreshold( configuration.value( "gapThreshold" ).toDouble() )
+    ,  mGapThresholdMapUnits( configuration.value( "gapThreshold" ).toDouble() )
     {}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
@@ -92,7 +92,7 @@ class ANALYSIS_EXPORT QgsGeometryGapCheck : public QgsGeometryCheck
     bool mergeWithNeighbor( const QMap<QString, QgsFeaturePool *> &featurePools,
                             QgsGeometryGapCheckError *err, Changes &changes, QString &errMsg ) const;
 
-    const double mGapThreshold;
+    const double mGapThresholdMapUnits;
 };
 
 #endif // QGS_GEOMETRY_GAP_CHECK_H
