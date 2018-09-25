@@ -25,6 +25,7 @@
 #include "qgis_analysis.h"
 
 #include "qgsgeometryselfintersectioncheck.h"
+#include "qgssinglegeometrycheck.h"
 
 class QgsGeometryCheck;
 class QgsSingleGeometryCheck;
@@ -67,22 +68,22 @@ class QgsGeometryCheckFactoryT : public QgsGeometryCheckFactory
 
     QString description() const override
     {
-      return static_cast<T *>( nullptr )->description();
+      return static_cast<T>( 0 ).description();
     }
 
     QString id() const override
     {
-      return static_cast<T *>( nullptr )->id();
+      return static_cast<T>( 0 ).id();
     }
 
     bool isCompatible( QgsVectorLayer *layer ) const override
     {
-      return static_cast<T *>( nullptr )->isCompatible( layer );
+      return static_cast<T>( 0 ).isCompatible( layer );
     }
 
     QgsGeometryCheck::Flags flags() const override
     {
-      return static_cast<T *>( nullptr )->flags();
+      return static_cast<T>( 0 ).flags();
     }
 
 };

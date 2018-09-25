@@ -17,13 +17,7 @@ email                : matthias@opengis.ch
 #include "qgsgeometrycheckcontext.h"
 #include "qgspoint.h"
 
-QgsSingleGeometryCheck::QgsSingleGeometryCheck( CheckType checkType,
-    const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes,
-    const QgsGeometryCheckContext *context,
-    const QVariantMap &configuration )
-  : QgsGeometryCheck( checkType, compatibleGeometryTypes, context, configuration )
-{
-}
+
 
 void QgsSingleGeometryCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools,
     QList<QgsGeometryCheckError *> &errors,

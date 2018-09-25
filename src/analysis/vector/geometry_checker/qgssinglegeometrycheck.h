@@ -138,9 +138,15 @@ class ANALYSIS_EXPORT QgsSingleGeometryCheck : public QgsGeometryCheck
     QgsSingleGeometryCheck( CheckType checkType,
                             const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes,
                             const QgsGeometryCheckContext *context,
-                            const QVariantMap &configuration );
+                            const QVariantMap &configuration )
+      : QgsGeometryCheck( checkType, compatibleGeometryTypes, context, configuration )
+    {}
 
-    void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const QgsGeometryCheck::LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const final;
+    void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools,
+                        QList<QgsGeometryCheckError *> &errors,
+                        QStringList &messages,
+                        QgsFeedback *feedback = nullptr,
+                        const QgsGeometryCheck::LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const final;
 
     /**
      * Check the \a geometry for errors. It may make use of \a configuration options.

@@ -39,9 +39,7 @@ QgsGeometryCheckRegistry *QgsAnalysis::geometryCheckRegistry()
 QgsAnalysis::QgsAnalysis()
   : mGeometryCheckRegistry( qgis::make_unique<QgsGeometryCheckRegistry>() )
 {
-  QgsGeometryCheckFactory *factory = new QgsGeometryCheckFactoryT<QgsGeometrySelfIntersectionCheck>();
-  qDebug() << factory->id();
-  mGeometryCheckRegistry->registerGeometryCheck( factory );
+  mGeometryCheckRegistry->registerGeometryCheck( new QgsGeometryCheckFactoryT<QgsGeometrySelfIntersectionCheck>() );
 }
 
 QgsAnalysis::~QgsAnalysis()
