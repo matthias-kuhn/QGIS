@@ -24,7 +24,8 @@ class ANALYSIS_EXPORT QgsGeometrySelfContactCheck : public QgsSingleGeometryChec
 {
   public:
     QgsGeometrySelfContactCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
-      : QgsSingleGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context, configuration ) {}
+      : QgsSingleGeometryCheck( FeatureNodeCheck, context, configuration ) {}
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override {return {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry};}
     QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes & ) const override;
     QStringList resolutionMethods() const override;

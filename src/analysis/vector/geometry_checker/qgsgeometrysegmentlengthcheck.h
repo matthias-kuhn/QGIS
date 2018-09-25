@@ -24,9 +24,10 @@ class ANALYSIS_EXPORT QgsGeometrySegmentLengthCheck : public QgsGeometryCheck
 {
   public:
     QgsGeometrySegmentLengthCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
-      : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context, configuration )
-    , mMinLengthMapUnits( configuration.value( "minSegmentLength" ).toDouble() )
+      : QgsGeometryCheck( FeatureNodeCheck, context, configuration )
+      , mMinLengthMapUnits( configuration.value( "minSegmentLength" ).toDouble() )
     {}
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override {return {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry};}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;

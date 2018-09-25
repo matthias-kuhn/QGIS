@@ -24,8 +24,9 @@ class ANALYSIS_EXPORT QgsGeometryPointInPolygonCheck : public QgsGeometryCheck
 {
   public:
     QgsGeometryPointInPolygonCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
-      : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::PointGeometry}, context, configuration )
+      : QgsGeometryCheck( FeatureNodeCheck, context, configuration )
     {}
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override {return {QgsWkbTypes::PointGeometry};}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;

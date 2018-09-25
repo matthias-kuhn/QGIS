@@ -47,9 +47,9 @@ class ANALYSIS_EXPORT QgsGeometrySelfIntersectionCheck : public QgsSingleGeometr
   public:
     explicit QgsGeometrySelfIntersectionCheck( const QgsGeometryCheckContext *context, const QVariantMap &configuration = QVariantMap() )
       : QgsSingleGeometryCheck( FeatureNodeCheck,
-    {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry},
-    context,
-    configuration ) {}
+                                context,
+                                configuration ) {}
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override {return {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry};}
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
     QString description() const override { return tr( "Self intersection" ); }

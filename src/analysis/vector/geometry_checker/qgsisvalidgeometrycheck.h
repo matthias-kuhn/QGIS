@@ -27,8 +27,9 @@ class ANALYSIS_EXPORT QgsIsValidGeometryCheck : public QgsSingleGeometryCheck
 {
   public:
     explicit QgsIsValidGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
-      : QgsSingleGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context, configuration ) {}
+      : QgsSingleGeometryCheck( FeatureNodeCheck, context, configuration ) {}
 
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override {return {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry};}
     QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
 
     QStringList resolutionMethods() const override;

@@ -118,11 +118,9 @@ class ANALYSIS_EXPORT QgsGeometryCheck
     typedef QMap<QString, QMap<QgsFeatureId, QList<Change> > > Changes;
 
     QgsGeometryCheck( CheckType checkType,
-                      const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes,
                       const QgsGeometryCheckContext *context,
                       const QVariantMap &configuration )
       : mCheckType( checkType )
-      , mCompatibleGeometryTypes( compatibleGeometryTypes )
       , mContext( context )
       , mConfiguration( configuration )
     {}
@@ -137,6 +135,7 @@ class ANALYSIS_EXPORT QgsGeometryCheck
 #endif
 
     virtual bool isCompatible( QgsVectorLayer *layer ) const;
+    virtual QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const = 0;
     virtual QgsGeometryCheck::Flags flags() const {return nullptr;}
 
     virtual void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
@@ -155,7 +154,6 @@ class ANALYSIS_EXPORT QgsGeometryCheck
     void deleteFeatureGeometryRing( const QMap<QString, QgsFeaturePool *> &featurePools, const QString &layerId, QgsFeature &feature, int partIdx, int ringIdx, Changes &changes ) const SIP_SKIP;
 
     const CheckType mCheckType;
-    QList<QgsWkbTypes::GeometryType> mCompatibleGeometryTypes;
     const QgsGeometryCheckContext *mContext;
     QVariantMap mConfiguration;
 

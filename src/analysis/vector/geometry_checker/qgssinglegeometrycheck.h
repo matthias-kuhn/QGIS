@@ -136,10 +136,9 @@ class ANALYSIS_EXPORT QgsSingleGeometryCheck : public QgsGeometryCheck
 {
   public:
     QgsSingleGeometryCheck( CheckType checkType,
-                            const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes,
                             const QgsGeometryCheckContext *context,
                             const QVariantMap &configuration )
-      : QgsGeometryCheck( checkType, compatibleGeometryTypes, context, configuration )
+      : QgsGeometryCheck( checkType, context, configuration )
     {}
 
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools,

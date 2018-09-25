@@ -28,7 +28,7 @@
 
 bool QgsGeometryCheck::isCompatible( QgsVectorLayer *layer ) const
 {
-  return mCompatibleGeometryTypes.contains( layer->geometryType() );
+  return compatibleGeometryTypes().contains( layer->geometryType() );
 }
 
 void QgsGeometryCheck::fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, QgsGeometryCheck::Changes &changes ) const

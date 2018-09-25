@@ -44,9 +44,10 @@ class ANALYSIS_EXPORT QgsGeometryTypeCheck : public QgsSingleGeometryCheck
 {
   public:
     QgsGeometryTypeCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration, int allowedTypes )
-      : QgsSingleGeometryCheck( FeatureCheck, {QgsWkbTypes::PointGeometry, QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context, configuration )
-    , mAllowedTypes( allowedTypes )
+      : QgsSingleGeometryCheck( FeatureCheck, context, configuration )
+      , mAllowedTypes( allowedTypes )
     {}
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override {return {QgsWkbTypes::PointGeometry, QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry};}
     QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;

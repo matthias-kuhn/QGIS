@@ -89,13 +89,13 @@ the Free Software Foundation; either version 2 of the License, or     *
     typedef QMap<QString, QMap<QgsFeatureId, QList<Change> > > Changes;
 
     QgsGeometryCheck( CheckType checkType,
-                      const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes,
                       const QgsGeometryCheckContext *context,
                       const QVariantMap &configuration );
     virtual ~QgsGeometryCheck();
 
 
     virtual bool isCompatible( QgsVectorLayer *layer ) const;
+    virtual QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const = 0;
     virtual QgsGeometryCheck::Flags flags() const;
 
     virtual void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = 0, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
