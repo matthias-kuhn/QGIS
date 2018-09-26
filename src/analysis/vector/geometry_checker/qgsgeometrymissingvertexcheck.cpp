@@ -46,16 +46,13 @@ void QgsGeometryMissingVertexCheck::collectErrors( const QMap<QString, QgsFeatur
     }
     else if ( QgsGeometryCollection *collection = qgsgeometry_cast<QgsGeometryCollection *>( geom ) )
     {
-      qDebug() << "Multi Geometry --";
       const int numGeometries = collection->numGeometries();
       for ( int i = 0; i < numGeometries; ++i )
       {
-        qDebug() << " - Geometry X --";
         if ( QgsCurvePolygon *polygon = qgsgeometry_cast<QgsCurvePolygon *>( collection->geometryN( i ) ) )
         {
           processPolygon( polygon, featurePool, errors, layerFeature );
         }
-        qDebug() << errors.size();
       }
     }
   }
@@ -92,7 +89,6 @@ void QgsGeometryMissingVertexCheck::processPolygon( const QgsCurvePolygon *polyg
     boundaries->addGeometry( geomEngine->buffer( mContext->tolerance, 5 ) );
   }
 
-  qDebug() << boundaries->asWkt();
   geomEngine = QgsGeometryCheckerUtils::createGeomEngine( boundaries.get(), mContext->tolerance );
   geomEngine->prepareGeometry();
 
