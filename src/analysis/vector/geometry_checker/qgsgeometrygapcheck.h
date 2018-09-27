@@ -76,21 +76,25 @@ class ANALYSIS_EXPORT QgsGeometryGapCheckError : public QgsGeometryCheckError
 class ANALYSIS_EXPORT QgsGeometryGapCheck : public QgsGeometryCheck
 {
   public:
-    explicit QgsGeometryGapCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
+    explicit QgsGeometryGapCheck( const QgsGeometryCheckContext *context, const QVariantMap &configuration )
       : QgsGeometryCheck( LayerCheck, context, configuration )
       ,  mGapThresholdMapUnits( configuration.value( "gapThreshold" ).toDouble() )
     {}
-    QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() const {return {QgsWkbTypes::PolygonGeometry};}
+
     QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override { return factoryCompatibleGeometryTypes(); }
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
-    QString factoryDescription() const { return tr( "Gap" ); }
+
     QString description() const override { return factoryDescription(); }
-    QString factoryId() const { return QStringLiteral( "QgsGeometryGapCheck" ); }
     QString id() const override { return factoryId(); }
-    QgsGeometryCheck::Flags factoryFlags() const {return QgsGeometryCheck::SingleLayerTopologyCheck;}
     QgsGeometryCheck::Flags flags() const override { return factoryFlags(); }
+
+    static QString factoryDescription() { return tr( "Gap" ); }
+    static QString factoryId() { return QStringLiteral( "QgsGeometryGapCheck" ); }
+    static QgsGeometryCheck::Flags factoryFlags() {return QgsGeometryCheck::SingleLayerTopologyCheck;}
+    static QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() {return {QgsWkbTypes::PolygonGeometry};}
+    static bool factoryIsCompatible( QgsVectorLayer *layer ) SIP_SKIP { return factoryCompatibleGeometryTypes().contains( layer->geometryType() ); }
 
     enum ResolutionMethod { MergeLongestEdge, NoChange };
 

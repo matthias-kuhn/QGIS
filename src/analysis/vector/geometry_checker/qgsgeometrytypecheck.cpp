@@ -24,6 +24,7 @@
 #include "qgsfeaturepool.h"
 
 
+
 QList<QgsSingleGeometryCheckError *> QgsGeometryTypeCheck::processGeometry( const QgsGeometry &geometry ) const
 {
   QList<QgsSingleGeometryCheckError *> errors;
@@ -155,6 +156,14 @@ QStringList QgsGeometryTypeCheck::resolutionMethods() const
                                << tr( "No action" );
   return methods;
 }
+
+QString QgsGeometryTypeCheck::factoryDescription() const { return tr( "Geometry type" ); }
+
+QString QgsGeometryTypeCheck::description() const { return factoryDescription(); }
+
+QString QgsGeometryTypeCheck::factoryId() const { return QStringLiteral( "QgsGeometryTypeCheck" ); }
+
+QString QgsGeometryTypeCheck::id() const { return factoryId(); }
 
 bool QgsGeometryTypeCheckError::isEqual( const QgsSingleGeometryCheckError *other ) const
 {

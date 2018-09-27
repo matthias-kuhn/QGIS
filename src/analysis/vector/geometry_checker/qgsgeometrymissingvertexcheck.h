@@ -35,20 +35,23 @@ class QgsCurvePolygon;
 class ANALYSIS_EXPORT QgsGeometryMissingVertexCheck : public QgsGeometryCheck
 {
   public:
-    explicit QgsGeometryMissingVertexCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration )
+    explicit QgsGeometryMissingVertexCheck( const QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration )
       : QgsGeometryCheck( LayerCheck,  context, geometryCheckConfiguration )
     {}
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
-    QString factoryDescription() const { return tr( "Missing Vertex" ); }
+
     QString description() const override { return factoryDescription(); }
-    QString factoryId() const { return QStringLiteral( "QgsGeometryMissingVertexCheck" ); }
     QString id() const override { return factoryId(); }
-    QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() const {return {QgsWkbTypes::PolygonGeometry};}
+    static QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() {return {QgsWkbTypes::PolygonGeometry};}
+    static bool factoryIsCompatible( QgsVectorLayer *layer ) SIP_SKIP { return factoryCompatibleGeometryTypes().contains( layer->geometryType() ); }
     QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override { return factoryCompatibleGeometryTypes(); }
-    QgsGeometryCheck::Flags factoryFlags() const {return QgsGeometryCheck::SingleLayerTopologyCheck;}
     QgsGeometryCheck::Flags flags() const override { return factoryFlags(); }
+
+    static QString factoryDescription() { return tr( "Missing Vertex" ); }
+    static QString factoryId() { return QStringLiteral( "QgsGeometryMissingVertexCheck" ); }
+    static QgsGeometryCheck::Flags factoryFlags() {return QgsGeometryCheck::SingleLayerTopologyCheck;}
 
     enum ResolutionMethod { NoChange };
 

@@ -68,22 +68,22 @@ class QgsGeometryCheckFactoryT : public QgsGeometryCheckFactory
 
     QString description() const override
     {
-      return static_cast<T>( 0 ).description();
+      return T::factoryDescription();
     }
 
     QString id() const override
     {
-      return static_cast<T>( 0 ).id();
+      return T::factoryId();
     }
 
     bool isCompatible( QgsVectorLayer *layer ) const override
     {
-      return static_cast<T>( 0 ).isCompatible( layer );
+      return T::factoryIsCompatible( layer );
     }
 
     QgsGeometryCheck::Flags flags() const override
     {
-      return static_cast<T>( 0 ).flags();
+      return T::factoryFlags();
     }
 
 };

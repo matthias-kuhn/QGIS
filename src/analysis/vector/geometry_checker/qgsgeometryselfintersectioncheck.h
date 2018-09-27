@@ -49,16 +49,19 @@ class ANALYSIS_EXPORT QgsGeometrySelfIntersectionCheck : public QgsSingleGeometr
       : QgsSingleGeometryCheck( FeatureNodeCheck,
                                 context,
                                 configuration ) {}
-    QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() const {return {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry};}
+    static QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() {return {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry};}
+    static bool factoryIsCompatible( QgsVectorLayer *layer ) SIP_SKIP { return factoryCompatibleGeometryTypes().contains( layer->geometryType() ); }
     QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override { return factoryCompatibleGeometryTypes(); }
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
-    QString factoryDescription() const { return tr( "Self intersection" ); }
     QString description() const override { return factoryDescription(); }
-    QString factoryId() const { return QStringLiteral( "QgsGeometrySelfIntersectionCheck" ); }
     QString id() const override { return factoryId(); }
-    QgsGeometryCheck::Flags flags() const override {return QgsGeometryCheck::SingleGeometryCheck;}
+    QgsGeometryCheck::Flags flags() const override {return factoryFlags(); }
     QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
+
+    static QString factoryDescription() { return tr( "Self intersection" ); }
+    static QgsGeometryCheck::Flags factoryFlags() {return QgsGeometryCheck::SingleGeometryCheck; }
+    static QString factoryId() { return QStringLiteral( "QgsGeometrySelfIntersectionCheck" ); }
 
     enum ResolutionMethod { ToMultiObject, ToSingleObjects, NoChange };
 };
