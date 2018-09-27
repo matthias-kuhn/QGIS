@@ -31,8 +31,10 @@ class ANALYSIS_EXPORT QgsGeometryDangleCheck : public QgsGeometryCheck
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
-    QString description() const override { return tr( "Dangle" ); }
-    QString id() const override { return QStringLiteral( "QgsGeometryDangleCheck" ); }
+    QString factoryDescription() const { return tr( "Dangle" ); }
+    QString description() const override { return factoryDescription(); }
+    QString factoryId() const { return QStringLiteral( "QgsGeometryDangleCheck" ); }
+    QString id() const override { return factoryId(); }
 
     enum ResolutionMethod { NoChange };
 };

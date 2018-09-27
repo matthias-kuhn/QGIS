@@ -30,8 +30,10 @@ class ANALYSIS_EXPORT QgsGeometrySelfContactCheck : public QgsSingleGeometryChec
     QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes & ) const override;
     QStringList resolutionMethods() const override;
-    QString description() const override { return tr( "Self contact" ); }
-    QString id() const override { return QStringLiteral( "QgsGeometrySelfContactCheck" ); }
+    QString factoryDescription() const { return tr( "Self contact" ); }
+    QString description() const override { return factoryDescription(); }
+    QString factoryId() const { return QStringLiteral( "QgsGeometrySelfContactCheck" ); }
+    QString id() const override { return factoryId(); }
 
     enum ResolutionMethod { NoChange };
 };

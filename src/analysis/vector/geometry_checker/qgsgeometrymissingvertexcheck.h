@@ -41,10 +41,14 @@ class ANALYSIS_EXPORT QgsGeometryMissingVertexCheck : public QgsGeometryCheck
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
-    QString description() const override { return tr( "Missing Vertex" ); }
-    QString id() const override { return QStringLiteral( "QgsGeometryMissingVertexCheck" ); }
+    QString factoryDescription() const { return tr( "Missing Vertex" ); }
+    QString description() const override { return factoryDescription(); }
+    QString factoryId() const { return QStringLiteral( "QgsGeometryMissingVertexCheck" ); }
+    QString id() const override { return factoryId(); }
     QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() const {return {QgsWkbTypes::PolygonGeometry};}
     QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override { return factoryCompatibleGeometryTypes(); }
+    QgsGeometryCheck::Flags factoryFlags() const {return QgsGeometryCheck::SingleLayerTopologyCheck;}
+    QgsGeometryCheck::Flags flags() const override { return factoryFlags(); }
 
     enum ResolutionMethod { NoChange };
 

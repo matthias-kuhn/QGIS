@@ -49,13 +49,3 @@ QStringList QgsIsValidGeometryCheck::resolutionMethods() const
 {
   return QStringList();
 }
-
-QString QgsIsValidGeometryCheck::description() const
-{
-  return tr( "Is Valid" );
-}
-
-QString QgsIsValidGeometryCheck::id() const
-{
-  return QStringLiteral( "QgsIsValidCheck" );
-}

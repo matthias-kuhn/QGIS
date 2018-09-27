@@ -52,8 +52,10 @@ class ANALYSIS_EXPORT QgsGeometryTypeCheck : public QgsSingleGeometryCheck
     QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
-    QString description() const override { return tr( "Geometry type" ); }
-    QString id() const override { return QStringLiteral( "QgsGeometryTypeCheck" ); }
+    QString factoryDescription() const { return tr( "Geometry type" ); }
+    QString description() const override { return factoryDescription(); }
+    QString factoryId() const { return QStringLiteral( "QgsGeometryTypeCheck" ); }
+    QString id() const override { return factoryId(); }
   private:
     enum ResolutionMethod { Convert, Delete, NoChange };
     int mAllowedTypes;

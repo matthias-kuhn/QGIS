@@ -63,7 +63,8 @@ class ANALYSIS_EXPORT QgsGeometryOverlapCheckError : public QgsGeometryCheckErro
       return true;
     }
 
-    QString description() const override { return QApplication::translate( "QgsGeometryTypeCheckError", "Overlap with %1:%2" ).arg( mOverlappedFeature.first ).arg( mOverlappedFeature.second ); }
+    QString factoryDescription() const { return QApplication::translate( "QgsGeometryTypeCheckError", "Overlap with %1:%2" ).arg( mOverlappedFeature.first ).arg( mOverlappedFeature.second ); }
+    QString description() const override { return factoryDescription(); }
 
   private:
     QPair<QString, QgsFeatureId> mOverlappedFeature;
@@ -81,8 +82,12 @@ class ANALYSIS_EXPORT QgsGeometryOverlapCheck : public QgsGeometryCheck
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
-    QString description() const override { return tr( "Overlap" ); }
-    QString id() const override { return QStringLiteral( "QgsGeometryOverlapCheck" ); }
+    QString factoryDescription() const { return tr( "Overlap" ); }
+    QString description() const override { return factoryDescription(); }
+    QString factoryId() const { return QStringLiteral( "QgsGeometryOverlapCheck" ); }
+    QString id() const override { return factoryId(); }
+    QgsGeometryCheck::Flags factoryFlags() const {return QgsGeometryCheck::SingleLayerTopologyCheck;}
+    QgsGeometryCheck::Flags flags() const override { return factoryFlags(); }
 
     enum ResolutionMethod { Subtract, NoChange };
 
