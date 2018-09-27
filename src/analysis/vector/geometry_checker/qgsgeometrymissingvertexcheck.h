@@ -43,7 +43,8 @@ class ANALYSIS_EXPORT QgsGeometryMissingVertexCheck : public QgsGeometryCheck
     QStringList resolutionMethods() const override;
     QString description() const override { return tr( "Missing Vertex" ); }
     QString id() const override { return QStringLiteral( "QgsGeometryMissingVertexCheck" ); }
-    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override;
+    QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() const {return {QgsWkbTypes::PolygonGeometry};}
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override { return factoryCompatibleGeometryTypes(); }
 
     enum ResolutionMethod { NoChange };
 

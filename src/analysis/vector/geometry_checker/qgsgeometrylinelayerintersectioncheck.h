@@ -27,7 +27,8 @@ class ANALYSIS_EXPORT QgsGeometryLineLayerIntersectionCheck : public QgsGeometry
       : QgsGeometryCheck( FeatureNodeCheck, context, configuration )
       , mCheckLayer( configurationValue<QString>( "checkLayer" ) )
     {}
-    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override {return {QgsWkbTypes::LineGeometry};}
+    QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() const {return {QgsWkbTypes::LineGeometry};}
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override { return factoryCompatibleGeometryTypes(); }
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;

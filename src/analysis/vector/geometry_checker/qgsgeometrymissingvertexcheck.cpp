@@ -131,8 +131,3 @@ void QgsGeometryMissingVertexCheck::processPolygon( const QgsCurvePolygon *polyg
     }
   }
 }
-
-QList<QgsWkbTypes::GeometryType> QgsGeometryMissingVertexCheck::compatibleGeometryTypes() const
-{
-  return {QgsWkbTypes::PolygonGeometry};
-}

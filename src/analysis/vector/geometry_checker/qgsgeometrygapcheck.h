@@ -80,7 +80,8 @@ class ANALYSIS_EXPORT QgsGeometryGapCheck : public QgsGeometryCheck
       : QgsGeometryCheck( LayerCheck, context, configuration )
       ,  mGapThresholdMapUnits( configuration.value( "gapThreshold" ).toDouble() )
     {}
-    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override {return {QgsWkbTypes::PolygonGeometry};}
+    QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() const {return {QgsWkbTypes::PolygonGeometry};}
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override { return factoryCompatibleGeometryTypes(); }
     void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
     void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
