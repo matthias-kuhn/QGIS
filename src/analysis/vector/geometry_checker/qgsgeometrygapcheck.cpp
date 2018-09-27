@@ -23,15 +23,16 @@
 
 #include "geos_c.h"
 
-void QgsGeometryGapCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
+void QgsGeometryGapCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {
   if ( feedback )
     feedback->setProgress( feedback->progress() + 1.0 );
 
   QVector<QgsAbstractGeometry *> geomList;
 
-  QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds() : ids.toMap();
-  const QgsGeometryCheckerUtils::LayerFeatures layerFeatures( mContext->featurePools, featureIds, mCompatibleGeometryTypes, nullptr, mContext, true );
+
+  QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds( featurePools ) : ids.toMap();
+  const QgsGeometryCheckerUtils::LayerFeatures layerFeatures( featurePools, featureIds, compatibleGeometryTypes(), nullptr, mContext, true );
   for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeature : layerFeatures )
   {
     geomList.append( layerFeature.geometry().constGet()->clone() );
@@ -88,7 +89,7 @@ void QgsGeometryGapCheck::collectErrors( QList<QgsGeometryCheckError *> &errors,
     }
 
     // Skip gaps above threshold
-    if ( gapGeom->area() > mThresholdMapUnits || gapGeom->area() < mContext->reducedTolerance )
+    if ( gapGeom->area() > mGapThresholdMapUnits || gapGeom->area() < mContext->reducedTolerance )
     {
       continue;
     }
@@ -97,7 +98,7 @@ void QgsGeometryGapCheck::collectErrors( QList<QgsGeometryCheckError *> &errors,
 
     // Get neighboring polygons
     QMap<QString, QgsFeatureIds> neighboringIds;
-    const QgsGeometryCheckerUtils::LayerFeatures layerFeatures( mContext->featurePools, featureIds.keys(), gapAreaBBox, mCompatibleGeometryTypes, mContext );
+    const QgsGeometryCheckerUtils::LayerFeatures layerFeatures( featurePools, featureIds.keys(), gapAreaBBox, compatibleGeometryTypes(), mContext );
     for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeature : layerFeatures )
     {
       if ( QgsGeometryCheckerUtils::sharedEdgeLength( gapGeom.get(), layerFeature.geometry().constGet(), mContext->reducedTolerance ) > 0 )
@@ -119,7 +120,7 @@ void QgsGeometryGapCheck::collectErrors( QList<QgsGeometryCheckError *> &errors,
   }
 }
 
-void QgsGeometryGapCheck::fixError( QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes &changes ) const
+void QgsGeometryGapCheck::fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes &changes ) const
 {
   if ( method == NoChange )
   {
@@ -128,7 +129,7 @@ void QgsGeometryGapCheck::fixError( QgsGeometryCheckError *error, int method, co
   else if ( method == MergeLongestEdge )
   {
     QString errMsg;
-    if ( mergeWithNeighbor( static_cast<QgsGeometryGapCheckError *>( error ), changes, errMsg ) )
+    if ( mergeWithNeighbor( featurePools, static_cast<QgsGeometryGapCheckError *>( error ), changes, errMsg ) )
     {
       error->setFixed( method );
     }
@@ -143,7 +144,9 @@ void QgsGeometryGapCheck::fixError( QgsGeometryCheckError *error, int method, co
   }
 }
 
-bool QgsGeometryGapCheck::mergeWithNeighbor( QgsGeometryGapCheckError *err, Changes &changes, QString &errMsg ) const
+bool QgsGeometryGapCheck::mergeWithNeighbor( const QMap<QString, QgsFeaturePool *> &featurePools,
+    QgsGeometryGapCheckError *err,
+    Changes &changes, QString &errMsg ) const
 {
   double maxVal = 0.;
   QString mergeLayerId;
@@ -156,9 +159,10 @@ bool QgsGeometryGapCheck::mergeWithNeighbor( QgsGeometryGapCheckError *err, Chan
   // Search for touching neighboring geometries
   for ( const QString &layerId : layerIds )
   {
-    QgsFeaturePool *featurePool = mContext->featurePools.value( layerId );
+    QgsFeaturePool *featurePool = featurePools.value( layerId );
     std::unique_ptr<QgsAbstractGeometry> errLayerGeom( errGeometry->clone() );
-    errLayerGeom->transform( mContext->layerTransform( featurePool->layer() ), QgsCoordinateTransform::ReverseTransform );
+    QgsCoordinateTransform ct( featurePool->crs(), mContext->mapCrs, mContext->transformContext );
+    errLayerGeom->transform( ct, QgsCoordinateTransform::ReverseTransform );
 
     const auto featureIds = err->neighbors().value( layerId );
 
@@ -191,9 +195,10 @@ bool QgsGeometryGapCheck::mergeWithNeighbor( QgsGeometryGapCheckError *err, Chan
   }
 
   // Merge geometries
-  QgsFeaturePool *featurePool = mContext->featurePools[ mergeLayerId ];
+  QgsFeaturePool *featurePool = featurePools[ mergeLayerId ];
   std::unique_ptr<QgsAbstractGeometry> errLayerGeom( errGeometry->clone() );
-  errLayerGeom->transform( mContext->layerTransform( featurePool->layer() ), QgsCoordinateTransform::ReverseTransform );
+  QgsCoordinateTransform ct( featurePool->crs(), mContext->mapCrs, mContext->transformContext );
+  errLayerGeom->transform( ct, QgsCoordinateTransform::ReverseTransform );
   QgsGeometry mergeFeatureGeom = mergeFeature.geometry();
   const QgsAbstractGeometry *mergeGeom = mergeFeatureGeom.constGet();
   std::unique_ptr< QgsGeometryEngine > geomEngine = QgsGeometryCheckerUtils::createGeomEngine( errLayerGeom.get(), mContext->reducedTolerance );
@@ -204,7 +209,7 @@ bool QgsGeometryGapCheck::mergeWithNeighbor( QgsGeometryGapCheckError *err, Chan
   }
 
   // Add merged polygon to destination geometry
-  replaceFeatureGeometryPart( mergeLayerId, mergeFeature, mergePartIdx, combinedGeom.release(), changes );
+  replaceFeatureGeometryPart( featurePools, mergeLayerId, mergeFeature, mergePartIdx, combinedGeom.release(), changes );
 
   return true;
 }

@@ -19,9 +19,10 @@
 #include "qgsproject.h"
 #include "qgsspatialindex.h"
 #include "qgsvectorlayer.h"
+#include "qgsgeometrycheckerror.h"
 
-QgsGeometryFollowBoundariesCheck::QgsGeometryFollowBoundariesCheck( QgsGeometryCheckContext *context, QgsVectorLayer *checkLayer )
-  : QgsGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::PolygonGeometry}, context )
+QgsGeometryFollowBoundariesCheck::QgsGeometryFollowBoundariesCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration, QgsVectorLayer *checkLayer )
+  : QgsGeometryCheck( FeatureNodeCheck, context, configuration )
 {
   mCheckLayer = checkLayer;
   if ( mCheckLayer )
@@ -35,7 +36,7 @@ QgsGeometryFollowBoundariesCheck::~QgsGeometryFollowBoundariesCheck()
   delete mIndex;
 }
 
-void QgsGeometryFollowBoundariesCheck::collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
+void QgsGeometryFollowBoundariesCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {
   Q_UNUSED( messages )
 
@@ -44,9 +45,9 @@ void QgsGeometryFollowBoundariesCheck::collectErrors( QList<QgsGeometryCheckErro
     return;
   }
 
-  QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds() : ids.toMap();
+  QMap<QString, QgsFeatureIds> featureIds = ids.isEmpty() ? allLayerFeatureIds( featurePools ) : ids.toMap();
   featureIds.remove( mCheckLayer->id() ); // Don't check layer against itself
-  QgsGeometryCheckerUtils::LayerFeatures layerFeatures( mContext->featurePools, featureIds, mCompatibleGeometryTypes, feedback, mContext );
+  QgsGeometryCheckerUtils::LayerFeatures layerFeatures( featurePools, featureIds, compatibleGeometryTypes(), feedback, mContext );
   for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeature : layerFeatures )
   {
     const QgsAbstractGeometry *geom = layerFeature.geometry().constGet();
@@ -90,8 +91,10 @@ void QgsGeometryFollowBoundariesCheck::collectErrors( QList<QgsGeometryCheckErro
   }
 }
 
-void QgsGeometryFollowBoundariesCheck::fixError( QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes & /*changes*/ ) const
+void QgsGeometryFollowBoundariesCheck::fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes & /*changes*/ ) const
 {
+  Q_UNUSED( featurePools )
+
   if ( method == NoChange )
   {
     error->setFixed( method );

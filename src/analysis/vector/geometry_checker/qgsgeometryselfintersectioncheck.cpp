@@ -67,9 +67,9 @@ void QgsGeometrySelfIntersectionCheckError::update( const QgsSingleGeometryCheck
   mIntersection.point = err->mIntersection.point;
 }
 
-void QgsGeometrySelfIntersectionCheck::fixError( QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes &changes ) const
+void QgsGeometrySelfIntersectionCheck::fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> & /*mergeAttributeIndices*/, Changes &changes ) const
 {
-  QgsFeaturePool *featurePool = mContext->featurePools[ error->layerId() ];
+  QgsFeaturePool *featurePool = featurePools[ error->layerId() ];
   QgsFeature feature;
   if ( !featurePool->getFeature( error->featureId(), feature ) )
   {
@@ -316,10 +316,8 @@ QStringList QgsGeometrySelfIntersectionCheck::resolutionMethods() const
   return methods;
 }
 
-QList<QgsSingleGeometryCheckError *> QgsGeometrySelfIntersectionCheck::processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const
+QList<QgsSingleGeometryCheckError *> QgsGeometrySelfIntersectionCheck::processGeometry( const QgsGeometry &geometry ) const
 {
-  Q_UNUSED( configuration )
-
   QList<QgsSingleGeometryCheckError *> errors;
   const QgsAbstractGeometry *geom = geometry.constGet();
   for ( int iPart = 0, nParts = geom->partCount(); iPart < nParts; ++iPart )

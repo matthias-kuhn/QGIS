@@ -23,23 +23,19 @@
 
 struct ANALYSIS_EXPORT QgsGeometryCheckContext
 {
-    QgsGeometryCheckContext( int precision, const QgsCoordinateReferenceSystem &mapCrs, const QMap<QString, QgsFeaturePool *> &featurePools, const QgsCoordinateTransformContext &transformContext );
+    QgsGeometryCheckContext( int precision,
+                             const QgsCoordinateReferenceSystem &mapCrs,
+                             const QgsCoordinateTransformContext &transformContext );
     const double tolerance;
     const double reducedTolerance;
     const QgsCoordinateReferenceSystem mapCrs;
-    const QMap<QString, QgsFeaturePool *> featurePools;
     const QgsCoordinateTransformContext transformContext;
-    const QgsCoordinateTransform &layerTransform( const QPointer<QgsVectorLayer> &layer ) SIP_SKIP;
-    double layerScaleFactor( const QPointer<QgsVectorLayer> &layer ) SIP_SKIP;
 
   private:
 #ifdef SIP_RUN
     QgsGeometryCheckContext( const QgsGeometryCheckContext &rh )
     {}
 #endif
-    QMap<QPointer<QgsVectorLayer>, QgsCoordinateTransform> mTransformCache;
-    QMap<QPointer<QgsVectorLayer>, double> mScaleFactorCache;
-    QReadWriteLock mCacheLock;
 };
 
 #endif // QGSGEOMETRYCHECKCONTEXT_H

@@ -21,6 +21,7 @@ email                : matthias@opengis.ch
 
 #include "qgsgeometry.h"
 #include "qgsgeometrycheck.h"
+#include "qgsgeometrycheckerror.h"
 
 #include "qgis_analysis.h"
 
@@ -134,9 +135,17 @@ class ANALYSIS_EXPORT QgsGeometryCheckErrorSingle : public QgsGeometryCheckError
 class ANALYSIS_EXPORT QgsSingleGeometryCheck : public QgsGeometryCheck
 {
   public:
-    QgsSingleGeometryCheck( CheckType checkType, const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes, QgsGeometryCheckContext *context );
+    QgsSingleGeometryCheck( CheckType checkType,
+                            const QgsGeometryCheckContext *context,
+                            const QVariantMap &configuration )
+      : QgsGeometryCheck( checkType, context, configuration )
+    {}
 
-    void collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const QgsGeometryCheck::LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const final;
+    void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools,
+                        QList<QgsGeometryCheckError *> &errors,
+                        QStringList &messages,
+                        QgsFeedback *feedback = nullptr,
+                        const QgsGeometryCheck::LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const final;
 
     /**
      * Check the \a geometry for errors. It may make use of \a configuration options.
@@ -146,7 +155,7 @@ class ANALYSIS_EXPORT QgsSingleGeometryCheck : public QgsGeometryCheck
      *
      * \since QGIS 3.4
      */
-    virtual QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const = 0;
+    virtual QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const = 0;
 
   private:
 

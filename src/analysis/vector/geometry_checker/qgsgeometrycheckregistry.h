@@ -63,7 +63,7 @@ class ANALYSIS_EXPORT QgsGeometryCheckRegistry
      */
     QList<QgsGeometryCheckFactory *> geometryCheckFactories( QgsVectorLayer *layer, QgsGeometryCheck::Flags flags = nullptr ) const;
 
-    void registerGeometryCheck( const QString &checkId, QgsGeometryCheckFactory *checkFactory SIP_TRANSFER );
+    void registerGeometryCheck( QgsGeometryCheckFactory *checkFactory SIP_TRANSFER );
 
   private:
     QMap<QString, QgsGeometryCheckFactory *> mGeometryCheckFactories;

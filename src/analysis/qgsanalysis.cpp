@@ -17,7 +17,13 @@
 
 #include "qgsanalysis.h"
 #include "qgsgeometrycheckregistry.h"
+#include "qgsgeometrycheckfactory.h"
 #include "qgis.h"
+
+#include "qgsgeometryselfintersectioncheck.h"
+#include "qgsgeometrygapcheck.h"
+#include "qgsgeometrysliverpolygoncheck.h"
+#include "qgsgeometryoverlapcheck.h"
 
 QgsAnalysis *QgsAnalysis::instance()
 {
@@ -33,6 +39,8 @@ QgsGeometryCheckRegistry *QgsAnalysis::geometryCheckRegistry()
 QgsAnalysis::QgsAnalysis()
   : mGeometryCheckRegistry( qgis::make_unique<QgsGeometryCheckRegistry>() )
 {
+  QgsGeometryCheckFactory *factory = new QgsGeometryCheckFactoryT<QgsGeometrySelfIntersectionCheck>();
+  mGeometryCheckRegistry->registerGeometryCheck( factory );
 }
 
 QgsAnalysis::~QgsAnalysis()

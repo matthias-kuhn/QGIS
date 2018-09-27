@@ -26,14 +26,23 @@ email                : matthias@opengis.ch
 class ANALYSIS_EXPORT QgsIsValidGeometryCheck : public QgsSingleGeometryCheck
 {
   public:
-    explicit QgsIsValidGeometryCheck( QgsGeometryCheckContext *context )
-      : QgsSingleGeometryCheck( FeatureNodeCheck, {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry}, context ) {}
+    explicit QgsIsValidGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &configuration )
+      : QgsSingleGeometryCheck( FeatureNodeCheck, context, configuration ) {}
 
-    QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const override;
+    static QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() {return {QgsWkbTypes::LineGeometry, QgsWkbTypes::PolygonGeometry};}
+    static bool factoryIsCompatible( QgsVectorLayer *layer ) SIP_SKIP { return factoryCompatibleGeometryTypes().contains( layer->geometryType() ); }
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override { return factoryCompatibleGeometryTypes(); }
+    QList<QgsSingleGeometryCheckError *> processGeometry( const QgsGeometry &geometry ) const override;
 
     QStringList resolutionMethods() const override;
-    QString errorDescription() const override;
-    QString errorName() const override;
+    QString factoryDescription() const { return tr( "Is Valid" ); }
+    QString description() const override { return factoryDescription(); }
+    QString factoryId() const
+    {
+      return QStringLiteral( "QgsIsValidCheck" );
+    }
+
+    QString id() const override { return factoryId(); }
 };
 
 #endif // QGSISVALIDGEOMETRYCHECK_H

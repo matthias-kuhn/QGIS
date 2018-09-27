@@ -29,13 +29,16 @@
 
 #include <qmath.h>
 
-QgsGeometryCheckerUtils::LayerFeature::LayerFeature( const QgsFeaturePool *pool, const QgsFeature &feature, QgsGeometryCheckContext *context, bool useMapCrs )
+QgsGeometryCheckerUtils::LayerFeature::LayerFeature( const QgsFeaturePool *pool,
+    const QgsFeature &feature,
+    const QgsGeometryCheckContext *context,
+    bool useMapCrs )
   : mFeaturePool( pool )
   , mFeature( feature )
   , mMapCrs( useMapCrs )
 {
   mGeometry = feature.geometry();
-  const QgsCoordinateTransform &transform = context->layerTransform( mFeaturePool->layerPtr() );
+  const QgsCoordinateTransform transform( pool->crs(), context->mapCrs, context->transformContext );
   if ( useMapCrs && context->mapCrs.isValid() && !transform.isShortCircuited() )
   {
     mGeometry.transform( transform );
@@ -178,7 +181,7 @@ QgsGeometryCheckerUtils::LayerFeatures::LayerFeatures( const QMap<QString, QgsFe
     const QMap<QString, QgsFeatureIds> &featureIds,
     const QList<QgsWkbTypes::GeometryType> &geometryTypes,
     QgsFeedback *feedback,
-    QgsGeometryCheckContext *context,
+    const QgsGeometryCheckContext *context,
     bool useMapCrs )
   : mFeaturePools( featurePools )
   , mFeatureIds( featureIds )
@@ -192,7 +195,7 @@ QgsGeometryCheckerUtils::LayerFeatures::LayerFeatures( const QMap<QString, QgsFe
 QgsGeometryCheckerUtils::LayerFeatures::LayerFeatures( const QMap<QString, QgsFeaturePool *> &featurePools,
     const QList<QString> &layerIds, const QgsRectangle &extent,
     const QList<QgsWkbTypes::GeometryType> &geometryTypes,
-    QgsGeometryCheckContext *context )
+    const QgsGeometryCheckContext *context )
   : mFeaturePools( featurePools )
   , mLayerIds( layerIds )
   , mExtent( extent )
@@ -205,7 +208,8 @@ QgsGeometryCheckerUtils::LayerFeatures::LayerFeatures( const QMap<QString, QgsFe
     const QgsFeaturePool *featurePool = featurePools[layerId];
     if ( geometryTypes.contains( featurePool->geometryType() ) )
     {
-      mFeatureIds.insert( layerId, featurePool->getIntersects( context->layerTransform( featurePool->layer() ).transform( extent, QgsCoordinateTransform::ReverseTransform ) ) );
+      QgsCoordinateTransform ct( featurePool->crs(), context->mapCrs, context->transformContext );
+      mFeatureIds.insert( layerId, featurePool->getIntersects( ct.transform( extent, QgsCoordinateTransform::ReverseTransform ) ) );
     }
     else
     {

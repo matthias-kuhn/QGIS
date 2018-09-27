@@ -70,6 +70,7 @@ the Free Software Foundation; either version 2 of the License, or     *
     enum Flag
     {
       SingleGeometryCheck,
+      SingleLayerTopologyCheck,
       AvailableInValidation
     };
     typedef QFlags<QgsGeometryCheck::Flag> Flags;
@@ -87,91 +88,27 @@ the Free Software Foundation; either version 2 of the License, or     *
 
     typedef QMap<QString, QMap<QgsFeatureId, QList<Change> > > Changes;
 
-    QgsGeometryCheck( CheckType checkType, const QList<QgsWkbTypes::GeometryType> &compatibleGeometryTypes, QgsGeometryCheckContext *context );
+    QgsGeometryCheck( CheckType checkType,
+                      const QgsGeometryCheckContext *context,
+                      const QVariantMap &configuration );
     virtual ~QgsGeometryCheck();
-    virtual void collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = 0, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
 
+
+    virtual bool isCompatible( QgsVectorLayer *layer ) const;
+    virtual QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const = 0;
+    virtual QgsGeometryCheck::Flags flags() const;
+
+    virtual void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = 0, const LayerFeatureIds &ids = QgsGeometryCheck::LayerFeatureIds() ) const = 0;
     virtual QStringList resolutionMethods() const = 0;
-    virtual QString errorDescription() const = 0;
-    virtual QString errorName() const = 0;
+    virtual QString description() const = 0;
+    virtual QString id() const = 0;
     CheckType checkType() const;
-    bool isCompatible( QgsWkbTypes::GeometryType type ) const;
-    QgsGeometryCheckContext *context() const;
+    const QgsGeometryCheckContext *context() const;
 
   protected:
 
-};
-
-
-class QgsGeometryCheckError
-{
-
-%TypeHeaderCode
-#include "qgsgeometrycheck.h"
-%End
-  public:
-    enum Status { StatusPending, StatusFixFailed, StatusFixed, StatusObsolete };
-    enum ValueType { ValueLength, ValueArea, ValueOther };
-
-    QgsGeometryCheckError( const QgsGeometryCheck *check,
-                           const QgsGeometryCheckerUtils::LayerFeature &layerFeature,
-                           const QgsPointXY &errorLocation,
-                           QgsVertexId vidx = QgsVertexId(),
-                           const QVariant &value = QVariant(),
-                           ValueType valueType = ValueOther );
-
-    virtual ~QgsGeometryCheckError();
-
-
-    const QgsGeometryCheck *check() const;
-    const QString &layerId() const;
-    QgsFeatureId featureId() const;
-    const QgsAbstractGeometry *geometry() const;
-    virtual QgsRectangle affectedAreaBBox() const;
-    virtual QString description() const;
-    const QgsPointXY &location() const;
-    QVariant value() const;
-    ValueType valueType() const;
-    const QgsVertexId &vidx() const;
-    Status status() const;
-    QString resolutionMessage() const;
-    void setFixed( int method );
-    void setFixFailed( const QString &reason );
-    void setObsolete();
-
-    virtual bool isEqual( QgsGeometryCheckError *other ) const;
-%Docstring
-Check if this error is equal to ``other``.
-Is reimplemented by subclasses with additional information, comparison
-of base information is done in parent class.
-%End
-
-    virtual bool closeMatch( QgsGeometryCheckError * /*other*/ ) const;
-%Docstring
-Check if this error is almost equal to ``other``.
-If this returns true, it can be used to update existing errors after re-checking.
-%End
-
-    virtual void update( const QgsGeometryCheckError *other );
-%Docstring
-Update this error with the information from \other.
-Will be used to update existing errors whenever they are re-checked.
-%End
-
-
-  protected:
-    QgsGeometryCheckError( const QgsGeometryCheck *check,
-                           const QString &layerId,
-                           QgsFeatureId featureId,
-                           const QgsGeometry &geometry,
-                           const QgsPointXY &errorLocation,
-                           QgsVertexId vidx = QgsVertexId(),
-                           const QVariant &value = QVariant(),
-                           ValueType valueType = ValueOther );
-
 
 };
-
 
 /************************************************************************
  * This file has been generated automatically from                      *

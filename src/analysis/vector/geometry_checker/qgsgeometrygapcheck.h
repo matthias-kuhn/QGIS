@@ -19,6 +19,7 @@
 #define QGS_GEOMETRY_GAP_CHECK_H
 
 #include "qgsgeometrycheck.h"
+#include "qgsgeometrycheckerror.h"
 
 class ANALYSIS_EXPORT QgsGeometryGapCheckError : public QgsGeometryCheckError
 {
@@ -75,23 +76,33 @@ class ANALYSIS_EXPORT QgsGeometryGapCheckError : public QgsGeometryCheckError
 class ANALYSIS_EXPORT QgsGeometryGapCheck : public QgsGeometryCheck
 {
   public:
-    QgsGeometryGapCheck( QgsGeometryCheckContext *context, double thresholdMapUnits )
-      : QgsGeometryCheck( LayerCheck, {QgsWkbTypes::PolygonGeometry}, context )
-    , mThresholdMapUnits( thresholdMapUnits )
+    explicit QgsGeometryGapCheck( const QgsGeometryCheckContext *context, const QVariantMap &configuration )
+      : QgsGeometryCheck( LayerCheck, context, configuration )
+      ,  mGapThresholdMapUnits( configuration.value( "gapThreshold" ).toDouble() )
     {}
-    void collectErrors( QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
-    void fixError( QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
+
+    QList<QgsWkbTypes::GeometryType> compatibleGeometryTypes() const override { return factoryCompatibleGeometryTypes(); }
+    void collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback = nullptr, const LayerFeatureIds &ids = LayerFeatureIds() ) const override;
+    void fixError( const QMap<QString, QgsFeaturePool *> &featurePools, QgsGeometryCheckError *error, int method, const QMap<QString, int> &mergeAttributeIndices, Changes &changes ) const override;
     QStringList resolutionMethods() const override;
-    QString errorDescription() const override { return tr( "Gap" ); }
-    QString errorName() const override { return QStringLiteral( "QgsGeometryGapCheck" ); }
+
+    QString description() const override { return factoryDescription(); }
+    QString id() const override { return factoryId(); }
+    QgsGeometryCheck::Flags flags() const override { return factoryFlags(); }
+
+    static QString factoryDescription() { return tr( "Gap" ); }
+    static QString factoryId() { return QStringLiteral( "QgsGeometryGapCheck" ); }
+    static QgsGeometryCheck::Flags factoryFlags() {return QgsGeometryCheck::SingleLayerTopologyCheck;}
+    static QList<QgsWkbTypes::GeometryType> factoryCompatibleGeometryTypes() {return {QgsWkbTypes::PolygonGeometry};}
+    static bool factoryIsCompatible( QgsVectorLayer *layer ) SIP_SKIP { return factoryCompatibleGeometryTypes().contains( layer->geometryType() ); }
 
     enum ResolutionMethod { MergeLongestEdge, NoChange };
 
   private:
+    bool mergeWithNeighbor( const QMap<QString, QgsFeaturePool *> &featurePools,
+                            QgsGeometryGapCheckError *err, Changes &changes, QString &errMsg ) const;
 
-    double mThresholdMapUnits;
-
-    bool mergeWithNeighbor( QgsGeometryGapCheckError *err, Changes &changes, QString &errMsg ) const;
+    const double mGapThresholdMapUnits;
 };
 
 #endif // QGS_GEOMETRY_GAP_CHECK_H

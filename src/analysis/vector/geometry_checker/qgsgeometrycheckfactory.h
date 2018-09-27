@@ -24,6 +24,9 @@
 #include "qgis_sip.h"
 #include "qgis_analysis.h"
 
+#include "qgsgeometryselfintersectioncheck.h"
+#include "qgssinglegeometrycheck.h"
+
 class QgsGeometryCheck;
 class QgsSingleGeometryCheck;
 
@@ -43,25 +46,46 @@ class ANALYSIS_EXPORT QgsGeometryCheckFactory SIP_ABSTRACT
      */
     virtual ~QgsGeometryCheckFactory() = default;
 
-    virtual QgsGeometryCheck *createGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration ) const = 0 SIP_FACTORY;
-
-    virtual QgsSingleGeometryCheck *createSingleGeometryCheck( const QString &checkId ) const = 0 SIP_FACTORY;
+    virtual QgsGeometryCheck *createGeometryCheck( const QgsGeometryCheckContext *context, const QVariantMap &configuration ) const = 0 SIP_FACTORY;
 
     virtual QString id() const = 0;
 
-    virtual bool isCompatible( QgsVectorLayer *layer ) const;
+    virtual QString description() const = 0;
 
-    virtual QgsGeometryCheck::Flags flags() const;
+    virtual bool isCompatible( QgsVectorLayer *layer ) const = 0;
+
+    virtual QgsGeometryCheck::Flags flags() const = 0;
 };
 
 template<class T>
 class QgsGeometryCheckFactoryT : public QgsGeometryCheckFactory
 {
   public:
-    QgsGeometryCheck *createGeometryCheck( QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration ) const override
+    QgsGeometryCheck *createGeometryCheck( const QgsGeometryCheckContext *context, const QVariantMap &configuration ) const override
     {
-      return new T( context, geometryCheckConfiguration );
+      return new T( context, configuration );
     }
+
+    QString description() const override
+    {
+      return T::factoryDescription();
+    }
+
+    QString id() const override
+    {
+      return T::factoryId();
+    }
+
+    bool isCompatible( QgsVectorLayer *layer ) const override
+    {
+      return T::factoryIsCompatible( layer );
+    }
+
+    QgsGeometryCheck::Flags flags() const override
+    {
+      return T::factoryFlags();
+    }
+
 };
 
 

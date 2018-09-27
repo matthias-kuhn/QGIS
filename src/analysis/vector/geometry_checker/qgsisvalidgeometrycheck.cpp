@@ -19,10 +19,8 @@ email                : matthias@opengis.ch
 #include "qgsgeos.h"
 #include "qgsgeometryvalidator.h"
 
-QList<QgsSingleGeometryCheckError *> QgsIsValidGeometryCheck::processGeometry( const QgsGeometry &geometry, const QVariantMap &configuration ) const
+QList<QgsSingleGeometryCheckError *> QgsIsValidGeometryCheck::processGeometry( const QgsGeometry &geometry ) const
 {
-  Q_UNUSED( configuration )
-
   QVector<QgsGeometry::Error> errors;
 
   QgsGeometry::ValidationMethod method = QgsGeometry::ValidatorQgisInternal;
@@ -50,14 +48,4 @@ QList<QgsSingleGeometryCheckError *> QgsIsValidGeometryCheck::processGeometry( c
 QStringList QgsIsValidGeometryCheck::resolutionMethods() const
 {
   return QStringList();
-}
-
-QString QgsIsValidGeometryCheck::errorDescription() const
-{
-  return tr( "Is Valid" );
-}
-
-QString QgsIsValidGeometryCheck::errorName() const
-{
-  return QStringLiteral( "QgsIsValidCheck" );
 }
