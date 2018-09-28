@@ -114,3 +114,6 @@ script:
 
 after_script:
   - ./.ci/travis/${TRAVIS_CONFIG}/after_script.sh
+
+after_success:
+  - ./.ci/travis/${TRAVIS_CONFIG}/after_success.sh
