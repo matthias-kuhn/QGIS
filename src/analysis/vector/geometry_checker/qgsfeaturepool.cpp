@@ -139,6 +139,11 @@ void QgsFeaturePool::setFeatureIds( const QgsFeatureIds &ids )
   mFeatureIds = ids;
 }
 
+bool QgsFeaturePool::isFeatureCached( QgsFeatureId fid )
+{
+  return mFeatureCache.contains( fid );
+}
+
 QgsCoordinateReferenceSystem QgsFeaturePool::crs() const
 {
   return mCrs;
