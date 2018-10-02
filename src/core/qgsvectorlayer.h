@@ -2026,7 +2026,7 @@ class CORE_EXPORT QgsVectorLayer : public QgsMapLayer, public QgsExpressionConte
      *
      * \since QGIS 3.4
      */
-    bool allowCommit() const;
+    bool allowCommit() const SIP_SKIP;
 
     /**
      * Controls, if the layer is allowed to commit changes. If this is set to false
