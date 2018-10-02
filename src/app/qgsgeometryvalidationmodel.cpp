@@ -2,6 +2,7 @@
 
 #include "qgsvectorlayer.h"
 #include "qgssinglegeometrycheck.h"
+#include "qgsfeatureid.h"
 
 #include <QIcon>
 
@@ -74,6 +75,8 @@ QVariant QgsGeometryValidationModel::data( const QModelIndex &index, int role ) 
       case FeatureExtentRole:
       {
         const QgsFeatureId fid = topologyError->featureId();
+        if ( FID_IS_NULL( fid ) )
+          return QgsRectangle();
         const QgsFeature feature = mCurrentLayer->getFeature( fid ); // TODO: this should be cached!
         return feature.geometry().boundingBox();
       }
@@ -88,11 +91,20 @@ QVariant QgsGeometryValidationModel::data( const QModelIndex &index, int role ) 
         return topologyError->geometry();
       }
 
+      case ErrorFeatureIdRole:
+      {
+        return topologyError->featureId();
+      }
+
       case FeatureGeometryRole:
       {
         const QgsFeatureId fid = topologyError->featureId();
-        const QgsFeature feature = mCurrentLayer->getFeature( fid ); // TODO: this should be cached!
-        return feature.geometry();
+        if ( !FID_IS_NULL( fid ) )
+        {
+          const QgsFeature feature = mCurrentLayer->getFeature( fid ); // TODO: this should be cached!
+          return feature.geometry();
+        }
+        return QgsGeometry();
       }
 
       case ErrorLocationGeometryRole:
@@ -119,7 +131,7 @@ QVariant QgsGeometryValidationModel::data( const QModelIndex &index, int role ) 
         mExpressionContext.setFeature( feature );
         QString featureTitle = mDisplayExpression.evaluate( &mExpressionContext ).toString();
         if ( featureTitle.isEmpty() )
-          featureTitle = featureItem.fid;
+          featureTitle = FID_TO_STRING( featureItem.fid );
 
         if ( featureItem.errors.count() > 1 )
           return tr( "%1: %n Errors", "", featureItem.errors.count() ).arg( featureTitle );
@@ -144,6 +156,11 @@ QVariant QgsGeometryValidationModel::data( const QModelIndex &index, int role ) 
       {
         // Not (yet?) used
         break;
+      }
+
+      case ErrorFeatureIdRole:
+      {
+        return featureItem.fid;
       }
 
       case FeatureExtentRole:
