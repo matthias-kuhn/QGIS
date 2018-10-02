@@ -44,6 +44,13 @@ void QgsGeometryGapCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &
   for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeature : layerFeatures )
   {
     geomList.append( layerFeature.geometry().constGet()->clone() );
+
+    if ( feedback->isCanceled() )
+    {
+      qDeleteAll( geomList );
+      geomList.clear();
+      break;
+    }
   }
 
   if ( geomList.isEmpty() )
@@ -97,7 +104,7 @@ void QgsGeometryGapCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &
     }
 
     // Skip gaps above threshold
-    if ( gapGeom->area() > mGapThresholdMapUnits || gapGeom->area() < mContext->reducedTolerance )
+    if ( ( mGapThresholdMapUnits > 0 && gapGeom->area() > mGapThresholdMapUnits ) || gapGeom->area() < mContext->reducedTolerance )
     {
       continue;
     }
@@ -124,7 +131,6 @@ void QgsGeometryGapCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &
     // Add error
     double area = gapGeom->area();
     errors.append( new QgsGeometryGapCheckError( this, QString(), QgsGeometry( gapGeom.release() ), neighboringIds, area, gapAreaBBox ) );
-
   }
 }
 

@@ -23,7 +23,8 @@
 #include <QPainter>
 
 QgsRubberBand::QgsRubberBand( QgsMapCanvas *mapCanvas, QgsWkbTypes::GeometryType geometryType )
-  : QgsMapCanvasItem( mapCanvas )
+  : QObject( nullptr )
+  , QgsMapCanvasItem( mapCanvas )
   , mGeometryType( geometryType )
 {
   reset( geometryType );
@@ -37,7 +38,8 @@ QgsRubberBand::QgsRubberBand( QgsMapCanvas *mapCanvas, QgsWkbTypes::GeometryType
 }
 
 QgsRubberBand::QgsRubberBand()
-  : QgsMapCanvasItem( nullptr )
+  : QObject( nullptr )
+  , QgsMapCanvasItem( nullptr )
 {
 }
 
@@ -49,6 +51,9 @@ void QgsRubberBand::setColor( const QColor &color )
 
 void QgsRubberBand::setFillColor( const QColor &color )
 {
+  if ( mBrush.color() == color )
+    return;
+
   mBrush.setColor( color );
 }
 
@@ -229,6 +234,18 @@ void QgsRubberBand::setToGeometry( const QgsGeometry &geom, QgsVectorLayer *laye
 
   reset( geom.type() );
   addGeometry( geom, layer );
+}
+
+void QgsRubberBand::setToGeometry( const QgsGeometry &geom, const QgsCoordinateReferenceSystem &crs )
+{
+  if ( geom.isNull() )
+  {
+    reset( mGeometryType );
+    return;
+  }
+
+  reset( geom.type() );
+  addGeometry( geom, crs );
 }
 
 void QgsRubberBand::addGeometry( const QgsGeometry &geometry, QgsVectorLayer *layer )

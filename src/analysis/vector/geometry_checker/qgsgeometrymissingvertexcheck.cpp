@@ -27,9 +27,7 @@
 QgsGeometryMissingVertexCheck::QgsGeometryMissingVertexCheck( const QgsGeometryCheckContext *context, const QVariantMap &geometryCheckConfiguration )
   : QgsGeometryCheck( context, geometryCheckConfiguration )
 
-{
-
-}
+{}
 
 void QgsGeometryMissingVertexCheck::collectErrors( const QMap<QString, QgsFeaturePool *> &featurePools, QList<QgsGeometryCheckError *> &errors, QStringList &messages, QgsFeedback *feedback, const LayerFeatureIds &ids ) const
 {
@@ -45,11 +43,16 @@ void QgsGeometryMissingVertexCheck::collectErrors( const QMap<QString, QgsFeatur
 
   for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeature : layerFeatures )
   {
+    if ( feedback->isCanceled() )
+    {
+      break;
+    }
+
     const QgsAbstractGeometry *geom = layerFeature.geometry().constGet();
 
     if ( QgsCurvePolygon *polygon = qgsgeometry_cast<QgsCurvePolygon *>( geom ) )
     {
-      processPolygon( polygon, featurePool, errors, layerFeature );
+      processPolygon( polygon, featurePool, errors, layerFeature, feedback );
     }
     else if ( QgsGeometryCollection *collection = qgsgeometry_cast<QgsGeometryCollection *>( geom ) )
     {
@@ -58,7 +61,7 @@ void QgsGeometryMissingVertexCheck::collectErrors( const QMap<QString, QgsFeatur
       {
         if ( QgsCurvePolygon *polygon = qgsgeometry_cast<QgsCurvePolygon *>( collection->geometryN( i ) ) )
         {
-          processPolygon( polygon, featurePool, errors, layerFeature );
+          processPolygon( polygon, featurePool, errors, layerFeature, feedback );
         }
       }
     }
@@ -73,11 +76,32 @@ void QgsGeometryMissingVertexCheck::fixError( const QMap<QString, QgsFeaturePool
   {
     error->setFixed( method );
   }
+  if ( method == AddMissingVertex )
+  {
+    QgsFeaturePool *featurePool = featurePools[ error->layerId() ];
+
+    QgsFeature feature;
+    featurePool->getFeature( error->featureId(), feature );
+
+    QgsPointXY pointOnSegment; // Should be equal to location
+    int vertexIndex;
+    QgsGeometry geometry = feature.geometry();
+    geometry.closestSegmentWithContext( error->location(), pointOnSegment, vertexIndex );
+    geometry.insertVertex( QgsPoint( error->location() ), vertexIndex );
+    feature.setGeometry( geometry );
+
+    featurePool->updateFeature( feature );
+    // TODO update "changes" structure
+
+    error->setFixed( method );
+  }
 }
 
 QStringList QgsGeometryMissingVertexCheck::resolutionMethods() const
 {
-  static QStringList methods = QStringList() << tr( "No action" );
+  static QStringList methods = QStringList()
+                               << tr( "No action" )
+                               << tr( "Add missing vertex" );
   return methods;
 }
 
@@ -86,7 +110,7 @@ QString QgsGeometryMissingVertexCheck::description() const
   return factoryDescription();
 }
 
-void QgsGeometryMissingVertexCheck::processPolygon( const QgsCurvePolygon *polygon, QgsFeaturePool *featurePool, QList<QgsGeometryCheckError *> &errors, const QgsGeometryCheckerUtils::LayerFeature &layerFeature ) const
+void QgsGeometryMissingVertexCheck::processPolygon( const QgsCurvePolygon *polygon, QgsFeaturePool *featurePool, QList<QgsGeometryCheckError *> &errors, const QgsGeometryCheckerUtils::LayerFeature &layerFeature, QgsFeedback *feedback ) const
 {
   const QgsFeature &currentFeature = layerFeature.feature();
   std::unique_ptr<QgsMultiPolygon> boundaries = qgis::make_unique<QgsMultiPolygon>();
@@ -114,6 +138,9 @@ void QgsGeometryMissingVertexCheck::processPolygon( const QgsCurvePolygon *polyg
 
     if ( featurePool->getFeature( fid, compareFeature ) )
     {
+      if ( feedback->isCanceled() )
+        break;
+
       QgsVertexIterator vertexIterator = compareFeature.geometry().vertices();
       while ( vertexIterator.hasNext() )
       {
