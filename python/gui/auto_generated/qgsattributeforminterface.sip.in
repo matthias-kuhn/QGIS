@@ -28,7 +28,7 @@ class QgsAttributeFormInterface
 
     QgsAttributeForm *form();
 
-    const QgsFeature &feature();
+    QgsFeature feature() const;
 
 };
 

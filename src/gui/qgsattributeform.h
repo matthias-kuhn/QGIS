@@ -72,7 +72,7 @@ class GUI_EXPORT QgsAttributeForm : public QWidget
                                QWidget *parent SIP_TRANSFERTHIS = nullptr );
     ~QgsAttributeForm() override;
 
-    const QgsFeature &feature() { return mFeature; }
+    QgsFeature feature() const;
 
     // TODO QGIS 4.0 - make private
 

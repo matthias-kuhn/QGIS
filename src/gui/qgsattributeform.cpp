@@ -90,6 +90,11 @@ QgsAttributeForm::~QgsAttributeForm()
   qDeleteAll( mInterfaces );
 }
 
+QgsFeature QgsAttributeForm::feature() const
+{
+  return mFeature;
+}
+
 void QgsAttributeForm::hideButtonBox()
 {
   mButtonBox->hide();

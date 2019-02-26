@@ -63,6 +63,11 @@ void QgsAttributeDialog::setHighlight( QgsHighlight *h )
   mHighlight = h;
 }
 
+QgsFeature QgsAttributeDialog::feature() const
+{
+  return mAttributeForm->feature();
+}
+
 void QgsAttributeDialog::accept()
 {
   mAttributeForm->save();

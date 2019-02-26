@@ -86,7 +86,7 @@ QgsAttributeDialog *QgsFeatureAction::newDialog( bool cloneFeature )
       if ( !mLayer->isEditable() && action.isEnabledOnlyWhenEditable() )
         continue;
 
-      QgsFeature &feat = const_cast<QgsFeature &>( *dialog->feature() );
+      QgsFeature feat = dialog->feature();
       QgsFeatureAction *a = new QgsFeatureAction( action.name(), feat, mLayer, action.id(), -1, dialog );
       dialog->addAction( a );
       connect( a, &QAction::triggered, a, &QgsFeatureAction::execute );
@@ -138,7 +138,7 @@ bool QgsFeatureAction::editFeature( bool showModal )
       dialog->setMode( QgsAttributeEditorContext::AddFeatureMode );
 
     int rv = dialog->exec();
-    mFeature->setAttributes( dialog->feature()->attributes() );
+    mFeature->setAttributes( dialog->feature().attributes() );
     return rv;
   }
   else

@@ -41,7 +41,7 @@ setHighlight
 
     QgsAttributeForm *attributeForm();
 
-    const QgsFeature *feature();
+    QgsFeature feature() const;
 
     bool editable();
 %Docstring

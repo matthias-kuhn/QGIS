@@ -43,7 +43,7 @@ QgsAttributeForm *QgsAttributeFormInterface::form()
   return mForm;
 }
 
-const QgsFeature &QgsAttributeFormInterface::feature()
+QgsFeature QgsAttributeFormInterface::feature() const
 {
   return mForm->feature();
 }

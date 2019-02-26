@@ -64,7 +64,7 @@ class GUI_EXPORT QgsAttributeDialog : public QDialog
 
     QgsAttributeForm *attributeForm() { return mAttributeForm; }
 
-    const QgsFeature *feature() { return &mAttributeForm->feature(); }
+    QgsFeature feature() const;
 
     /**
      * Is this dialog editable?

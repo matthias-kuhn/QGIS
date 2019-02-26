@@ -42,7 +42,7 @@ class QgsAttributeForm : QWidget
                                QWidget *parent /TransferThis/ = 0 );
     ~QgsAttributeForm();
 
-    const QgsFeature &feature();
+    QgsFeature feature() const;
 
 
     void hideButtonBox();
