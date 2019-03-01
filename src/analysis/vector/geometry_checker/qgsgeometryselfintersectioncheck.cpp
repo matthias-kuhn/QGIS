@@ -165,7 +165,7 @@ void QgsGeometrySelfIntersectionCheck::fixError( const QMap<QString, QgsFeatureP
     QgsLineString *ringGeom2 = new QgsLineString();
     ringGeom2->setPoints( ring2 );
 
-    QgsAbstractGeometry *part = QgsGeometryCheckerUtils::getGeomPart( geom, vidx.part );
+    QgsAbstractGeometry *part = const_cast<QgsAbstractGeometry *>( QgsGeometryCheckerUtils::getGeomPart( geom, vidx.part ) );
     // If is a polygon...
     if ( dynamic_cast<QgsCurvePolygon *>( part ) )
     {

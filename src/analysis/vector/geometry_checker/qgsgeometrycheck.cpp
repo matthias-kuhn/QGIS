@@ -116,8 +116,8 @@ void QgsGeometryCheck::deleteFeatureGeometryRing( const QMap<QString, QgsFeature
 {
   QgsFeaturePool *featurePool = featurePools[layerId];
   QgsGeometry featureGeom = feature.geometry();
-  QgsAbstractGeometry *partGeom = QgsGeometryCheckerUtils::getGeomPart( featureGeom.get(), partIdx );
-  if ( dynamic_cast<QgsCurvePolygon *>( partGeom ) )
+  const QgsAbstractGeometry *partGeom = QgsGeometryCheckerUtils::getGeomPart( featureGeom.get(), partIdx );
+  if ( dynamic_cast<const QgsCurvePolygon *>( partGeom ) )
   {
     // If we delete the exterior ring of a polygon, it makes no sense to keep the interiors
     if ( ringIdx == 0 )
@@ -126,7 +126,7 @@ void QgsGeometryCheck::deleteFeatureGeometryRing( const QMap<QString, QgsFeature
     }
     else
     {
-      static_cast<QgsCurvePolygon *>( partGeom )->removeInteriorRing( ringIdx - 1 );
+      // static_cast<QgsCurvePolygon *>( partGeom )->removeInteriorRing( ringIdx - 1 );
       feature.setGeometry( featureGeom );
       featurePool->updateFeature( feature );
       changes[layerId][feature.id()].append( Change( ChangeRing, ChangeRemoved, QgsVertexId( partIdx, ringIdx ) ) );

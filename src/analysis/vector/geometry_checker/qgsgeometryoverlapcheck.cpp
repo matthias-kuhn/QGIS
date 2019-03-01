@@ -51,7 +51,8 @@ void QgsGeometryOverlapCheck::collectErrors( const QMap<QString, QgsFeaturePool 
       continue;
     }
 
-    const QgsGeometryCheckerUtils::LayerFeatures layerFeaturesB( featurePools, QList<QString>() << layerFeatureA.layer()->id() << layerIds, bboxA, compatibleGeometryTypes(), mContext );
+    const QgsGeometryCheckerUtils::LayerFeatures layerFeaturesB( featurePools, QList<QString>() << layerFeatureA.layerId() << layerIds, bboxA, compatibleGeometryTypes(), mContext );
+
     for ( const QgsGeometryCheckerUtils::LayerFeature &layerFeatureB : layerFeaturesB )
     {
       if ( feedback && feedback->isCanceled() )
@@ -74,7 +75,7 @@ void QgsGeometryOverlapCheck::collectErrors( const QMap<QString, QgsFeaturePool 
           QgsGeometryCheckerUtils::filter1DTypes( interGeom.get() );
           for ( int iPart = 0, nParts = interGeom->partCount(); iPart < nParts; ++iPart )
           {
-            QgsAbstractGeometry *interPart = QgsGeometryCheckerUtils::getGeomPart( interGeom.get(), iPart );
+            const QgsAbstractGeometry *interPart = QgsGeometryCheckerUtils::getGeomPart( interGeom.get(), iPart );
             double area = interPart->area();
             if ( area > mContext->reducedTolerance && ( area < mOverlapThresholdMapUnits || mOverlapThresholdMapUnits == 0.0 ) )
             {
@@ -128,10 +129,10 @@ void QgsGeometryOverlapCheck::fixError( const QMap<QString, QgsFeaturePool *> &f
   }
 
   // Search which overlap part this error parametrizes (using fuzzy-matching of the area and centroid...)
-  QgsAbstractGeometry *interPart = nullptr;
+  const QgsAbstractGeometry *interPart = nullptr;
   for ( int iPart = 0, nParts = interGeom->partCount(); iPart < nParts; ++iPart )
   {
-    QgsAbstractGeometry *part = QgsGeometryCheckerUtils::getGeomPart( interGeom.get(), iPart );
+    const QgsAbstractGeometry *part = QgsGeometryCheckerUtils::getGeomPart( interGeom.get(), iPart );
     if ( std::fabs( part->area() - overlapError->value().toDouble() ) < mContext->reducedTolerance &&
          QgsGeometryCheckerUtils::pointsFuzzyEqual( part->centroid(), overlapError->location(), mContext->reducedTolerance ) )
     {

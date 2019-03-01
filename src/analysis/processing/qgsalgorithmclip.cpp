@@ -182,18 +182,19 @@ QVariantMap QgsClipAlgorithm::processAlgorithm( const QVariantMap &parameters, Q
       }
       testedFeatureIds.insert( inputFeature.id() );
 
-      if ( !engine->intersects( inputFeature.geometry().constGet() ) )
+      const QgsGeometry currentGeometry = inputFeature.geometry();
+
+      if ( !engine->intersects( currentGeometry.constGet() ) )
         continue;
 
       QgsGeometry newGeometry;
-      if ( !engine->contains( inputFeature.geometry().constGet() ) )
+      if ( !engine->contains( currentGeometry.constGet() ) )
       {
-        QgsGeometry currentGeometry = inputFeature.geometry();
         newGeometry = combinedClipGeom.intersection( currentGeometry );
         if ( newGeometry.wkbType() == QgsWkbTypes::Unknown || QgsWkbTypes::flatType( newGeometry.wkbType() ) == QgsWkbTypes::GeometryCollection )
         {
-          QgsGeometry intCom = inputFeature.geometry().combine( newGeometry );
-          QgsGeometry intSym = inputFeature.geometry().symDifference( newGeometry );
+          QgsGeometry intCom = currentGeometry.combine( newGeometry );
+          QgsGeometry intSym = currentGeometry.symDifference( newGeometry );
           newGeometry = intCom.difference( intSym );
         }
       }

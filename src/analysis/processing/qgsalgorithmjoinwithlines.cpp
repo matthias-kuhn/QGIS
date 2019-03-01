@@ -226,10 +226,14 @@ QVariantMap QgsJoinWithLinesAlgorithm::processAlgorithm( const QVariantMap &para
   auto getPointFromFeature = [hasZ, hasM]( const QgsFeature & feature )->QgsPoint
   {
     QgsPoint p;
-    if ( feature.geometry().type() == QgsWkbTypes::PointGeometry && !feature.geometry().isMultipart() )
-      p = *static_cast< const QgsPoint *>( feature.geometry().constGet() );
+    const QgsGeometry geometry = feature.geometry();
+    if ( geometry.type() == QgsWkbTypes::PointGeometry && !geometry.isMultipart() )
+      p = *static_cast< const QgsPoint *>( geometry.constGet() );
     else
-      p = *static_cast< const QgsPoint *>( feature.geometry().pointOnSurface().constGet() );
+    {
+      QgsGeometry point = geometry.pointOnSurface();
+      p = *static_cast< const QgsPoint *>( point.constGet() );
+    }
     if ( hasZ && !p.is3D() )
       p.addZValue( 0 );
     if ( hasM && !p.isMeasure() )

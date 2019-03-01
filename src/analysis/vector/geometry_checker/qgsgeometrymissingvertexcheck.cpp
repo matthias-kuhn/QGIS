@@ -156,7 +156,9 @@ void QgsGeometryMissingVertexCheck::processPolygon( const QgsCurvePolygon *polyg
       if ( feedback && feedback->isCanceled() )
         break;
 
-      const QgsGeometry compareGeometry = compareFeature.geometry();
+      QgsGeometry compareGeometry = compareFeature.geometry();
+      compareGeometry.get();
+
       QgsVertexIterator vertexIterator = compareGeometry.vertices();
       while ( vertexIterator.hasNext() )
       {

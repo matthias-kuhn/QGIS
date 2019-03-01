@@ -98,7 +98,8 @@ QgsFeatureList QgsDropMZValuesAlgorithm::processFeature( const QgsFeature &featu
   QgsFeature f = feature;
   if ( f.hasGeometry() )
   {
-    std::unique_ptr< QgsAbstractGeometry > newGeom( f.geometry().constGet()->clone() );
+    const QgsGeometry geometry = f.geometry();
+    std::unique_ptr< QgsAbstractGeometry > newGeom( geometry.constGet()->clone() );
     if ( mDropM )
       newGeom->dropMValue();
     if ( mDropZ )

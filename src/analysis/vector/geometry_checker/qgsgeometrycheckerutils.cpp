@@ -265,7 +265,7 @@ std::unique_ptr<QgsGeometryEngine> QgsGeometryCheckerUtils::createGeomEngine( co
   return qgis::make_unique<QgsGeos>( geometry, tolerance );
 }
 
-QgsAbstractGeometry *QgsGeometryCheckerUtils::getGeomPart( QgsAbstractGeometry *geom, int partIdx )
+const QgsAbstractGeometry *QgsGeometryCheckerUtils::getGeomPart( QgsAbstractGeometry *geom, int partIdx )
 {
   if ( dynamic_cast<QgsGeometryCollection *>( geom ) )
   {
