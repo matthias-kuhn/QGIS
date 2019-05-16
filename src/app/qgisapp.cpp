@@ -4294,8 +4294,7 @@ void QgisApp::saveRecentProjectPath( bool savePreviewImage )
   int pinnedCount = 0;
   int nonPinnedPos = 0;
   bool pinnedTop = true;
-  const auto constMRecentProjects = mRecentProjects;
-  for ( const QgsRecentProjectItemsModel::RecentProjectData &recentProject : constMRecentProjects )
+  for ( const QgsRecentProjectItemsModel::RecentProjectData &recentProject : qgis::as_const( mRecentProjects ) )
   {
     if ( recentProject.pin )
     {
