@@ -19,6 +19,7 @@
 #include "qgsapplication.h"
 #include "qgis.h"
 #include "qgsprojectlistitemdelegate.h"
+#include "qgsproject.h"
 
 #include <QStandardPaths>
 #include <QDir>
@@ -90,6 +91,8 @@ void QgsTemplateProjectsModel::scanDirectory( const QString &path )
     }
   }
 
+  QgsProject project;
+
   // Refill with templates from this directory
   for ( const QFileInfo &file : files )
   {
@@ -102,6 +105,8 @@ void QgsTemplateProjectsModel::scanDirectory( const QString &path )
 
     QgsZipUtils::unzip( file.filePath(), mTemporaryDir.filePath( fileId ), files );
 
+    project.read( mTemporaryDir.filePath( fileId ) + QDir::separator() + file.baseName() + QStringLiteral( ".qgs" ) );
+
     QString filename( mTemporaryDir.filePath( fileId ) + QDir::separator() + QStringLiteral( "preview.png" ) );
 
     QgsProjectPreviewImage thumbnail( filename );
@@ -112,7 +117,7 @@ void QgsTemplateProjectsModel::scanDirectory( const QString &path )
     }
     item->setData( file.baseName(), QgsProjectListItemDelegate::TitleRole );
     item->setData( file.filePath(), QgsProjectListItemDelegate::NativePathRole );
-
+    item->setData( project.crs().description(), QgsProjectListItemDelegate::CrsRole );
     item->setFlags( Qt::ItemFlag::ItemIsSelectable | Qt::ItemFlag::ItemIsEnabled ) ;
     appendRow( item.release() );
   }

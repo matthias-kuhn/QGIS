@@ -1600,7 +1600,10 @@ bool QgsVectorLayer::setDataProvider( QString const &provider, const QgsDataProv
     }
   }
 
-  mDataProvider = qobject_cast<QgsVectorDataProvider *>( QgsProviderRegistry::instance()->createProvider( provider, mDataSource, options ) );
+  if ( !preventLoading() )
+  {
+    mDataProvider = qobject_cast<QgsVectorDataProvider *>( QgsProviderRegistry::instance()->createProvider( provider, mDataSource, options ) );
+  }
   if ( !mDataProvider )
   {
     mValid = false;

@@ -1875,6 +1875,22 @@ bool QgsMapLayer::isReadOnly() const
   return true;
 }
 
+bool QgsMapLayer::preventLoading() const
+{
+  return mPreventLoading;
+}
+
+void QgsMapLayer::setPreventLoading( bool preventLoading )
+{
+  if ( preventLoading == mPreventLoading )
+    return;
+
+  mPreventLoading = preventLoading;
+  if ( !preventLoading )
+    setDataSource( mDataSource, mLayerName, mProviderKey ); // TODO, get options
+  emit preventLoadingChanged();
+}
+
 QString QgsMapLayer::originalXmlProperties() const
 {
   return mOriginalXmlProperties;

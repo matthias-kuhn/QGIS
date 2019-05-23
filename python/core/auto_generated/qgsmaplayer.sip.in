@@ -1364,6 +1364,22 @@ Sets the coordinate transform context to ``transformContext``
 .. versionadded:: 3.8
 %End
 
+    bool preventLoading() const;
+%Docstring
+Prevent this layer from loading the datasource.
+The layer will not be able to render and invalid if loaded after setting this flag.
+
+.. versionadded:: 3.10
+%End
+
+    void setPreventLoading( bool preventLoading );
+%Docstring
+Prevent this layer from loading the datasource.
+The layer will not be able to render and invalid if loaded after setting this flag.
+
+.. versionadded:: 3.10
+%End
+
   signals:
 
     void statusChanged( const QString &status );
@@ -1498,7 +1514,10 @@ Emitted whenever the layer's data source has been changed.
 .. versionadded:: 3.5
 %End
 
-
+    void preventLoadingChanged();
+%Docstring
+preventLoadingChanged
+%End
   protected:
 
     void clone( QgsMapLayer *layer ) const;

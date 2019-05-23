@@ -83,6 +83,7 @@ class CORE_EXPORT QgsMapLayer : public QObject
     Q_PROPERTY( int autoRefreshInterval READ autoRefreshInterval WRITE setAutoRefreshInterval NOTIFY autoRefreshIntervalChanged )
     Q_PROPERTY( QgsLayerMetadata metadata READ metadata WRITE setMetadata NOTIFY metadataChanged )
     Q_PROPERTY( QgsCoordinateReferenceSystem crs READ crs WRITE setCrs NOTIFY crsChanged )
+    Q_PROPERTY( bool preventLoading READ preventLoading WRITE setPreventLoading NOTIFY preventLoadingChanged )
 
 #ifdef SIP_RUN
     SIP_CONVERT_TO_SUBCLASS_CODE
@@ -1215,6 +1216,22 @@ class CORE_EXPORT QgsMapLayer : public QObject
      */
     virtual void setTransformContext( const QgsCoordinateTransformContext &transformContext ) = 0;
 
+    /**
+     * Prevent this layer from loading the datasource.
+     * The layer will not be able to render and invalid if loaded after setting this flag.
+     *
+     * \since QGIS 3.10
+     */
+    bool preventLoading() const;
+
+    /**
+     * Prevent this layer from loading the datasource.
+     * The layer will not be able to render and invalid if loaded after setting this flag.
+     *
+     * \since QGIS 3.10
+     */
+    void setPreventLoading( bool preventLoading );
+
   signals:
 
     //! Emit a signal with status (e.g. to be caught by QgisApp and display a msg on status bar)
@@ -1325,7 +1342,10 @@ class CORE_EXPORT QgsMapLayer : public QObject
      */
     void dataSourceChanged();
 
-
+    /**
+     * @brief preventLoadingChanged
+     */
+    void preventLoadingChanged();
   private slots:
 
     void onNotifiedTriggerRepaint( const QString &message );
@@ -1552,6 +1572,8 @@ class CORE_EXPORT QgsMapLayer : public QObject
      */
     QString mOriginalXmlProperties;
 
+    //! Prevent this layer from being really loaded from the datasource. Make the initialization as minimal as somehow reasonably possible.
+    bool mPreventLoading;
 };
 
 Q_DECLARE_METATYPE( QgsMapLayer * )
