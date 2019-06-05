@@ -82,6 +82,13 @@ QgsLabelingEngine::~QgsLabelingEngine()
   qDeleteAll( mSubProviders );
 }
 
+void QgsLabelingEngine::setMapSettings( const QgsMapSettings &mapSettings )
+{
+  mMapSettings = mapSettings;
+  if ( mResults )
+    mResults->setMapSettings( mapSettings );
+}
+
 QList< QgsMapLayer * > QgsLabelingEngine::participatingLayers() const
 {
   QSet< QgsMapLayer * > layers;
@@ -168,7 +175,7 @@ void QgsLabelingEngine::processProvider( QgsAbstractLabelProvider *provider, Qgs
     }
     catch ( std::exception &e )
     {
-      Q_UNUSED( e );
+      Q_UNUSED( e )
       QgsDebugMsgLevel( QStringLiteral( "Ignoring feature %1 due PAL exception:" ).arg( feature->id() ) + QString::fromLatin1( e.what() ), 4 );
       continue;
     }
@@ -293,7 +300,7 @@ void QgsLabelingEngine::run( QgsRenderContext &context )
   }
   catch ( std::exception &e )
   {
-    Q_UNUSED( e );
+    Q_UNUSED( e )
     QgsDebugMsgLevel( "PAL EXCEPTION :-( " + QString::fromLatin1( e.what() ), 4 );
     return;
   }

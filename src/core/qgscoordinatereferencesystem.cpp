@@ -80,14 +80,15 @@ QString getFullProjString( PJ *obj )
   // see https://lists.osgeo.org/pipermail/proj/2019-May/008565.html, it's not sufficient to just
   // use proj_as_proj_string
   QgsProjUtils::proj_pj_unique_ptr boundCrs( proj_crs_create_bound_crs_to_WGS84( QgsProjContext::get(), obj, nullptr ) );
-  if ( const char *proj4src = proj_as_proj_string( QgsProjContext::get(), boundCrs.get(), PJ_PROJ_4, nullptr ) )
+  if ( boundCrs )
   {
-    return QString( proj4src );
+    if ( const char *proj4src = proj_as_proj_string( QgsProjContext::get(), boundCrs.get(), PJ_PROJ_4, nullptr ) )
+    {
+      return QString( proj4src );
+    }
   }
-  else
-  {
-    return QString( proj_as_proj_string( QgsProjContext::get(), obj, PJ_PROJ_4, nullptr ) );
-  }
+
+  return QString( proj_as_proj_string( QgsProjContext::get(), obj, PJ_PROJ_4, nullptr ) );
 }
 #endif
 //--------------------------
@@ -185,7 +186,16 @@ QgsCoordinateReferenceSystem QgsCoordinateReferenceSystem::fromOgcWmsCrs( const 
 
 QgsCoordinateReferenceSystem QgsCoordinateReferenceSystem::fromEpsgId( long epsg )
 {
-  return fromOgcWmsCrs( "EPSG:" + QString::number( epsg ) );
+  QgsCoordinateReferenceSystem res = fromOgcWmsCrs( "EPSG:" + QString::number( epsg ) );
+  if ( res.isValid() )
+    return res;
+
+  // pre proj6 builds allowed use of ESRI: codes here (e.g. 54030), so we need to keep compatibility
+  res = fromOgcWmsCrs( "ESRI:" + QString::number( epsg ) );
+  if ( res.isValid() )
+    return res;
+
+  return QgsCoordinateReferenceSystem();
 }
 
 QgsCoordinateReferenceSystem QgsCoordinateReferenceSystem::fromProj4( const QString &proj4 )
@@ -786,6 +796,14 @@ bool QgsCoordinateReferenceSystem::createFromProj4( const QString &proj4String )
 {
   d.detach();
 
+  if ( proj4String.trimmed().isEmpty() )
+  {
+    d->mIsValid = false;
+    d->mWkt.clear();
+    d->mProj4.clear();
+    return false;
+  }
+
   sProj4CacheLock.lockForRead();
   QHash< QString, QgsCoordinateReferenceSystem >::const_iterator crsIt = sProj4Cache.constFind( proj4String );
   if ( crsIt != sProj4Cache.constEnd() )
@@ -838,6 +856,7 @@ bool QgsCoordinateReferenceSystem::createFromProj4( const QString &proj4String )
         {
           // prefer EPSG codes for compatibility with earlier qgis conversions
           QgsProjUtils::proj_pj_unique_ptr candidateCrs( proj_list_get( QgsProjContext::get(), crsList, i ) );
+          candidateCrs = QgsProjUtils::crsToSingleCrs( candidateCrs.get() );
           const QString authName( proj_get_id_auth_name( candidateCrs.get(), 0 ) );
           if ( confidence[i] > bestConfidence || authName == QLatin1String( "EPSG" ) )
           {
@@ -1239,6 +1258,29 @@ QgsRectangle QgsCoordinateReferenceSystem::bounds() const
   if ( !d->mIsValid )
     return QgsRectangle();
 
+#if PROJ_VERSION_MAJOR>=6
+  if ( !d->mPj )
+    return QgsRectangle();
+
+  double westLon = 0;
+  double southLat = 0;
+  double eastLon = 0;
+  double northLat = 0;
+
+  if ( !proj_get_area_of_use( QgsProjContext::get(), d->mPj.get(),
+                              &westLon, &southLat, &eastLon, &northLat, nullptr ) )
+    return QgsRectangle();
+
+
+  // don't use the constructor which normalizes!
+  QgsRectangle rect;
+  rect.setXMinimum( westLon );
+  rect.setYMinimum( southLat );
+  rect.setXMaximum( eastLon );
+  rect.setYMaximum( northLat );
+  return rect;
+
+#else
   //check the db is available
   QString databaseFileName = QgsApplication::srsDatabaseFilePath();
 
@@ -1272,8 +1314,8 @@ QgsRectangle QgsCoordinateReferenceSystem::bounds() const
       rect.setYMaximum( north );
     }
   }
-
   return rect;
+#endif
 }
 
 
@@ -1636,11 +1678,12 @@ bool QgsCoordinateReferenceSystem::readXml( const QDomNode &node )
   {
     bool initialized = false;
 
-    long srsid = srsNode.namedItem( QStringLiteral( "srsid" ) ).toElement().text().toLong();
+    bool ok = false;
+    long srsid = srsNode.namedItem( QStringLiteral( "srsid" ) ).toElement().text().toLong( &ok );
 
     QDomNode myNode;
 
-    if ( srsid < USER_CRS_START_ID )
+    if ( ok && srsid > 0 && srsid < USER_CRS_START_ID )
     {
       myNode = srsNode.namedItem( QStringLiteral( "authid" ) );
       if ( !myNode.isNull() )
@@ -1669,13 +1712,13 @@ bool QgsCoordinateReferenceSystem::readXml( const QDomNode &node )
     if ( !initialized )
     {
       myNode = srsNode.namedItem( QStringLiteral( "proj4" ) );
+      const QString proj4 = myNode.toElement().text();
 
-      if ( !createFromProj4( myNode.toElement().text() ) )
+      if ( !createFromProj4( proj4 ) )
       {
         // Setting from elements one by one
-
-        myNode = srsNode.namedItem( QStringLiteral( "proj4" ) );
-        setProj4String( myNode.toElement().text() );
+        if ( !proj4.trimmed().isEmpty() )
+          setProj4String( myNode.toElement().text() );
 
         myNode = srsNode.namedItem( QStringLiteral( "srsid" ) );
         setInternalId( myNode.toElement().text().toLong() );
@@ -1712,7 +1755,7 @@ bool QgsCoordinateReferenceSystem::readXml( const QDomNode &node )
       // this behavior was changed in order to separate creation and saving.
       // Not sure if it necessary to save it here, should be checked by someone
       // familiar with the code (should also give a more descriptive name to the generated CRS)
-      if ( d->mSrsId == 0 )
+      if ( isValid() && d->mSrsId == 0 )
       {
         QString myName = QStringLiteral( " * %1 (%2)" )
                          .arg( QObject::tr( "Generated CRS", "A CRS automatically generated from layer info get this prefix for description" ),
@@ -2193,6 +2236,7 @@ int QgsCoordinateReferenceSystem::syncDatabase()
 
 #if PROJ_VERSION_MAJOR>=6
   PJ_CONTEXT *pjContext = QgsProjContext::get();
+
   PROJ_STRING_LIST authorities = proj_get_authorities_from_database( pjContext );
 
   int nextSrId = 520000000;
@@ -2697,7 +2741,7 @@ int QgsCoordinateReferenceSystem::syncDatabase()
     return -1;
   }
 
-  Q_UNUSED( deleted );
+  Q_UNUSED( deleted )
   QgsDebugMsgLevel( QStringLiteral( "CRS update (inserted:%1 updated:%2 deleted:%3 errors:%4)" ).arg( QString::number( inserted ), QString::number( updated ), QString::number( deleted ), QString::number( errors ) ), 0 );
 
   if ( errors > 0 )
@@ -2926,6 +2970,13 @@ QString QgsCoordinateReferenceSystem::geographicCrsAuthId() const
     return QString();
   }
 }
+
+#if PROJ_VERSION_MAJOR>=6
+PJ *QgsCoordinateReferenceSystem::projObject() const
+{
+  return d->mPj.get();
+}
+#endif
 
 QStringList QgsCoordinateReferenceSystem::recentProjections()
 {

@@ -202,7 +202,7 @@ std::unique_ptr<QgsMeshCalculator> QgsMeshCalculatorDialog::calculator() const
 
 void QgsMeshCalculatorDialog::toggleExtendMask( int state )
 {
-  Q_UNUSED( state );
+  Q_UNUSED( state )
   if ( useMaskCb->checkState() == Qt::Checked )
   {
     extendBox->setVisible( false );
@@ -464,6 +464,9 @@ void QgsMeshCalculatorDialog::useAllTimesFromLayer()
 
 QString QgsMeshCalculatorDialog::currentDatasetGroup() const
 {
+  if ( mDatasetsListWidget->count() == 0 )
+    return QString();
+
   const QList<QListWidgetItem *> items = mDatasetsListWidget->selectedItems();
   if ( !items.empty() )
     return items[0]->text();

@@ -148,12 +148,11 @@ QgsAttributeTableDialog::QgsAttributeTableDialog( QgsVectorLayer *layer, QgsAttr
   // Initialize the window geometry
   restoreGeometry( settings.value( QStringLiteral( "Windows/BetterAttributeTable/geometry" ) ).toByteArray() );
 
-  myDa = new QgsDistanceArea();
+  QgsDistanceArea da;
+  da.setSourceCrs( mLayer->crs(), QgsProject::instance()->transformContext() );
+  da.setEllipsoid( QgsProject::instance()->ellipsoid() );
+  mEditorContext.setDistanceArea( da );
 
-  myDa->setSourceCrs( mLayer->crs(), QgsProject::instance()->transformContext() );
-  myDa->setEllipsoid( QgsProject::instance()->ellipsoid() );
-
-  mEditorContext.setDistanceArea( *myDa );
   mEditorContext.setVectorLayerTools( QgisApp::instance()->vectorLayerTools() );
   mEditorContext.setMapCanvas( QgisApp::instance()->mapCanvas() );
 
@@ -362,11 +361,6 @@ QgsAttributeTableDialog::QgsAttributeTableDialog( QgsVectorLayer *layer, QgsAttr
   }
 }
 
-QgsAttributeTableDialog::~QgsAttributeTableDialog()
-{
-  delete myDa;
-}
-
 void QgsAttributeTableDialog::updateTitle()
 {
   if ( ! mLayer )
@@ -398,7 +392,7 @@ void QgsAttributeTableDialog::updateTitle()
 
 void QgsAttributeTableDialog::updateButtonStatus( const QString &fieldName, bool isValid )
 {
-  Q_UNUSED( fieldName );
+  Q_UNUSED( fieldName )
   mRunFieldCalc->setEnabled( isValid );
 }
 
@@ -513,7 +507,10 @@ void QgsAttributeTableDialog::runFieldCalculation( QgsVectorLayer *layer, const 
   QString error;
 
   QgsExpression exp( expression );
-  exp.setGeomCalculator( myDa );
+  QgsDistanceArea da;
+  da.setSourceCrs( mLayer->crs(), QgsProject::instance()->transformContext() );
+  da.setEllipsoid( QgsProject::instance()->ellipsoid() );
+  exp.setGeomCalculator( &da );
   exp.setDistanceUnits( QgsProject::instance()->distanceUnits() );
   exp.setAreaUnits( QgsProject::instance()->areaUnits() );
   bool useGeometry = exp.needsGeometry();
@@ -1239,6 +1236,6 @@ QgsAttributeTableDock::QgsAttributeTableDock( const QString &title, QWidget *par
 
 void QgsAttributeTableDock::closeEvent( QCloseEvent *ev )
 {
-  Q_UNUSED( ev );
+  Q_UNUSED( ev )
   deleteLater();
 }
