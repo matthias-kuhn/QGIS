@@ -68,6 +68,7 @@ SET(QGIS_ANALYSIS_SRCS
   processing/qgsalgorithmextractzmvalues.cpp
   processing/qgsalgorithmextractvertices.cpp
   processing/qgsalgorithmextractspecificvertices.cpp
+  processing/qgsalgorithmextractlabelpositions.cpp
   processing/qgsalgorithmfiledownloader.cpp
   processing/qgsalgorithmfillnodata.cpp
   processing/qgsalgorithmfilter.cpp
@@ -404,6 +405,7 @@ INCLUDE_DIRECTORIES(
   ${CMAKE_SOURCE_DIR}/src/core/
   ${CMAKE_SOURCE_DIR}/src/core/geometry
   ${CMAKE_SOURCE_DIR}/src/core/labeling
+  ${CMAKE_SOURCE_DIR}/src/core/pal
   ${CMAKE_SOURCE_DIR}/src/core/processing
   ${CMAKE_SOURCE_DIR}/src/core/raster
   ${CMAKE_SOURCE_DIR}/src/core/mesh
@@ -417,6 +419,7 @@ INCLUDE_DIRECTORIES(
   ${CMAKE_SOURCE_DIR}/src/analysis/vector/geometry_checker
   ${CMAKE_SOURCE_DIR}/external
   ${CMAKE_SOURCE_DIR}/external/nlohmann
+  ${CMAKE_SOURCE_DIR}/external/rtree/include
 
   ${CMAKE_BINARY_DIR}/src/core
   ${CMAKE_BINARY_DIR}/src/analysis
@@ -490,7 +493,7 @@ TARGET_LINK_LIBRARIES(
   qgis_analysis
   qgis_core
   ${EXIV2_LIBRARY}
-  )
+)
 
 IF(HAVE_OPENCL)
     TARGET_LINK_LIBRARIES(qgis_analysis ${OpenCL_LIBRARIES})

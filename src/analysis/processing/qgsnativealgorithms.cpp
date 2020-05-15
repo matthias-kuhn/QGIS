@@ -60,6 +60,7 @@
 #include "qgsalgorithmextractbyextent.h"
 #include "qgsalgorithmextractbylocation.h"
 #include "qgsalgorithmextractlayoutmapextent.h"
+#include "qgsalgorithmextractlabelpositions.h"
 #include "qgsalgorithmextractvertices.h"
 #include "qgsalgorithmextractspecificvertices.h"
 #include "qgsalgorithmextractzmvalues.h"
@@ -263,6 +264,7 @@ void QgsNativeAlgorithms::loadAlgorithms()
   addAlgorithm( new QgsExtractByExpressionAlgorithm() );
   addAlgorithm( new QgsExtractByExtentAlgorithm() );
   addAlgorithm( new QgsExtractByLocationAlgorithm() );
+  addAlgorithm( new QgsExtractLabelPositionsAlgorithm() );
   addAlgorithm( new QgsExtractMValuesAlgorithm() );
   addAlgorithm( new QgsExtractVerticesAlgorithm() );
   addAlgorithm( new QgsExtractSpecificVerticesAlgorithm() );
