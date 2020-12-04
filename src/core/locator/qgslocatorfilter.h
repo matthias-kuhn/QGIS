@@ -55,6 +55,13 @@ class CORE_EXPORT QgsLocatorResult
     {}
 
     /**
+     * Getter for userData
+     *
+     * \since QGIS 3.18
+     */
+    QVariant getUserData() { return userData; }
+
+    /**
      * Filter from which the result was obtained. This is automatically set.
      */
     QgsLocatorFilter *filter = nullptr;
