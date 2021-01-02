@@ -323,6 +323,7 @@ inline Chain *Problem::chain( int seed )
     {
       try
       {
+
         // Skip active label !
         if ( !( tmpsol[seed] == -1 && i == -1 ) && i + mFeatStartId[seed] != tmpsol[seed] )
         {
@@ -342,14 +343,12 @@ inline Chain *Problem::chain( int seed )
               {
                 const int feat = lp2->getProblemFeatureId();
 
-                // is there any cycles ?
-                QLinkedList< ElemTrans * >::iterator cur;
-                for ( cur = currentChain.begin(); cur != currentChain.end(); ++cur )
+                // are there any cycles ?
+                const bool loop = std::any_of( currentChain.constBegin(), currentChain.constEnd(),
+                [feat]( const ElemTrans * elem ) { return elem->feat == feat; } );
+                if ( loop )
                 {
-                  if ( ( *cur )->feat == feat )
-                  {
-                    throw - 1;
-                  }
+                  throw - 1;
                 }
 
                 if ( !conflicts.contains( feat ) )
@@ -503,6 +502,11 @@ inline Chain *Problem::chain( int seed )
       {
         conflicts.clear();
       }
+      catch ( ... )
+      {
+        conflicts.clear();
+      }
+
     } // end foreach labelposition
 
     if ( next_seed == -1 )
