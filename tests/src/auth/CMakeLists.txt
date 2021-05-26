@@ -39,11 +39,11 @@ macro (ADD_QGIS_TEST testname testsrc)
     ${Qt5Network_LIBRARIES}
     ${PROJ_LIBRARY}
     ${GEOS_LIBRARY}
-    ${GDAL_LIBRARY}
+    GDAL::GDAL
     ${OPTIONAL_QTWEBKIT}
     ${PROJ_LIBRARY}
     ${GEOS_LIBRARY}
-    ${GDAL_LIBRARY}
+    GDAL::GDAL
     qgis_core
     )
     if(WITH_GUI)

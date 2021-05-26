@@ -202,7 +202,7 @@ endif()
 
 if (GDAL_FOUND)
   target_include_directories(mdalprovider PRIVATE ${GDAL_INCLUDE_DIR})
-  target_link_libraries(mdalprovider ${GDAL_LIBRARY} )
+  target_link_libraries(mdalprovider GDAL::GDAL )
 endif()
 
 if (NETCDF_FOUND)

@@ -61,7 +61,7 @@ macro (ADD_QGIS_TEST testname testsrc)
     ${OPTIONAL_QTWEBKIT}
     ${PROJ_LIBRARY}
     ${GEOS_LIBRARY}
-    ${GDAL_LIBRARY}
+    GDAL::GDAL
     ${QWT_LIBRARY}
     qgis_analysis
     qgis_core

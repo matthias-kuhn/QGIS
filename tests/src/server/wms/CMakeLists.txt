@@ -50,7 +50,7 @@ macro (ADD_QGIS_TEST TESTSRC)
     ${Qt5Test_LIBRARIES}
     ${PROJ_LIBRARY}
     ${GEOS_LIBRARY}
-    ${GDAL_LIBRARY}
+    GDAL::GDAL
     qgis_core
     qgis_server
   )

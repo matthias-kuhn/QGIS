@@ -37,7 +37,7 @@ macro (ADD_QGIS_TEST testname testsrc)
     ${Qt5Test_LIBRARIES}
     ${PROJ_LIBRARY}
     ${GEOS_LIBRARY}
-    ${GDAL_LIBRARY}
+    GDAL::GDAL
     qgis_core)
   add_test(qgis_${testname} ${CMAKE_CURRENT_BINARY_DIR}/../../../output/bin/qgis_${testname} -maxwarnings 10000)
 endmacro (ADD_QGIS_TEST)

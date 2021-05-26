@@ -4,7 +4,7 @@ target_compile_features(crssync PRIVATE cxx_std_17)
 target_link_libraries(crssync
   qgis_core
   ${PROJ_LIBRARY}
-  ${GDAL_LIBRARY}
+  GDAL::GDAL
 )
 
 if(MSVC AND NOT USING_NMAKE)

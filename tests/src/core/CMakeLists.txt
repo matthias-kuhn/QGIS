@@ -35,7 +35,7 @@ macro (ADD_QGIS_TEST TESTSRC)
     ${${QT_VERSION_BASE}Test_LIBRARIES}
     ${PROJ_LIBRARY}
     ${GEOS_LIBRARY}
-    ${GDAL_LIBRARY}
+    GDAL::GDAL
     ${SPATIALINDEX_LIBRARY}
     qgis_core)
   add_test(${TESTNAME} ${CMAKE_BINARY_DIR}/output/bin/${TESTNAME} -maxwarnings 10000)

@@ -63,7 +63,7 @@ target_link_libraries(qgis_process
   ${Qt5Core_LIBRARIES}
   ${PROJ_LIBRARY}
   ${GEOS_LIBRARY}
-  ${GDAL_LIBRARY}
+  GDAL::GDAL
 )
 
 if (WITH_3D)

@@ -39,7 +39,7 @@ target_link_libraries(qgis_3d_sandbox
   ${Qt5Test_LIBRARIES}
   ${PROJ_LIBRARY}
   ${GEOS_LIBRARY}
-  ${GDAL_LIBRARY}
+  GDAL::GDAL
   ${QWT_LIBRARY}
   qgis_core
   qgis_3d

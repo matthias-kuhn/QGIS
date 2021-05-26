@@ -90,7 +90,7 @@ else()
 
   target_link_libraries(wmsprovider
     qgis_core
-    ${GDAL_LIBRARY}  # for OGR_G_CreateGeometryFromJson()
+    GDAL::GDAL  # for OGR_G_CreateGeometryFromJson()
   )
 
   if (WITH_GUI)
